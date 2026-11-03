@@ -34,7 +34,7 @@ from ..core.subtitles import build_ass, load_words, write_srt
 log = get_logger()
 
 GRADIENT_COLORS = ["0x0f0c29", "0x302b63", "0x24243e", "0x16213e"]
-SEGMENT_REV = 1  # bump when background/segment rendering changes, so cached segments are rebuilt
+SEGMENT_REV = 2  # bump when background/segment rendering changes, so cached segments are rebuilt
 
 
 def _file_sha(ctx: ProjectContext, path: Path) -> str | None:
@@ -196,7 +196,8 @@ def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, backgro
         inputs = ["-ss", f"{start_ms / 1000:.3f}", "-i", str(background)]
         chain = "null"
         shas += [background_key, str(start_ms)]
-    chain += ",setsar=1,format=yuv420p"
+    # JPEG stills (and some phone clips) are full range: convert to TV range so every segment is plain yuv420p
+    chain += ",scale=out_range=tv,setsar=1,format=yuv420p"
     if v.overlay:
         ov = ctx.resolve(v.overlay, what="overlay")
         shas.append(_file_sha(ctx, ov))
