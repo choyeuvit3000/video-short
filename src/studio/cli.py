@@ -254,7 +254,7 @@ def new(
             if voice:
                 data.setdefault("audio", {})["voice_profile"] = voice
             if data.get("options", {}).get("topic"):
-                _apply_topic(s, data)
+                _apply_topic(s, data, user_options=options)
             if url:
                 data["source"] = {"type": "url", "url": url}
             scaffold(pdir, Project.model_validate(data))
@@ -271,11 +271,15 @@ def new(
     _guard(body)
 
 
-def _apply_topic(s, data: dict) -> None:
-    """Topic pack look (caption style, palette, on-screen disclaimer) as project defaults - editable later."""
+def _apply_topic(s, data: dict, *, user_options: dict | None = None) -> None:
+    """Topic pack look (caption style, palette, backdrop, on-screen disclaimer) and option defaults as project
+    defaults - editable later. Topic options override the workflow's defaults, never the user's --set."""
     from .workflows.topics import load_topic
 
     tp = load_topic(s, str(data["options"]["topic"]))
+    for key, value in tp.options.items():
+        if key not in (user_options or {}):
+            data["options"][key] = value
     if tp.caption_style:
         data.setdefault("video", {})["caption_style"] = tp.caption_style
     if tp.palette:

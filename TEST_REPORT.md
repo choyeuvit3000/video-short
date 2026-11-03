@@ -120,7 +120,7 @@ Demo dùng edge-tts, dịch vụ miễn phí cần internet. Muốn offline hoà
 ## 8. Test tự động
 
 ```text
-pytest -q   → 108 passed in 96.99s  (ảnh thật + tốc độ + căn giữa: +12; CLI thật: 96; sửa Threads + redact: 93; đợt Manim: 88; đợt củng cố: 75)
+pytest -q   → 111 passed in 166.99s  (kiểu tin công nghệ: +3; ảnh thật + tốc độ + căn giữa: +12; CLI thật: 96; sửa Threads + redact: 93; đợt Manim: 88; đợt củng cố: 75)
 ruff check . → All checks passed!
 ```
 
@@ -232,6 +232,40 @@ Khi duyệt kịch bản agy, đã sửa tay:
   chiến trên sông Bạch Đằng".
 
 Ảnh Commons đúng từ khóa nhưng chưa chắc đúng nội dung, nên bước duyệt ảnh vẫn cần thiết (AUDIT_REPORT §3 mục 8).
+
+## 12. Kiểu video tin công nghệ (`tech_news`)
+
+Mẫu tham khảo: một short "AI news explainer" dọc (chỉ lấy phong cách, không lấy nội dung hay chủ đề). Đã thêm:
+
+- 6 template: `headline`, `icons` (16 icon phẳng, chân trời hành tinh, tia tín hiệu), `checklist`, `big_numbers`,
+  `terminal`, `source_card`;
+- nền sao `options.backdrop: stars`;
+- caption `news_pop`: 4 từ một lần, từ đang đọc màu cam. Style caption nay đặt được `max_words` / `max_chars`;
+- topic pack `tech_news`, có mục `options` mặc định.
+
+Thẻ nguồn được vẽ, không chụp màn hình web (bất biến 5).
+
+Demo: "GPS biết bạn ở đâu". claude CLI viết 9 cảnh trong 56 s. Claude làm bước duyệt: đối chiếu số liệu với GPS.gov
+(20.200 km, 31 vệ tinh hoạt động / tối thiểu 24, 1 µs ≈ 300 m) và bài của R. Pogge (OSU: 38 µs/ngày, ~10 km/ngày).
+
+| Kết quả | |
+|---|---|
+| Video | 65,90 s, 1080x1920, h264 + aac, giọng `edge-vi-hoaimy` +25% |
+| QC `--strict` | **PASS**, 0 cảnh báo |
+| Ảnh Commons | "GPS Satellite NASA art-iif.jpg" (NASA, PD) |
+
+Sửa tay khi duyệt:
+
+- scene_08: `big_numbers` vẽ cột theo tỉ lệ giữa 38 µs và 10 km (khác đơn vị), dễ hiểu sai. Đã đổi thành `headline`
+  style big. Docstring của `big_numbers` nay ghi rõ "cùng đơn vị".
+- scene_02: ảnh là tranh minh họa của NASA, nên chú thích đổi thành "Minh họa vệ tinh GPS Block IIF (NASA)".
+
+Lỗi tìm ra khi render thử từng template, đã sửa:
+
+- `DashedLine` không có điểm cho `point_from_proportion`;
+- mũi tên giữa các icon bị buff nuốt mất;
+- nhãn lệch hàng;
+- hành tinh bị cắt ngang ở đáy vùng nội dung. Nay kéo tới mép khung, phần dưới tối để phụ đề vẫn đọc rõ.
 
 ## Chưa kiểm được trong đợt này
 

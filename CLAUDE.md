@@ -43,7 +43,7 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
   stage for `photo` scenes). `renderers/card.py` draws the post card; `voices.py` loads the voice registry
   (`with_speed` applies `audio.speed` per provider).
 - `src/studio/workflows/` — stage functions per workflow (`story_reader.py`, `ai_cinematic.py`, `knowledge.py`,
-  `common.py`); `topics.py` loads topic packs `workflows/_shared/topics/<id>.yaml` (science, history, finance...);
+  `common.py`); `topics.py` loads topic packs `workflows/_shared/topics/<id>.yaml` (science, history, finance, tech_news...; `options:` = project defaults);
   recipes live in `workflows/<name>/workflow.yaml` (stages, defaults, format_overrides, llm_chain) + prompts.
 - `voices/` — registry + profile YAMLs; models in `voices/local/models/` (gitignored, per machine).
 - `config/nodes.yaml` — worker nodes (tokens only via `token_env` → `.env`); `config/local.yaml` patches by id.

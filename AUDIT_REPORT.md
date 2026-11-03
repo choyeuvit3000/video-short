@@ -73,7 +73,7 @@ Quy ước trạng thái:
 |---|---|---|
 | `story_reader` | **Có** | demo 1 |
 | `ai_cinematic` | **Có** | demo 2 (clip mẫu thay cho Flow) |
-| `knowledge_explainer` + visual `manim` | **Có** | 12 template ManimCE (thêm `photo`), 8 topic pack, bước duyệt nguồn và ảnh; demo 9:16 (TEST_REPORT §9–§11) |
+| `knowledge_explainer` + visual `manim` | **Có** | 18 template ManimCE (thêm `photo` và 6 template kiểu tin tức), 9 topic pack, nền sao, bước duyệt nguồn và ảnh; demo 9:16 (TEST_REPORT §9–§12) |
 | Ảnh thật từ Wikimedia Commons (bước `images`) | **Có** | API chính thức, chỉ giấy phép tự do, credit trên màn hình và trong `metadata.md`; HTTP mock trong test, chạy thật 3 video *(mới)* |
 | `text_quote`, `listicle_stock`, `ai_slideshow` | **Khung** | M4 |
 | `longform_explainer` | **Khung** | M6 |

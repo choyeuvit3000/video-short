@@ -1,5 +1,6 @@
 """Topic packs (workflows/_shared/topics/<id>.yaml): tone, writing rules, allowed Manim templates, palette,
-fact-check policy and disclaimers for one knowledge subject. Add a topic by adding a YAML file."""
+fact-check policy, disclaimers and project option defaults (backdrop, scene_count...) for one knowledge subject.
+Add a topic by adding a YAML file."""
 
 from __future__ import annotations
 
@@ -28,16 +29,20 @@ class Topic(BaseModel):
     forbidden: list[str] = Field(default_factory=list)
     hashtags: dict[str, list[str]] = Field(default_factory=dict)
     example_briefs: list[str] = Field(default_factory=list)
+    # project option defaults over the workflow's (a --set on `studio new` still wins), e.g. backdrop: stars
+    options: dict = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _check(self) -> Topic:
-        from ..renderers.manim_render import TEMPLATES
+        from ..renderers.manim_render import BACKDROPS, TEMPLATES
 
         unknown = [t for t in self.templates if t not in TEMPLATES]
         if unknown:
             raise ValueError(f"unknown manim template(s): {', '.join(unknown)}")
         if self.disclaimer is not None and not {"vi", "en"} <= set(self.disclaimer):
             raise ValueError("disclaimer needs both vi and en")
+        if self.options.get("backdrop", "none") not in BACKDROPS:
+            raise ValueError(f"options.backdrop must be one of: {', '.join(BACKDROPS)}")
         return self
 
     def label(self, lang: str) -> str:

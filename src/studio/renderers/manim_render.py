@@ -2,7 +2,8 @@
 
 Two kinds of scene:
 - template - one of TEMPLATES below (title, bullets, counter, bar_chart, line_chart, function_graph, timeline,
-  compare, formula, process, quote). An LLM (or you) only fills JSON params, which are validated here;
+  compare, formula, process, quote, photo, and the news-style icons, terminal, checklist, source_card, headline,
+  big_numbers). An LLM (or you) only fills JSON params, which are validated here;
   no generated code ever runs. Code: renderers/manim_scenes/templates.py.
 - custom   - `visual: {type: manim, file: manim/<name>.py, scene_class: <Class>}`: a Manim file in the
   project that you wrote or reviewed yourself. It runs as Python on this machine, like any script.
@@ -38,7 +39,7 @@ from ..core.project import ProjectContext
 
 log = get_logger()
 
-MANIM_REV = 2  # bump when templates.py or the spec changes the picture for the same inputs
+MANIM_REV = 3  # bump when templates.py or the spec changes the picture for the same inputs
 TEMPLATE_SCRIPT = Path(__file__).parent / "manim_scenes" / "templates.py"
 DEFAULT_PALETTE = {"background": "#101626", "text": "#F4F6FB", "muted": "#9AA4B8",
                    "accent": ["#4CC9F0", "#FFD166", "#EF476F", "#06D6A0"]}
@@ -220,13 +221,94 @@ class PhotoP(_P):
     credit: str | None = Field(default=None, max_length=200, description="set by the images stage")
 
 
+IconName = Literal["satellite", "planet", "server", "chip", "rocket", "phone", "laptop", "cloud", "bolt", "sun",
+                   "dish", "robot", "lock", "coin", "user", "document"]
+ICONS: tuple[str, ...] = IconName.__args__
+
+
+class IconItem(_P):
+    icon: IconName
+    label: str | None = Field(default=None, max_length=28)
+    cue: str | None = Field(default=None, max_length=40)
+
+
+class IconsP(_P):
+    """Flat illustration: 1-3 built-in icons (satellite, planet, server, chip, rocket, phone, laptop, cloud, bolt,
+    sun, dish, robot, lock, coin, user, document) with short labels, optionally linked (arrow, beam = a signal,
+    vs, plus) and over a planet horizon (`scene: planet`). `note` = one big word or number under them ("÷4")."""
+    title: str | None = Field(default=None, max_length=60)
+    items: list[IconItem] = Field(min_length=1, max_length=3)
+    link: Literal["none", "arrow", "beam", "vs", "plus"] = "none"
+    scene: Literal["none", "planet"] = "none"
+    note: str | None = Field(default=None, max_length=24)
+
+
+class TerminalP(_P):
+    """A chat / terminal window: the prompt someone typed and the answer typed out letter by letter (what an AI
+    replied, a command and its output). Only real, quoted text - never invented quotes."""
+    window: str = Field(default="Terminal", min_length=1, max_length=40, description="window title")
+    prompt: str = Field(min_length=1, max_length=160)
+    speaker: str | None = Field(default=None, max_length=20, description="who answers, e.g. 'Gemma'")
+    response: str = Field(min_length=1, max_length=260)
+
+
+class ChecklistP(_P):
+    """Steps or requirements ticked off one by one as the narration reaches them (a stamp-like title on top)."""
+    title: str | None = Field(default=None, max_length=30)
+    items: list[Item] = Field(min_length=2, max_length=5)
+
+
+class SourceCardP(_P):
+    """The article / paper / announcement a fact comes from, drawn as a card (publisher, date, headline, one
+    sentence of it) with a 'Nguồn:' tag. Use for the news itself and for the closing sources scene."""
+    publisher: str = Field(min_length=1, max_length=40, description="e.g. 'blog.google', 'NASA', 'arXiv'")
+    headline: str = Field(min_length=1, max_length=120)
+    date: str | None = Field(default=None, max_length=20, description="publication date, e.g. '30/10/2026'")
+    excerpt: str | None = Field(default=None, max_length=220)
+    url: str | None = Field(default=None, max_length=100)
+
+
+class HeadlineP(_P):
+    """A punchy banner: a name in a coloured pill ('Project Suncatcher') or a giant date / number (style=big)."""
+    text: str = Field(min_length=1, max_length=36)
+    kicker: str | None = Field(default=None, max_length=40, description="small line above")
+    note: str | None = Field(default=None, max_length=70, description="small line below")
+    style: Literal["pill", "big"] = "pill"
+
+
+class BigNumber(_P):
+    value: float = Field(ge=0)
+    label: str = Field(min_length=1, max_length=28)
+    prefix: str = Field(default="", max_length=8)
+    suffix: str = Field(default="", max_length=12)
+    cue: str | None = Field(default=None, max_length=40)
+
+
+class BigNumbersP(_P):
+    """2-3 big numbers with bars to scale: now vs later, cost before vs after ('$3.600' -> '<$200'). All items
+    must be the same quantity in the same unit (else use `headline` style=big or `compare`)."""
+    title: str | None = Field(default=None, max_length=60)
+    items: list[BigNumber] = Field(min_length=2, max_length=3)
+    decimals: int = Field(default=0, ge=0, le=2)
+    note: str | None = Field(default=None, max_length=80)
+
+    @model_validator(mode="after")
+    def _check(self) -> BigNumbersP:
+        if max(i.value for i in self.items) <= 0:
+            raise ValueError("at least one value must be > 0")
+        return self
+
+
 TEMPLATES: dict[str, type[_P]] = {
     "title": TitleP, "bullets": BulletsP, "counter": CounterP, "bar_chart": BarChartP, "line_chart": LineChartP,
     "function_graph": FunctionGraphP, "timeline": TimelineP, "compare": CompareP, "formula": FormulaP,
-    "process": ProcessP, "quote": QuoteP, "photo": PhotoP,
+    "process": ProcessP, "quote": QuoteP, "photo": PhotoP, "icons": IconsP, "terminal": TerminalP,
+    "checklist": ChecklistP, "source_card": SourceCardP, "headline": HeadlineP, "big_numbers": BigNumbersP,
 }
 # which list in the params is revealed item by item, following the narration
-CUED_LIST = {"bullets": "items", "bar_chart": "bars", "timeline": "events", "process": "steps"}
+CUED_LIST = {"bullets": "items", "bar_chart": "bars", "timeline": "events", "process": "steps", "icons": "items",
+             "checklist": "items", "big_numbers": "items"}
+BACKDROPS = ("none", "stars")
 
 EXAMPLES: dict[str, dict[str, Any]] = {
     "title": {"kicker": "TÀI CHÍNH", "title": "Lãi kép", "subtitle": "Kỳ quan thứ tám của thế giới?"},
@@ -253,6 +335,18 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "quote": {"text": "Điều khó hiểu nhất về vũ trụ là nó có thể hiểu được.", "author": "Albert Einstein",
               "context": "1936"},
     "photo": {"query": "Hubble Space Telescope in orbit", "caption": "Kính Hubble trên quỹ đạo"},
+    "icons": {"scene": "planet", "link": "beam", "items": [
+        {"icon": "satellite", "label": "Vệ tinh GPS", "cue": "vệ"}, {"icon": "phone", "label": "Điện thoại"}]},
+    "terminal": {"window": "Gemma · trên quỹ đạo", "prompt": "Viết một bài haiku về Trái Đất",
+                 "speaker": "Gemma", "response": "Viên bi xanh dưới kia..."},
+    "checklist": {"title": "Bản thiết kế", "items": [
+        {"text": "Chạy chip, trả lời lệnh"}, {"text": "Chịu bức xạ vũ trụ", "cue": "bức"}]},
+    "source_card": {"publisher": "NASA", "date": "12/07/2022", "headline": "First images from the James Webb "
+                    "Space Telescope", "url": "nasa.gov"},
+    "headline": {"kicker": "Dự án mới của Google", "text": "Project Suncatcher"},
+    "big_numbers": {"title": "Giá phóng 1 kg lên quỹ đạo", "items": [
+        {"value": 3600, "prefix": "$", "label": "hiện nay"}, {"value": 200, "prefix": "<$", "label": "năm 2035?"}],
+        "note": "dự báo, không phải giá thật"},
 }
 
 
@@ -371,7 +465,7 @@ def build_spec(ctx: ProjectContext, scene, dur_ms: int, voice_ms: int) -> dict[s
         "box": content_box(fmt, captions=captions), "palette": palette,
         "font": p.options.get("manim_font") or DEFAULT_FONT, "latex": latex_available(),
         "footer": p.options.get("on_screen_note") if p.scenes and scene.scene_id == p.scenes[0].scene_id else None,
-        "language": p.language,
+        "language": p.language, "backdrop": p.options.get("backdrop") or "none",
     }
     if v.file:
         spec["custom"] = True

@@ -57,3 +57,13 @@ def test_build_ass_highlight():
     assert ass.count("Dialogue:") == 3  # one event per highlighted word
     assert "chào" in ass
     assert cues[0].text.replace("\n", " ") == "Xin chào bạn"
+
+
+def test_caption_style_can_ask_for_longer_chunks():
+    words = [Word(w, i * 300, i * 300 + 280) for i, w in enumerate("một hai ba bốn năm sáu".split())]
+    style = {"mode": "plain"}
+    caption = {"font_size": 28, "max_words": 3, "max_chars": 40}
+    _, cues = build_ass(words, width=360, height=640, style=style, caption=caption)
+    assert [c.text for c in cues] == ["một hai ba", "bốn năm sáu"]
+    _, cues = build_ass(words, width=360, height=640, style={**style, "max_words": 4}, caption=caption)
+    assert [c.text for c in cues] == ["một hai ba bốn", "năm sáu"]

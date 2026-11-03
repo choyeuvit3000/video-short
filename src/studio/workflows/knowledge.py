@@ -178,6 +178,8 @@ def stage_explainer(ctx: ProjectContext, opts: dict) -> str:
     p.options["sources"] = [{"claim": str(x.get("claim", "")), "source": str(x.get("source", ""))}
                             for x in data.get("sources") or []]
     p.options.setdefault("palette", topic.palette)
+    if "backdrop" in topic.options:
+        p.options.setdefault("backdrop", topic.options["backdrop"])
     if note and topic.disclaimer_on_screen:
         p.options.setdefault("on_screen_note", note)
     p.options["reviewed"] = False  # new script -> needs a new review

@@ -86,6 +86,8 @@ Với Threads, API chính thức không đọc được một bài theo URL. Vì
 - **render**: mỗi cảnh `manim` được dựng thành `work/manim/<scene>.mp4` (có cache). Hình chạy theo mốc từ của giọng đọc.
 - Tốc độ giọng: `audio.speed` (mặc định của workflow là **1.25**; 1.0 là tốc độ gốc của giọng). Áp dụng cho edge, piper và mock, kể cả khi chuyển sang giọng dự phòng.
 - Mặc định: `audio_driven`, 6 cảnh khoảng 8 giây (bản 16:9 dài: 14 cảnh khoảng 20 giây), caption `clean_box`.
+- Kiểu video tin công nghệ (nền sao, icon phẳng, thẻ nguồn, phụ đề `news_pop`): `--topic tech_news`, xem
+  [MANIM.md](MANIM.md#phong-cách-tin-công-nghệ-tech_news).
 - Chi tiết template và cảnh tự viết: [MANIM.md](MANIM.md).
 
 Loại visual `manim` dùng được trong mọi workflow, không riêng workflow này. Ví dụ: chèn một biểu đồ vào video `story_reader` bằng cách sửa

@@ -245,7 +245,9 @@ def build_ass(
         f"{border_style},{outline_w},{shadow},2,{margin_l},{margin_r},{margin_v},1"
     )
     lines = [ASS_HEADER.format(w=width, h=height, styles=styles)]
-    chunks = group_words(words, max_words=int(caption.get("max_words", 3)), max_chars=int(caption.get("max_chars", 18)))
+    # a style may ask for longer chunks than the format's default (news captions read 4-5 words at a time)
+    chunks = group_words(words, max_words=int(style.get("max_words") or caption.get("max_words", 3)),
+                         max_chars=int(style.get("max_chars") or caption.get("max_chars", 18)))
     cues = chunks_to_cues(chunks)
     mode = style.get("mode", "highlight")
     for ch, cue in zip(chunks, cues, strict=True):

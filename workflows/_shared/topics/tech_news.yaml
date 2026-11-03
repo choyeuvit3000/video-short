@@ -1,0 +1,30 @@
+id: tech_news
+name: {vi: Tin công nghệ, en: Tech news}
+tone: kể tin như người bạn rành công nghệ - tò mò, nhanh, rõ ràng, không giật tít sai sự thật
+guidance: |
+  - Scene 1 is a hook: a question or a surprising, true fact, shown with `headline` (a name or a big number).
+  - Every news fact carries its date (day/month/year) and who announced it; plans and forecasts are said as
+    plans ("dự kiến", "theo kế hoạch"), never as done.
+  - Explain the idea with flat pictures: `icons` (planet + satellite/server/phone, arrows or a beam), `checklist`
+    for requirements, `big_numbers` for before/after costs or sizes, `terminal` only for text that was really
+    typed or answered (quoted from the source).
+  - Give one simple analogy for the hard part.
+  - The last scene is a `source_card` of the main source (publisher, date, real headline) and one line on what
+    happens next.
+  - Short sentences; a beat every 6-8 seconds.
+templates: [headline, icons, checklist, big_numbers, terminal, source_card, counter, timeline, compare, bullets, process]
+palette: {background: "#07080C", text: "#F5F5F7", muted: "#9CA3AF", accent: ["#FF7A1A", "#3B82F6", "#F4B942", "#22C55E"]}
+caption_style: news_pop
+review_required: true
+require_sources: true
+disclaimer: null
+forbidden:
+  - rumours, leaks or claims without an official or reputable source
+  - presenting a plan, prototype or forecast as a finished product
+  - invented quotes or chatbot answers
+  - copying an article's text beyond one short sentence
+options: {backdrop: stars, scene_count: 9, scene_sec: 7}
+hashtags: {vi: ["#tincongnghe", "#congnghe", "#AI"], en: ["#technews", "#tech", "#AI"]}
+example_briefs:
+  - GPS trên điện thoại biết vị trí của bạn bằng cách nào (và vì sao cần thuyết tương đối)?
+  - Kính James Webb gửi ảnh về Trái Đất như thế nào?

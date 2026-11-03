@@ -45,6 +45,15 @@ Animation tự nằm **trong vùng an toàn của nền tảng và phía trên 2
 | `process` | các bước nối bằng mũi tên, vòng lặp (`loop: true`) | `title?`, `steps[{text, cue?}]`, `loop?` |
 | `quote` | trích dẫn thật, có tác giả | `text`, `author`, `context?` |
 | `photo` | ảnh thật (địa điểm, hiện vật, nhân vật, hiện tượng) từ Wikimedia Commons, có ghi công | `query` (tiếng Anh, có tên riêng), `caption?`; `file` và `credit` do stage `images` điền |
+| `headline` | banner: tên trong khung màu (`pill`) hoặc con số/ngày thật lớn (`big`) | `text` (≤ 36 ký tự), `kicker?`, `note?`, `style?` |
+| `icons` | hình minh họa phẳng: 1–3 icon có sẵn, nối bằng mũi tên / tia tín hiệu / VS / +, có thể đặt trên chân trời hành tinh | `items[{icon, label?, cue?}]`, `link?`, `scene?` (`planet`), `title?`, `note?` |
+| `checklist` | yêu cầu / bước được đánh dấu ✓ lần lượt, tiêu đề dạng con dấu | `title?`, `items[{text, cue?}]` |
+| `big_numbers` | 2–3 số lớn kèm cột theo tỉ lệ (trước/sau, nay/sau này), **cùng đơn vị** | `items[{value, label, prefix?, suffix?, cue?}]`, `title?`, `decimals?`, `note?` |
+| `terminal` | cửa sổ chat/terminal: lệnh đã gõ và câu trả lời gõ từng chữ; chỉ chữ thật, có trích nguồn | `prompt`, `response`, `window?`, `speaker?` |
+| `source_card` | thẻ bài báo/bài blog/paper (nhà xuất bản, ngày, tiêu đề, một câu) + dòng "Nguồn:" | `publisher`, `headline`, `date?`, `excerpt?`, `url?` |
+
+Icon có sẵn: satellite, planet, server, chip, rocket, phone, laptop, cloud, bolt, sun, dish, robot, lock, coin, user,
+document. Icon vẽ bằng hình cơ bản trong `templates.py`; AI chỉ chọn tên, không vẽ.
 
 Ví dụ đầy đủ của từng template: `EXAMPLES` trong `src/studio/renderers/manim_render.py`. AI cũng nhận đúng
 danh sách này trong prompt.
@@ -83,7 +92,7 @@ Rồi chạy `studio run <dir>`. Chỉ cảnh đó được dựng lại.
 
 `workflows/_shared/topics/<id>.yaml` có: giọng văn, hướng dẫn cho AI, các template phù hợp, bảng màu,
 điều cấm, hashtag, câu miễn trừ trách nhiệm, và có bắt buộc nguồn hay không. Có sẵn các chủ đề `science`, `history`, `finance`,
-`math`, `technology`, `geography`, `psychology`, `health`.
+`math`, `technology`, `tech_news`, `geography`, `psychology`, `health`.
 
 - `finance` và `health`: câu miễn trừ trách nhiệm được thêm vào mô tả và hiện ở cảnh đầu.
   Câu cho finance: "Nội dung chỉ nhằm mục đích giáo dục, không phải lời khuyên đầu tư."
@@ -91,12 +100,31 @@ Rồi chạy `studio run <dir>`. Chỉ cảnh đó được dựng lại.
 - Mọi chủ đề đều bắt buộc bước duyệt. Muốn bỏ duyệt thì dùng `--set review=false`; chỉ nên làm vậy khi bạn đã tự viết kịch bản.
 - Nguồn (`options.sources`) được ghi vào `output/metadata.md` ở mục "Sources".
 
+### Phong cách tin công nghệ (`tech_news`)
+
+Mô phỏng kiểu video "AI news explainer" dọc: nền đen có sao lấp lánh, icon phẳng, banner tên dự án, checklist,
+số lớn trước/sau, thẻ nguồn cuối video, phụ đề trắng in đậm 4 từ một lần với từ đang đọc màu cam (`news_pop`).
+
+```powershell
+studio new knowledge_explainer "GPS biết bạn ở đâu" --topic tech_news --brief "..." --set llm_chain=claude_cli
+```
+
+- Chủ đề này đặt mặc định `options.backdrop: stars`, 9 cảnh khoảng 7 giây, caption `news_pop`. `--set` vẫn ghi đè được
+  (ví dụ `--set backdrop=none`).
+- Thẻ nguồn được **vẽ** từ tên nguồn, ngày và tiêu đề thật, không chụp màn hình trang web (bất biến 5: không tự động
+  hóa trình duyệt).
+- Mỗi tin phải có ngày và người công bố; kế hoạch thì nói là kế hoạch. Bước duyệt vẫn bắt buộc.
+
 Thêm một chủ đề: chép một file YAML, đổi `id` cho trùng với tên file, rồi chạy `studio topics` để kiểm tra.
 Tùy chọn của project có thể ghi đè chủ đề:
 
 - `options.palette`: bảng màu `bg`, `text`, `muted`, `accents`;
 - `options.manim_font`;
-- `options.on_screen_note`.
+- `options.on_screen_note`;
+- `options.backdrop`: `none` (mặc định) hoặc `stars` (nền sao, áp dụng cho mọi cảnh Manim).
+
+Topic pack có thể có mục `options:` (ví dụ `{backdrop: stars, scene_count: 9}`). Các giá trị này thay mặc định của
+workflow khi `studio new`, nhưng không thay giá trị bạn đặt bằng `--set`.
 
 ## Cảnh Manim tự viết
 

@@ -1,0 +1,16 @@
+# News-explainer captions: bold white, no box, the spoken word in orange; 4 words at a time.
+font: Arial
+bold: true
+uppercase: false
+color: "#FFFFFF"
+highlight_color: "#FF6A3D"
+outline_color: "#000000"
+outline: 4
+shadow: 0
+shadow_color: "#000000"
+shadow_alpha: 96
+box: false
+mode: highlight      # highlight | plain
+size_scale: 0.9
+max_words: 4
+max_chars: 22

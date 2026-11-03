@@ -20,7 +20,7 @@ from studio.renderers.manim_render import (
     validate_params,
 )
 from studio.workflows import load_workflow, project_defaults
-from studio.workflows.topics import list_topics, load_topic
+from studio.workflows.topics import Topic, list_topics, load_topic
 
 from .conftest import make_project, needs_ffmpeg
 
@@ -65,6 +65,12 @@ def test_every_template_example_validates_and_bad_params_fail():
         ("line_chart", {"x_labels": ["a", "b"], "series": [{"name": "s", "values": [1, 2, 3]}]}, "bad_manim_params"),
         ("function_graph", {"curves": [{"kind": "normal", "a": 0}]}, "bad_manim_params"),
         ("function_graph", {"curves": [{"kind": "exec", "a": 1}]}, "bad_manim_params"),
+        ("icons", {"items": [{"icon": "unicorn"}]}, "bad_manim_params"),  # only built-in icons
+        ("icons", {"items": [{"icon": "sun"}] * 4}, "bad_manim_params"),
+        ("big_numbers", {"items": [{"value": 0, "label": "a"}, {"value": 0, "label": "b"}]}, "bad_manim_params"),
+        ("headline", {"text": "x" * 37}, "bad_manim_params"),
+        ("source_card", {"headline": "No publisher"}, "bad_manim_params"),
+        ("terminal", {"prompt": "hi", "response": "x" * 261}, "bad_manim_params"),
     ]:
         with pytest.raises(StudioError) as e:
             validate_params(name, params)
@@ -110,6 +116,11 @@ def test_topic_packs(settings):
     with pytest.raises(StudioError) as e:
         load_topic(settings, "astrology")
     assert e.value.code == "unknown_topic"
+    news = topics["tech_news"]
+    assert news.caption_style == "news_pop" and news.options["backdrop"] == "stars"
+    assert {"headline", "icons", "source_card"} <= set(news.templates)
+    with pytest.raises(ValueError, match="backdrop"):
+        Topic.model_validate({**news.model_dump(), "options": {"backdrop": "lava"}})
 
 
 def test_explainer_writes_scenes_then_waits_for_review(tmp_path, settings):
@@ -199,6 +210,20 @@ def test_cli_new_with_topic_and_topics_list(tmp_path):
     assert lst.exit_code == 0 and "finance" in lst.output
 
 
+def test_topic_options_override_workflow_defaults_but_not_set(tmp_path):
+    def new(target, *extra):
+        r = CliRunner().invoke(app, ["new", "knowledge_explainer", "GPS", "--topic", "tech_news", "--brief", "GPS",
+                                     "--format", "test_9x16", "--dir", str(target), *extra])
+        assert r.exit_code == 0, r.output
+        return json.loads((target / "project.json").read_text(encoding="utf-8"))
+
+    pj = new(tmp_path / "a")
+    assert pj["options"]["backdrop"] == "stars" and pj["options"]["scene_count"] == 9  # workflow default is 6
+    assert pj["video"]["caption_style"] == "news_pop" and pj["options"]["palette"]["background"] == "#07080C"
+    pj = new(tmp_path / "b", "--set", "scene_count=5", "--set", "backdrop=none")
+    assert pj["options"]["scene_count"] == 5 and pj["options"]["backdrop"] == "none"
+
+
 @needs_ffmpeg
 @needs_manim
 @pytest.mark.ffmpeg
@@ -252,6 +277,40 @@ def test_custom_manim_scene_file(tmp_path, settings):
     assert rep["status"] == "PASS", rep
     assert (ctx.work / "manim" / "scene_01.mp4").is_file()
     assert (ctx.dir / "manim" / "my scene.py").is_file()  # user file untouched
+
+
+NEWS_SCENES = [
+    ("headline", "Một dự án mới.", {"kicker": "Tin mới", "text": "Project X", "note": "30/10/2026"}),
+    ("icons", "Vệ tinh gửi tín hiệu xuống điện thoại.", {
+        "scene": "planet", "link": "beam", "items": [{"icon": "satellite", "label": "Vệ tinh", "cue": "vệ"},
+                                                     {"icon": "phone", "label": "Điện thoại", "cue": "điện"}]}),
+    ("icons", "Máy chủ, chip và đám mây.", {"title": "Ba phần", "link": "arrow", "note": "÷4", "items": [
+        {"icon": "server"}, {"icon": "chip", "label": "Chip"}, {"icon": "cloud", "label": "Đám mây"}]}),
+    ("checklist", "Cần điện và cần mát.", {"title": "Yêu cầu", "items": [{"text": "Điện", "cue": "điện"},
+                                                                         {"text": "Làm mát", "cue": "mát"}]}),
+    ("big_numbers", "Từ ba nghìn xuống hai trăm.", {"items": [{"value": 3000, "prefix": "$", "label": "nay"},
+                                                              {"value": 200, "prefix": "$", "label": "sau"}]}),
+    ("terminal", "Nó trả lời ngắn gọn.", {"prompt": "Xin chào", "speaker": "Bot", "response": "Chào bạn!"}),
+    ("source_card", "Nguồn là bài blog chính thức.", {"publisher": "example.org", "date": "30/10/2026",
+                                                       "headline": "Hello world", "excerpt": "One line."}),
+]
+
+
+@needs_ffmpeg
+@needs_manim
+@pytest.mark.ffmpeg
+def test_news_templates_render_over_stars(tmp_path, settings):
+    ctx = make_project(tmp_path / "tin công nghệ", settings, workflow="knowledge_explainer",
+                       options={"backdrop": "stars"}, video={"caption_style": "news_pop"}, scenes=[
+        {"scene_id": f"scene_{i:02d}", "narration": text, "visual": {"type": "manim", "template": t, "params": prm}}
+        for i, (t, text, prm) in enumerate(NEWS_SCENES, start=1)])
+    assert not [i for i in validate_project(ctx) if i.level == "error"]
+    run_pipeline(ctx, RunOptions(only=["validate", "voice", "render", "qc"]))
+    rep = json.loads((ctx.output / "qc_report.json").read_text(encoding="utf-8"))
+    assert rep["status"] == "PASS", rep
+    spec = json.loads((ctx.work / "manim" / "scene_02.spec.json").read_text(encoding="utf-8"))
+    assert spec["backdrop"] == "stars" and len(spec["times"]) == 2
+    assert len(list((ctx.work / "manim").glob("scene_*.mp4"))) == len(NEWS_SCENES)
 
 
 def test_cued_list_keys_exist_in_params():
