@@ -39,6 +39,7 @@ uv pip install -e ".[piper,align,dev]"
 | `piper` | giọng đọc offline Piper (CPU) |
 | `align` | faster-whisper, dùng để lấy mốc thời gian từng từ khi giọng không tự cung cấp |
 | `dev` | pytest, ruff |
+| `worker` | FastAPI + uvicorn: chỉ cần khi muốn chạy `studio worker serve` hoặc `scripts/smoke_worker_local.ps1` trên laptop. Gửi job lên PC không cần extra này |
 
 ## 4. Cấu hình
 

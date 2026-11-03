@@ -1,5 +1,6 @@
-# Worker machines (milestone M3.5 - the worker service is not implemented yet; `studio doctor --gpu`
-# already checks a GPU machine). Tokens are never written here: token_env names a variable in .env.
+# Worker machines for `studio run --node auto|<id>` (M3.5). Tokens are never written here: token_env names a
+# variable in .env (same value on the controller and on the worker). A machine-local config/local.yaml may
+# patch a node, e.g.  nodes: [{id: home-gpu, enabled: true, url: "http://100.101.102.103:8765"}]
 nodes:
   - id: laptop
     role: controller

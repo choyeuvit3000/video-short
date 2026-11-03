@@ -5,7 +5,7 @@ Studio dựng video ngắn/dài chạy trên Windows, ưu tiên công cụ local
 - **Tool có sẵn chạy trước, AI chỉ dùng khi cần.** Ghép, cắt, caption, mix nhạc, QC đều do FFmpeg và Python đảm nhận. AI CLI (Claude / agy / Codex) chỉ viết kịch bản, dịch và làm storyboard.
 - **Bước AI trên web là bước thủ công có checklist** (ChatGPT ảnh, Google Flow video). Tool không scrape, không tự click và không lưu cookie.
 - **Giọng đọc quản lý tập trung** trong `voices/`, gồm ba loại: free (edge-tts), local (Piper CPU, sau này thêm GPU) và API trả phí (mặc định tắt, có trần ngân sách).
-- **Thiết kế cho nhiều máy.** Laptop là máy điều khiển; PC RTX 3080 ở nhà là GPU node (worker sẽ có ở milestone M3.5).
+- **Thiết kế cho nhiều máy.** Laptop là máy điều khiển; PC RTX 3080 ở nhà là GPU node chạy `studio worker` theo khung giờ rảnh. Laptop gửi project qua Tailscale và lấy kết quả về sau.
 
 ## Bắt đầu nhanh (laptop)
 
@@ -54,9 +54,17 @@ studio status DIR                       trạng thái từng stage
 studio validate|voice|render|qc|package DIR
 studio voices list|install|preview|test
 studio discover reddit SUB [--period day] | studio discover threads QUERY
+
+# đa máy
+studio run DIR --node auto|NODE [--no-wait] [--timeout MIN] [--fallback local|fail]
+studio nodes status                     node nào online, trong giờ, queue, GPU
+studio jobs list [--node NODE]          job trên các worker
+studio jobs pull DIR|JOB_ID             lấy kết quả job về project
+studio jobs cancel DIR|JOB_ID
+studio worker serve                     (trên PC GPU, thường do scripts/install_worker.ps1 chạy)
 ```
 
-Exit code: `0` ok · `1` lỗi · `2` dữ liệu không hợp lệ · `3` **đang chờ bước thủ công** (đọc `TODO_MANUAL.md`) · `4` vượt ngân sách · `5` QC fail.
+Exit code: `0` ok · `1` lỗi · `2` dữ liệu không hợp lệ · `3` **đang chờ bước thủ công** (đọc `TODO_MANUAL.md`) · `4` vượt ngân sách · `5` QC fail · `6` **job đang ở worker** (chạy `studio jobs pull` sau).
 
 ## Thư mục
 
@@ -66,8 +74,8 @@ workflows/   recipe từng workflow: workflow.yaml + prompts/ + README
 assets/      shared/ (font, nhạc, sfx, caption style...) + workflows/<wf>/ + library.json
 voices/      registry.yaml, free/, api/, local/ (manifest + models/), clones/, samples/
 projects/    <workflow>/<yyyymmdd_slug>/ — project.json, source/, clips/, images/, audio/, work/, output/, logs/
-src/studio/  core/ pipeline/ providers/ renderers/ workflows/ cli.py
-scripts/     create_test_fixtures.ps1, smoke_test_windows.ps1
+src/studio/  core/ pipeline/ providers/ renderers/ workflows/ nodes/ (laptop) worker/ (PC GPU) cli.py
+scripts/     create_test_fixtures.ps1, smoke_test_windows.ps1, smoke_worker_local.ps1, install_worker.ps1
 docs/        hướng dẫn
 ```
 

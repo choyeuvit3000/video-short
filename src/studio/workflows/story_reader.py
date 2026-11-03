@@ -225,7 +225,7 @@ def stage_scenes(ctx: ProjectContext, opts: dict) -> str:
         ctx.work / "card.png", video_width=fmt.width,
         title=card_title, community=post.community, author=post.author, score=post.score,
         platform=post.platform if post.platform in ("reddit", "threads") else "web",
-        theme=o.get("card_theme", "light"), fonts_dir=ctx.settings.path("assets") / "shared" / "fonts",
+        theme=o.get("card_theme", "light"), fonts_dir=ctx.asset_dir("shared/fonts"),
         width_ratio=float(o.get("card_width_ratio", 0.86)),
     )
     max_chars = int(o.get("scene_max_chars", 260))

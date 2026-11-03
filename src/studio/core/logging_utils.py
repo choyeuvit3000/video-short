@@ -52,3 +52,12 @@ def attach_run_log(project_dir: Path, command: str) -> Path:
     fh.addFilter(_RedactFilter())
     log.addHandler(fh)
     return path
+
+
+def detach_run_log() -> None:
+    """Close the per-run file handler (the worker must release it before deleting a job folder)."""
+    log = get_logger()
+    for h in list(log.handlers):
+        if isinstance(h, logging.FileHandler):
+            log.removeHandler(h)
+            h.close()

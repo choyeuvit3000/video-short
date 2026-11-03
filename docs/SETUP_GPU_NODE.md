@@ -16,7 +16,7 @@
 
 Vai trò của máy này: chạy các việc nặng (encode NVENC, faster-whisper CUDA, ComfyUI ảnh/video, TTS GPU) trong khung giờ rảnh.
 
-Phần **worker service** (nhận job từ laptop qua mạng) thuộc milestone **M3.5, chưa được viết**. Bây giờ chỉ chuẩn bị máy và chạy studio local trên PC. Bước 9 là phần dành cho sau này.
+Bước 0–8 chuẩn bị máy và chạy studio local trên PC. Bước 9 cài **worker service** (M3.5): laptop gửi project qua Tailscale, PC render trong khung giờ rảnh, laptop lấy kết quả về.
 
 ---
 
@@ -96,7 +96,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\smoke_test_windows.ps1 -Keep
 
 - [ ] `studio voices install piper-vi-vais1000` và `studio voices install piper-en-lessac`
 - [ ] `studio voices test piper-vi-vais1000`
-- Các giọng GPU (`f5tts-vi`, `vieneu-vi`, `xtts-v2-clone`) đang ở trạng thái `planned` trong `voices/local/manifest.yaml`, **chưa cài**. Chúng sẽ được tích hợp cùng worker (M3.5). Mỗi giọng sẽ có venv riêng trong `$NODE\tts\<tên>` để không xung đột torch với studio.
+- Các giọng GPU (`f5tts-vi`, `vieneu-vi`, `xtts-v2-clone`) đang ở trạng thái `planned` trong `voices/local/manifest.yaml`, **chưa cài**. Chúng sẽ được tích hợp vào worker ở milestone sau. Mỗi giọng sẽ có venv riêng trong `$NODE\tts\<tên>` để không xung đột torch với studio.
 
 ## Bước 7 — ComfyUI (ảnh và video local)
 
@@ -121,16 +121,55 @@ Người dùng **đã mở port trên router**. Đây là rủi ro: dịch vụ 
 - [ ] **Người dùng** vào trang quản trị router, **xóa rule port forwarding** đã mở. Kiểm tra lại bằng một dịch vụ kiểm tra port từ bên ngoài.
 - [ ] Remote Desktop, nếu cần, chỉ dùng qua IP Tailscale.
 
-## Bước 9 — (sau M3.5) Worker theo khung giờ
+## Bước 9 — Worker theo khung giờ (M3.5)
 
-Phần này chỉ làm khi `src/studio/worker/` đã tồn tại.
+Worker là một dịch vụ HTTP nhỏ (`studio worker serve`): hàng đợi SQLite trên chính PC, chỉ nhận loại job `pipeline` (các stage `validate, voice, render, qc, package` của một project), không có endpoint chạy lệnh tùy ý. Laptop gửi file theo content hash (file PC đã có thì không gửi lại), PC chạy xong giữ kết quả, laptop lấy về bằng `studio jobs pull`.
 
-- `.env`: `STUDIO_NODE_HOME_GPU_TOKEN=<chuỗi ngẫu nhiên dài>`, cùng giá trị trên laptop. Tạo chuỗi bằng:
-  `[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))`
-- Worker chỉ bind vào IP Tailscale, chỉ nhận các loại job định nghĩa sẵn, không có endpoint shell.
-- `scripts/install_worker.ps1` sẽ tạo task trong Task Scheduler, chạy theo `schedule` trong `config/nodes.yaml` (mặc định `mon-fri 08:30-17:30`) và tự nhường GPU khi người dùng đang dùng máy.
-- Power Options: không cho máy sleep trong khung giờ worker.
-- Trên laptop: `config/nodes.yaml` đặt `home-gpu.enabled: true` và `url: http://home-gpu:8765`.
+**Làm sau Bước 8** (Tailscale đã chạy, port router đã đóng).
+
+- [ ] Tạo token. Chạy **một lần**, giá trị này dùng chung cho PC và laptop:
+
+```powershell
+$b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
+```
+
+  Ghi vào `.env` của PC: `STUDIO_NODE_HOME_GPU_TOKEN=<chuỗi vừa tạo>`. **Không** in token ra báo cáo; chỉ báo "đã tạo". Đưa token cho người dùng tự chép sang laptop qua kênh riêng (password manager), không gửi qua chat.
+
+- [ ] Thêm vào `config/local.yaml` của PC (giữ nguyên các mục đã có ở Bước 3):
+
+```yaml
+worker:
+  node_id: home-gpu            # lấy schedule/policy của home-gpu trong config/nodes.yaml
+  host: 100.x.y.z              # IP Tailscale của PC (tailscale ip -4); KHÔNG dùng 0.0.0.0
+  port: 8765
+  data_dir: D:\studio-node\worker_data   # hàng đợi + file job; mặc định .\worker_data trong repo
+```
+
+  Muốn đổi khung giờ thì patch node trong cùng file: `nodes: [{id: home-gpu, schedule: {timezone: Asia/Ho_Chi_Minh, windows: ["mon-fri 08:30-17:30", "sat-sun 01:00-07:00"]}}]`.
+
+- [ ] Smoke test worker trên chính PC (HTTP thật qua 127.0.0.1, không đụng config của repo):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\smoke_worker_local.ps1 -Encoder h264_nvenc
+```
+
+  Phải in `WORKER SMOKE PASSED`, và dòng `worker log pulled` phải có `encoder h264_nvenc`.
+
+- [ ] Cài worker vào Task Scheduler (tự chạy khi đăng nhập, tự khởi động lại nếu dừng, không có cửa sổ console):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install_worker.ps1
+```
+
+  Script kiểm tra config + token trước khi cài, cảnh báo nếu `worker.host` vẫn là `127.0.0.1`. Log nằm ở `<data_dir>\worker.log`. Gỡ: thêm `-Uninstall`. Tùy chọn `-AtStartup` (chạy quyền Administrator) cho phép chạy cả khi chưa đăng nhập, nhưng khi đó worker không biết người dùng có đang dùng máy hay không.
+
+- [ ] Worker luôn chạy nhưng **chỉ nhận việc** khi: đang trong `schedule`, người dùng không chạm chuột/bàn phím trong `worker.idle_minutes` (10 phút), và GPU không bị process khác dùng quá `worker.busy_gpu_util` (40%). Job gửi ngoài giờ nằm chờ trong hàng đợi.
+- [ ] Power Options: không cho máy sleep trong khung giờ worker (Settings → System → Power → Screen and sleep → *Never* khi cắm điện, hoặc ít nhất dài hơn khung giờ).
+- [ ] **Người dùng** làm trên laptop:
+  - `.env`: `STUDIO_NODE_HOME_GPU_TOKEN=<cùng chuỗi>`
+  - `config/local.yaml`: `nodes: [{id: home-gpu, enabled: true, url: "http://100.x.y.z:8765"}]` (hoặc `http://home-gpu:8765` nếu MagicDNS của Tailscale bật)
+  - `studio nodes status` → cột status của `home-gpu` là `online` (ngoài giờ: `online, outside schedule`), cột gpu hiện RTX 3080. Lỗi `node_auth` = token hai máy khác nhau; `node_offline` = chưa thông Tailscale hoặc worker chưa chạy.
+  - Thử: `studio run <dir> --node home-gpu` (đợi và tự lấy kết quả) hoặc `--node home-gpu --no-wait` rồi sau đó `studio jobs pull <dir>`.
 
 ## Báo cáo cuối (Claude điền)
 
@@ -144,6 +183,9 @@ Phần này chỉ làm khi `src/studio/worker/` đã tồn tại.
 | Piper voices | |
 | ComfyUI + model + thời gian 1 ảnh | |
 | Tailscale IP / port router đã đóng | |
+| worker smoke (encoder) | |
+| Task Scheduler `studio-worker` + log | |
+| laptop `studio nodes status` | |
 | Việc còn lại cho người dùng | |
 
 Quy tắc git trên PC: `git pull` trước khi làm, tạo nhánh mới (`git switch -c pc/<việc>`), không commit `.env` / `config/local.yaml` / model.

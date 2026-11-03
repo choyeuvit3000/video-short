@@ -12,8 +12,9 @@ build/
 .env
 config/local.yaml
 
-# Caches
+# Caches / worker data
 cache/
+worker_data/
 
 # Voice models & samples (large, downloaded per machine)
 voices/local/models/*

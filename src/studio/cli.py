@@ -1,5 +1,5 @@
 """`studio` command line. Every command returns the exit codes in core/errors.py:
-0 ok · 1 error · 2 validation · 3 waiting for a manual step · 4 budget · 5 QC fail."""
+0 ok · 1 error · 2 validation · 3 waiting for a manual step · 4 budget · 5 QC fail · 6 waiting for a worker node."""
 
 from __future__ import annotations
 
@@ -24,9 +24,9 @@ from rich.table import Table
 
 from . import __version__
 from .core.config import deep_merge, get_settings
-from .core.errors import EXIT_ERROR, EXIT_OK, EXIT_VALIDATION, ManualGateRequired, StudioError
+from .core.errors import EXIT_ERROR, EXIT_OK, EXIT_VALIDATION, ManualGateRequired, StudioError, WaitingForNode
 from .core.ffmpeg import ffmpeg_bin, ffprobe_bin, has_encoder, has_filter, run_ffmpeg
-from .core.logging_utils import attach_run_log, console
+from .core.logging_utils import _RedactFilter, attach_run_log, console, get_logger
 from .core.media_probe import probe
 from .core.project import ProjectContext, scaffold
 from .core.schema import Project
@@ -36,8 +36,14 @@ app = typer.Typer(help="AI Shorts Studio - multi-workflow short/long video pipel
 voices_app = typer.Typer(help="Manage voices (free / api / local models).", no_args_is_help=True)
 discover_app = typer.Typer(help="Find hot posts through official APIs (you choose what to render).",
                            no_args_is_help=True)
+nodes_app = typer.Typer(help="Worker machines from config/nodes.yaml.", no_args_is_help=True)
+jobs_app = typer.Typer(help="Jobs on worker nodes (list / pull results / cancel).", no_args_is_help=True)
+worker_app = typer.Typer(help="Run this machine as a studio-worker node.", no_args_is_help=True)
 app.add_typer(voices_app, name="voices")
 app.add_typer(discover_app, name="discover")
+app.add_typer(nodes_app, name="nodes")
+app.add_typer(jobs_app, name="jobs")
+app.add_typer(worker_app, name="worker")
 
 ProjectArg = Annotated[Path, typer.Argument(help="Project folder (contains project.json)")]
 
@@ -48,6 +54,9 @@ def _guard(fn: Callable[[], int | None]) -> None:
         code = fn() or EXIT_OK
     except ManualGateRequired as e:
         console.print(f"[yellow]WAITING MANUAL[/] {e}")
+        code = e.exit_code
+    except WaitingForNode as e:
+        console.print(f"[yellow]WAITING NODE[/] {e}")
         code = e.exit_code
     except StudioError as e:
         console.print(f"[red]FAILED[/] {e}")
@@ -245,19 +254,63 @@ def run(
     overwrite: Annotated[bool, typer.Option("--overwrite", help="Re-synthesize TTS audio")] = False,
     strict: Annotated[bool, typer.Option("--strict", help="QC warnings fail the run")] = False,
     allow_sidecar: Annotated[bool, typer.Option("--allow-sidecar-subs")] = False,
+    node: Annotated[str | None, typer.Option(
+        "--node", help="Run validate/voice/render/qc/package on a worker: 'auto' or a node id")] = None,
+    wait: Annotated[bool, typer.Option("--wait/--no-wait", help="Wait for the worker and pull results")] = True,
+    timeout_min: Annotated[float | None, typer.Option(
+        "--timeout", help="Minutes to wait (default remote.wait_timeout_min)")] = None,
+    fallback: Annotated[str, typer.Option("--fallback", help="Named node unavailable: local | fail")] = "local",
 ) -> None:
-    """Run the project's workflow (resumable; stops with exit 3 at manual steps)."""
+    """Run the project's workflow (resumable; exit 3 at manual steps, exit 6 while a worker has the job)."""
     from .pipeline.runner import RunOptions, run_pipeline
 
     def body() -> int:
         ctx = _ctx(project, "run")
         ro = RunOptions(from_stage=from_stage, only=only or [], force=force,
                         stage_opts={"overwrite": overwrite, "strict": strict, "allow_sidecar": allow_sidecar})
-        run_pipeline(ctx, ro)
+        if node and node != "local":
+            _run_remote(ctx, ro, node, wait=wait, timeout_min=timeout_min, fallback=fallback)
+        else:
+            run_pipeline(ctx, ro)
         console.print(f"[green]DONE[/] {ctx.dir / 'output' / 'final.mp4'}")
         return EXIT_OK
 
     _guard(body)
+
+
+def _run_remote(ctx: ProjectContext, ro, node_id: str, *, wait: bool, timeout_min: float | None,
+                fallback: str) -> None:
+    from .nodes import NodeUnavailable, select_node
+    from .nodes.client import NodeClient
+    from .nodes.remote import pull_job, split_stages, submit_project, wait_for_job
+    from .pipeline.runner import RunOptions, run_pipeline, select_stages
+
+    if fallback not in ("local", "fail"):
+        raise StudioError("--fallback must be local or fail", code="bad_args")
+    log = get_logger()
+    local_part, remote_part = split_stages(select_stages(ctx, ro))
+    try:
+        target = select_node(ctx.settings, node_id)
+    except NodeUnavailable as e:
+        if fallback == "fail":
+            raise
+        log.warning("%s - running locally (--fallback local)", e)
+        target = None
+    if target is None or not remote_part:
+        if target is None and node_id == "auto":
+            log.warning("no worker node is available now - running locally")
+        run_pipeline(ctx, ro)
+        return
+    if local_part:
+        run_pipeline(ctx, RunOptions(only=local_part, force=ro.force, stage_opts=ro.stage_opts))
+    client = NodeClient.for_node(target)
+    job_id = submit_project(ctx, client, remote_part, ro.stage_opts)
+    if not wait:
+        raise WaitingForNode(f'job {job_id} submitted to {target.id} - later: studio jobs pull "{ctx.dir}"')
+    s = ctx.settings
+    wait_for_job(client, job_id, poll_sec=float(s.get("remote.poll_sec", 10)),
+                 timeout_sec=60 * float(timeout_min or s.get("remote.wait_timeout_min", 180)))
+    pull_job(ctx, client, job_id)
 
 
 @app.command()
@@ -487,6 +540,178 @@ def discover_threads(query: str, limit: Annotated[int, typer.Option("--limit")] 
     def body() -> int:
         get_settings()
         _print_posts(threads_discover(query, limit=limit), f"threads: {query}")
+        return EXIT_OK
+
+    _guard(body)
+
+
+# ------------------------------------------------------------------ nodes / jobs / worker
+
+
+@nodes_app.command("status")
+def nodes_status() -> None:
+    """Show every node: enabled, token present, schedule, health, queue, GPU."""
+    from .nodes import check_node, load_nodes
+
+    def body() -> int:
+        table = Table("node", "role", "url", "schedule now", "status", "queue", "gpu")
+        for n in load_nodes(get_settings()).values():
+            if not n.is_worker:
+                table.add_row(n.id, n.role, "-", "-", "controller", "-", "-")
+                continue
+            ok, reason, h = check_node(n)
+            q = h.get("queue") or {}
+            queue = f"{q.get('queued', 0)} queued / {q.get('running', 0)} running" if h else "-"
+            g = h.get("gpu") or {}
+            gpu = f"{g['name']} {g['util_pct']}% {g['mem_used_mb']}/{g['mem_total_mb']} MB" if g else "-"
+            if ok:
+                status_txt = f"[green]{reason}[/]" + (f" - {h['paused_reason']}" if h.get("paused_reason") else "")
+            else:
+                status_txt = f"[red]{reason}[/]"
+            table.add_row(n.id, n.role, n.url or "-", "open" if n.schedule.is_open() else "closed",
+                          status_txt, queue, gpu)
+        console.print(table)
+        return EXIT_OK
+
+    _guard(body)
+
+
+def _client(node_id: str):
+    from .nodes import get_node
+    from .nodes.client import NodeClient
+
+    return NodeClient.for_node(get_node(get_settings(), node_id))
+
+
+def _worker_nodes(node_id: str | None) -> list[str]:
+    from .nodes import load_nodes
+
+    if node_id:
+        return [node_id]
+    return [n.id for n in load_nodes(get_settings()).values() if n.is_worker and n.enabled and n.token]
+
+
+@jobs_app.command("list")
+def jobs_list(node: Annotated[str | None, typer.Option("--node")] = None,
+              limit: Annotated[int, typer.Option("--limit")] = 20) -> None:
+    """Jobs on the worker node(s), newest first."""
+    from .nodes.remote import load_index
+
+    def body() -> int:
+        idx = load_index(get_settings())
+        table = Table("node", "job", "status", "stage", "project", "created", "finished", "project folder")
+        for nid in _worker_nodes(node):
+            try:
+                jobs = _client(nid).jobs(limit)
+            except StudioError as e:
+                console.print(f"[red]{nid}[/]: {e}")
+                continue
+            for j in jobs:
+                table.add_row(nid, j["id"], j["status"], j.get("stage") or "", j.get("project_id") or "",
+                              j.get("created_at") or "", j.get("finished_at") or "",
+                              idx.get(j["id"], {}).get("project_dir", "-"))
+        console.print(table)
+        return EXIT_OK
+
+    _guard(body)
+
+
+def _resolve_job(target: str, node: str | None) -> tuple[str, str, Path | None]:
+    """TARGET = project folder (work/remote_job.json) or job id (cache/remote_jobs.json)."""
+    from .nodes.remote import load_index
+
+    rec_file = Path(target) / "work" / "remote_job.json"
+    if rec_file.is_file():
+        rec = json.loads(rec_file.read_text(encoding="utf-8"))
+        return rec["job_id"], node or rec["node"], Path(target)
+    idx = load_index(get_settings()).get(target)
+    if idx:
+        return target, node or idx["node"], Path(idx["project_dir"])
+    if node:
+        return target, node, None
+    raise StudioError(f"'{target}' is neither a project with work/remote_job.json nor a known job id "
+                      "(pass --node for a job submitted from another machine)", code="unknown_job")
+
+
+@jobs_app.command("pull")
+def jobs_pull(target: Annotated[str, typer.Argument(help="Project folder or job id")],
+              node: Annotated[str | None, typer.Option("--node")] = None) -> None:
+    """Download a finished job's results into its project (locally edited files are kept, see *.remote.*)."""
+    from .nodes.remote import pull_job
+
+    def body() -> int:
+        job_id, nid, proj = _resolve_job(target, node)
+        if proj is None:
+            raise StudioError(f"unknown project folder for job {job_id} - pass the project folder", code="unknown_job")
+        ctx = _ctx(proj, "pull")
+        pull_job(ctx, _client(nid), job_id)
+        console.print(f"[green]PULLED[/] {job_id} -> {ctx.dir / 'output'}")
+        return EXIT_OK
+
+    _guard(body)
+
+
+@jobs_app.command("cancel")
+def jobs_cancel(target: Annotated[str, typer.Argument(help="Project folder or job id")],
+                node: Annotated[str | None, typer.Option("--node")] = None) -> None:
+    """Cancel a queued job (a running job stops before its next stage)."""
+
+    def body() -> int:
+        job_id, nid, _ = _resolve_job(target, node)
+        r = _client(nid).cancel(job_id)
+        console.print(f"{job_id} on {nid}: {r['status']}")
+        return EXIT_OK
+
+    _guard(body)
+
+
+@worker_app.command("serve")
+def worker_serve(
+    host: Annotated[str | None, typer.Option("--host", help="Bind address (default worker.host)")] = None,
+    port: Annotated[int | None, typer.Option("--port")] = None,
+    ignore_schedule: Annotated[bool, typer.Option("--ignore-schedule", help="Run jobs at any time")] = False,
+    log_file: Annotated[Path | None, typer.Option("--log-file", help="Also append the worker log here")] = None,
+) -> None:
+    """Start the HTTP worker + job loop on this machine (normally via scripts/install_worker.ps1)."""
+    import logging
+    import threading
+
+    def body() -> int:
+        if log_file:
+            # a plain StreamHandler: per-job run logs replace FileHandlers, this one must survive them
+            log_file.parent.mkdir(parents=True, exist_ok=True)
+            h = logging.StreamHandler(log_file.open("a", encoding="utf-8"))
+            h.setLevel(logging.INFO)
+            h.setFormatter(logging.Formatter("%(asctime)s %(levelname)-7s %(message)s"))
+            h.addFilter(_RedactFilter())
+            get_logger()  # set up the studio logger first: it skips its own setup once a handler exists
+            for name in ("studio", "uvicorn"):
+                logging.getLogger(name).addHandler(h)
+        try:
+            import uvicorn
+
+            from .worker.app import create_app
+            from .worker.service import WorkerService
+        except ImportError as e:
+            raise StudioError(f'worker extra not installed: uv pip install -e ".[worker]" ({e})',
+                              code="missing_extra") from e
+        s = get_settings()
+        bind = host or s.get("worker.host", "127.0.0.1")
+        if bind in ("0.0.0.0", "::") and not s.get("worker.allow_any_interface", False):
+            raise StudioError("refusing to listen on every interface - bind the Tailscale IP "
+                              "(or set worker.allow_any_interface: true if you really mean it)", code="worker_bind")
+        service = WorkerService(s, ignore_schedule=ignore_schedule or None)
+        stop = threading.Event()
+        loop = threading.Thread(target=service.loop, args=(stop,), name="studio-worker-loop", daemon=True)
+        loop.start()
+        p = port or int(s.get("worker.port", 8765))
+        console.print(f"studio-worker [bold]{service.node_id}[/] on http://{bind}:{p}  data: {service.data_dir}")
+        get_logger().info("[worker] %s listening on http://%s:%s (data %s)", service.node_id, bind, p, service.data_dir)
+        try:
+            uvicorn.run(create_app(service), host=bind, port=p, log_level="warning")
+        finally:
+            stop.set()
+            loop.join(timeout=30)
         return EXIT_OK
 
     _guard(body)

@@ -47,3 +47,22 @@ llm:
   claude_cli: {command: claude, model: null}
   agy_cli: {command: agy, model: null}
   codex_cli: {command: codex, model: null}
+
+# studio-worker (M3.5) - only used on a worker machine (`studio worker serve`). Set node_id and host in
+# config/local.yaml there; the token is read from the node's token_env (config/nodes.yaml) in .env.
+worker:
+  node_id: null             # e.g. home-gpu - must match an id in config/nodes.yaml
+  host: 127.0.0.1           # bind address: the Tailscale IP (100.x.y.z), never 0.0.0.0 on a public network
+  port: 8765
+  data_dir: null            # default <repo>/worker_data (blobs, queue.db, job workspaces)
+  max_upload_gb: 8          # largest single file accepted
+  retention_days: 7         # finished jobs and unused blobs are deleted after this
+  poll_sec: 5
+  idle_minutes: 10          # policy.yield_if_user_active: wait until keyboard/mouse idle this long
+  busy_gpu_util: 40         # another program using >= this % GPU -> wait
+  keep_workspace: false     # keep worker_data/jobs/<id>/ for debugging
+
+# Controller side of `studio run --node ...`
+remote:
+  poll_sec: 10
+  wait_timeout_min: 180

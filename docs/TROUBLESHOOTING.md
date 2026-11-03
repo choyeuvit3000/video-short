@@ -25,6 +25,14 @@ Bắt đầu bằng hai bước:
 | `.ps1 cannot be loaded` | `powershell -ExecutionPolicy Bypass -File .\scripts\...ps1` (chỉ áp dụng cho lần chạy đó) |
 | `gradients` filter missing | FFmpeg quá cũ: cài bản Gyan full build, hoặc đặt `video.background: "color:#101828"` |
 | GPU PC: `h264_nvenc` lỗi | Cập nhật driver NVIDIA; tạm bỏ `render.encoder` trong `config/local.yaml` để dùng libx264 |
+| `WAITING NODE` (exit 6) | Không phải lỗi: job đã gửi lên worker và chưa xong (hoặc PC đang ngoài giờ / bạn đang dùng PC). Chạy `studio jobs pull <dir>` sau; `studio nodes status` cho biết lý do tạm dừng |
+| `node_offline` | Laptop không gọi được worker: kiểm tra Tailscale đang bật ở cả hai máy, `url` của node trong `config/local.yaml`, task `studio-worker` trên PC (log ở `<data_dir>\worker.log`) |
+| `node_auth` (401) | Token trong `.env` của laptop và PC khác nhau, hoặc thiếu biến `token_env` của node |
+| `worker_token` khi `worker serve` | PC chưa có token trong `.env`, hoặc token ngắn hơn 24 ký tự |
+| `worker_bind` | Không bind `0.0.0.0`; đặt `worker.host` là IP Tailscale của PC (`tailscale ip -4`) |
+| Có file `*.remote.*` sau khi pull | Bạn đã sửa file đó trên laptop sau khi gửi job: bản trên laptop được giữ nguyên, bản của worker nằm ở `.remote`. So sánh rồi giữ bản muốn dùng |
+| `tts_wrong_node` | Giọng chỉ cài trên GPU node (`location: node:...`): chạy với `--node <id>` hoặc đổi giọng |
+| Job kẹt ở `queued` | PC ngoài `schedule`, người dùng đang dùng PC, hoặc GPU bận. `studio nodes status` hiện lý do; `studio jobs cancel <dir>` để hủy |
 | GPU PC: faster-whisper không dùng CUDA | Thiếu cuBLAS/cuDNN 9 trên PATH, xem bước 4 của [SETUP_GPU_NODE.md](SETUP_GPU_NODE.md) |
 
 Khi báo lỗi cho Claude/Codex, gửi kèm `logs/run_*.log`, `state.json` và lệnh đã chạy. Không gửi `.env`.

@@ -71,6 +71,10 @@ def _words_for(ctx: ProjectContext, text: str, audio: Path, duration_ms: int, pr
 
 def _synthesize_all(ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile, ledger: CostLedger,
                     overwrite: bool) -> dict[str, tuple[Path, list[Word] | None]]:
+    node = prof.location[len("node:"):] if prof.location.startswith("node:") else None
+    if node and node != ctx.settings.get("worker.node_id"):
+        raise ProviderUnavailable(f"voice {prof.id} runs only on node '{node}' - use `studio run --node {node}`",
+                                  code="tts_wrong_node")
     provider = get_provider(prof.provider, reg)
     reason = provider.check(prof)
     if reason:

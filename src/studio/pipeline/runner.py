@@ -36,19 +36,23 @@ def write_todo(ctx: ProjectContext, gate: ManualGateRequired) -> None:
     (ctx.dir / "TODO_MANUAL.md").write_text(text, encoding="utf-8")
 
 
-def run_pipeline(ctx: ProjectContext, ro: RunOptions) -> int:
+def select_stages(ctx: ProjectContext, ro: RunOptions) -> list[str]:
     names = stages_for(ctx)
-    registry = get_stages()
     for n in [*ro.only, *([ro.from_stage] if ro.from_stage else [])]:
         if n not in names:
             raise ValidationError(f"stage '{n}' is not part of workflow {ctx.project.workflow}: {names}",
                                   code="bad_stage")
     if ro.only:
-        selected = [n for n in names if n in ro.only]
-    elif ro.from_stage:
-        selected = names[names.index(ro.from_stage):]
-    else:
-        selected = names
+        return [n for n in names if n in ro.only]
+    if ro.from_stage:
+        return names[names.index(ro.from_stage):]
+    return names
+
+
+def run_pipeline(ctx: ProjectContext, ro: RunOptions) -> int:
+    names = stages_for(ctx)
+    registry = get_stages()
+    selected = select_stages(ctx, ro)
     for name in selected:
         fn = registry.get(name)
         if fn is None:

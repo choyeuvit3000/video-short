@@ -8,6 +8,7 @@ EXIT_VALIDATION = 2
 EXIT_WAITING_MANUAL = 3
 EXIT_BUDGET = 4
 EXIT_QC_FAIL = 5
+EXIT_WAITING_NODE = 6
 
 
 class StudioError(Exception):
@@ -64,3 +65,12 @@ class ProviderUnavailable(StudioError):
 
 class QCFailed(StudioError):
     exit_code = EXIT_QC_FAIL
+
+
+class WaitingForNode(StudioError):
+    """Work was handed to a worker node that has not finished yet (queued / outside its schedule)."""
+
+    exit_code = EXIT_WAITING_NODE
+
+    def __init__(self, message: str):
+        super().__init__(message, code="waiting_node")

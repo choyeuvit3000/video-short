@@ -243,10 +243,9 @@ def render_audio(ctx: ProjectContext, tl: dict) -> Path:
 
 def caption_style(ctx: ProjectContext) -> dict:
     name = ctx.project.video.caption_style
-    styles_dir = ctx.settings.path("assets") / "shared" / "caption_styles"
-    path = styles_dir / f"{name}.yaml"
+    path = ctx.resolve(f"asset:shared/caption_styles/{name}.yaml", what="caption style")
     if not path.is_file():
-        raise ValidationError(f"caption style '{name}' not found in {styles_dir}", code="missing_style")
+        raise ValidationError(f"caption style '{name}' not found in {path.parent}", code="missing_style")
     return load_yaml(path)
 
 
@@ -307,7 +306,7 @@ def render_project(ctx: ProjectContext, *, burn_subs: bool | None = None, allow_
             log.warning("[render] libass missing -> captions only as sidecar SRT")
         else:
             rel = os.path.relpath(ass, ctx.dir).replace("\\", "/")
-            fonts = ctx.settings.path("assets") / "shared" / "fonts"
+            fonts = ctx.asset_dir("shared/fonts")
             opt = f"ass={escape_filter_path(rel)}"
             if fonts.is_dir() and any(fonts.iterdir()):
                 try:

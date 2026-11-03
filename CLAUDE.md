@@ -6,8 +6,8 @@ The user writes in Vietnamese: answer in Vietnamese, keep code/comments/identifi
 A Windows-first CLI (`studio`) that builds short (9:16) and long (16:9) videos through **workflow recipes**.
 Existing tools do the work (FFmpeg, Pillow, edge-tts/Piper, faster-whisper); AI CLIs (`claude -p`, `agy -p`,
 `codex exec`) only write scripts/storyboards; web-only AI steps (ChatGPT images, Google Flow clips) are
-**manual gates**. Two machines: this laptop = controller; a home PC with RTX 3080 10 GB = GPU node
-(worker service is milestone M3.5, not built yet).
+**manual gates**. Two machines: this laptop = controller; a home PC with RTX 3080 10 GB = GPU node running
+`studio worker serve` (FastAPI + SQLite queue) inside its schedule; the laptop submits jobs over Tailscale.
 
 If you are running on the **GPU PC**, your task is probably `docs/SETUP_GPU_NODE.md` — follow it step by step.
 
@@ -17,6 +17,7 @@ uv venv --python 3.11 .venv ; uv pip install -e ".[piper,align,dev]"     # lapto
 .\.venv\Scripts\python.exe -m pytest -q          # needs ffmpeg on PATH or $env:STUDIO_FFMPEG_DIR, else ffmpeg tests skip
 .\.venv\Scripts\ruff.exe check .                 # line-length 120
 powershell -ExecutionPolicy Bypass -File .\scripts\smoke_test_windows.ps1    # 3 real renders, --strict
+powershell -ExecutionPolicy Bypass -File .\scripts\smoke_worker_local.ps1    # worker over real HTTP, 127.0.0.1
 studio doctor [--gpu]
 ```
 Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
@@ -34,14 +35,20 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
 - `src/studio/workflows/` — stage functions per workflow (`story_reader.py`, `ai_cinematic.py`, `common.py`);
   recipes live in `workflows/<name>/workflow.yaml` (stages, defaults, format_overrides, llm_chain) + prompts.
 - `voices/` — registry + profile YAMLs; models in `voices/local/models/` (gitignored, per machine).
-- `config/nodes.yaml` — worker nodes (tokens only via `token_env` → `.env`).
+- `config/nodes.yaml` — worker nodes (tokens only via `token_env` → `.env`); `config/local.yaml` patches by id.
+- `src/studio/nodes/` — controller side: node registry + schedule + `select_node`, `bundle.py` (sha256
+  manifests, hash cache, apply results without clobbering local edits → `*.remote.*`), `client.py` (httpx),
+  `remote.py` (submit / wait / pull; `REMOTE_STAGES` = validate voice render qc package).
+- `src/studio/worker/` — GPU PC side: `app.py` (FastAPI, Bearer token, `extra="forbid"` models, only job type
+  `pipeline`), `queue.py` (SQLite), `store.py` (blob store by sha256), `jobs.py` (materialize project + run
+  stages), `service.py` (schedule / user-idle / GPU-busy policy, loop). Install: `scripts/install_worker.ps1`.
 
 ## Invariants (do not break)
 1. Never overwrite, move or delete user input media (`clips/`, `images/`, `source/`, `audio/` given by user).
    Generated files go to `work/` and `output/` only; final video is written to a temp file then renamed.
 2. Every subprocess call uses an argument list — never `shell=True`. Paths with spaces + Vietnamese must work.
 3. Errors carry `code` and `scene_id` when scene-specific; exit codes: 0 ok, 1 error, 2 validation,
-   3 waiting_manual, 4 budget, 5 QC fail. Never report success without a probed, valid output file.
+   3 waiting_manual, 4 budget, 5 QC fail, 6 waiting_node. Never report success without a probed, valid output file.
 4. No browser automation, scraping, cookie/session capture or quota bypass of Claude/ChatGPT/Flow/etc.
    Content comes from official APIs or text the user pastes.
 5. Secrets only in `.env` (gitignored). Never log or commit tokens. Paid providers are disabled by default and
@@ -61,6 +68,6 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
 - Docs for the user are in Vietnamese (`README.md`, `docs/`).
 
 ## Roadmap
-M0–M3 done on laptop (core, voices, story_reader, ai_cinematic). Next: M3.5 worker (FastAPI + SQLite queue,
-Tailscale, Task Scheduler) · M4 text_quote / listicle_stock / ai_slideshow (ComfyUI on GPU node) · M6 longform ·
+M0–M3.5 done on laptop (core, voices, story_reader, ai_cinematic, worker + remote run; the worker is not yet
+installed on the GPU PC). Next: GPU job types on the worker (TTS GPU voices, ComfyUI) · M4 text_quote / listicle_stock / ai_slideshow (ComfyUI on GPU node) · M6 longform ·
 M7 motion_3d. See `docs/ARCHITECTURE.md` and `docs/WORKFLOWS.md`.

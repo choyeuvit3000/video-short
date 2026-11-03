@@ -68,8 +68,23 @@ class ProjectContext:
     def resolve(self, ref: str, *, what: str = "path") -> Path:
         """`asset:<path>` -> repo assets folder; otherwise project-relative. Never escapes either root."""
         if ref.startswith("asset:"):
-            return resolve_inside(self.settings.path("assets"), ref[len("asset:"):], what=what)
+            rel = ref[len("asset:"):]
+            overlay = self.settings.get("paths.asset_overlay")
+            if overlay:  # worker jobs: assets uploaded with the job win over the node's own library
+                p = resolve_inside(Path(overlay), rel, what=what)
+                if p.exists():
+                    return p
+            return resolve_inside(self.settings.path("assets"), rel, what=what)
         return resolve_inside(self.dir, ref, what=what)
+
+    def asset_dir(self, rel: str) -> Path:
+        """An assets sub-folder, preferring the job overlay when it has files."""
+        overlay = self.settings.get("paths.asset_overlay")
+        if overlay:
+            p = resolve_inside(Path(overlay), rel, what="asset folder")
+            if p.is_dir() and any(p.iterdir()):
+                return p
+        return resolve_inside(self.settings.path("assets"), rel, what="asset folder")
 
     def timeline_path(self) -> Path:
         return self.work / "timeline.json"
