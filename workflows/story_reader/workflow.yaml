@@ -22,6 +22,11 @@ defaults:
     card_theme: light           # light | dark
     card_width_ratio: 0.86
     scene_max_chars: 260
+    layout: post                # post (card, then captions) | passage (audio story: highlighted sentence cards)
+    passage_max_chars: 240      # passage layout: sentences per card, up to 3
+    passage_captions: false     # passage layout: also burn word captions (default: SRT sidecar only)
+    part_max_sec: 0             # > 0: split a long story into balanced parts (<dir>_p2, _p3... are created)
+    speech_cleanup: true        # strip URLs/emoji, expand Vietnamese chat shorthand (ko -> không) before TTS
 format_overrides:
   long_16x9:
     platforms: [youtube]

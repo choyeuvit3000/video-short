@@ -33,6 +33,8 @@ def settings(tmp_path: Path) -> Settings:
     data = deep_merge(base.data, {
         "paths": {"cache": str(tmp_path / "_cache")},
         "providers": {"llm": ["manual"], "align": ["provider_words", "estimate"]},
+        # a worker PC's config/local.yaml (worker.node_id: home-gpu + its token in .env) must not leak in
+        "worker": {"node_id": None},
     })
     return Settings(root=base.root, data=data, formats=base.formats)
 
