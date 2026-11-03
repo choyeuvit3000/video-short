@@ -1,0 +1,25 @@
+# Voice registry - the single place to manage narration voices.
+#
+#   voices/free/*.yaml    free online voices (no key)            -> tier: free
+#   voices/api/*.yaml     paid API voices (key in .env, budget)   -> tier: api
+#   voices/local/*.yaml   models running on a machine you own     -> tier: local
+#   voices/local/models/  downloaded model files (gitignored, per machine)
+#   voices/clones/        reference clips for voice cloning + consent (gitignored)
+#   voices/samples/       preview mp3 per voice (`studio voices preview <id>`)
+#
+# Every profile file contains `profiles:` - a list of:
+#   id, lang (vi|en), tier, provider (edge|piper|elevenlabs|openai|mock|manual|...),
+#   status (ready|disabled|planned|experimental), location (any|laptop|node:<id>),
+#   params {...provider specific...}, cost_per_1k_chars (USD, estimate), fallback (voice id)
+#
+# A profile with status disabled/planned is never used automatically.
+
+defaults:
+  vi: edge-vi-hoaimy
+  en: edge-en-andrew
+
+# When the chosen voice cannot run (offline, node down, missing key), the pipeline
+# switches the WHOLE project to the profile's `fallback` - voices are never mixed in one video.
+offline_fallback:
+  vi: piper-vi-vais1000
+  en: piper-en-lessac

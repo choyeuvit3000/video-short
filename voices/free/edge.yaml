@@ -1,0 +1,52 @@
+# Microsoft Edge online TTS via the `edge-tts` package. Free, no key, needs internet.
+# Gives word timings (WordBoundary) -> accurate word-level captions without Whisper.
+profiles:
+  - id: edge-vi-hoaimy
+    lang: vi
+    tier: free
+    provider: edge
+    status: ready
+    location: any
+    params: {voice: vi-VN-HoaiMyNeural, rate: "+0%", pitch: "+0Hz"}
+    cost_per_1k_chars: 0
+    fallback: piper-vi-vais1000
+
+  - id: edge-vi-namminh
+    lang: vi
+    tier: free
+    provider: edge
+    status: ready
+    location: any
+    params: {voice: vi-VN-NamMinhNeural, rate: "+0%", pitch: "+0Hz"}
+    cost_per_1k_chars: 0
+    fallback: piper-vi-vais1000
+
+  - id: edge-en-andrew
+    lang: en
+    tier: free
+    provider: edge
+    status: ready
+    location: any
+    params: {voice: en-US-AndrewMultilingualNeural, rate: "+0%", pitch: "+0Hz"}
+    cost_per_1k_chars: 0
+    fallback: piper-en-lessac
+
+  - id: edge-en-ava
+    lang: en
+    tier: free
+    provider: edge
+    status: ready
+    location: any
+    params: {voice: en-US-AvaMultilingualNeural, rate: "+0%", pitch: "+0Hz"}
+    cost_per_1k_chars: 0
+    fallback: piper-en-lessac
+
+  - id: edge-en-guy
+    lang: en
+    tier: free
+    provider: edge
+    status: ready
+    location: any
+    params: {voice: en-US-GuyNeural, rate: "+5%", pitch: "+0Hz"}
+    cost_per_1k_chars: 0
+    fallback: piper-en-lessac

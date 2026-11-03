@@ -1,0 +1,14 @@
+# Big bold captions, current word highlighted (TikTok/Shorts style).
+font: Arial
+bold: true
+uppercase: false
+color: "#FFFFFF"
+highlight_color: "#FFE14D"
+outline_color: "#000000"
+outline: 6
+shadow: 2
+shadow_color: "#000000"
+shadow_alpha: 96
+box: false
+mode: highlight      # highlight | plain
+size_scale: 1.0

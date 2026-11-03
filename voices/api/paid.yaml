@@ -1,0 +1,44 @@
+# Paid TTS APIs. All DISABLED by default. To enable one:
+#   1. put the key in .env (see .env.example)
+#   2. set status: ready here
+#   3. raise budget.max_cost_usd in the project's project.json (default 0 blocks paid calls)
+# cost_per_1k_chars is an ESTIMATE used for the budget check - verify current pricing yourself.
+profiles:
+  - id: elevenlabs-multilingual
+    lang: vi
+    tier: api
+    provider: elevenlabs
+    status: disabled
+    location: any
+    params:
+      voice_id: "REPLACE_WITH_VOICE_ID"
+      model_id: eleven_multilingual_v2
+      key_env: ELEVENLABS_API_KEY
+    cost_per_1k_chars: 0.20
+    fallback: edge-vi-hoaimy
+
+  - id: elevenlabs-en
+    lang: en
+    tier: api
+    provider: elevenlabs
+    status: disabled
+    location: any
+    params:
+      voice_id: "REPLACE_WITH_VOICE_ID"
+      model_id: eleven_flash_v2_5
+      key_env: ELEVENLABS_API_KEY
+    cost_per_1k_chars: 0.10
+    fallback: edge-en-andrew
+
+  - id: openai-en-alloy
+    lang: en
+    tier: api
+    provider: openai
+    status: disabled
+    location: any
+    params:
+      model: gpt-4o-mini-tts
+      voice: alloy
+      key_env: OPENAI_API_KEY
+    cost_per_1k_chars: 0.015
+    fallback: edge-en-andrew

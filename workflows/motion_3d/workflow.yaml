@@ -1,0 +1,10 @@
+name: motion_3d
+tier: XL
+status: planned
+description: "Remotion / Blender templates for 3D and complex transitions."
+cost: "GPU node time"
+formats: [short_9x16, long_16x9]
+# No dedicated stages yet: works today with scenes written by hand in project.json.
+stages: [validate, voice, render, qc, package]
+defaults:
+  timing_mode: audio_driven

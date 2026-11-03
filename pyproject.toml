@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "video-short-studio"
+version = "0.1.0"
+description = "Multi-workflow AI short/long video studio (local-first, multi-machine ready)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7",
+    "typer>=0.12",
+    "rich>=13.7",
+    "pyyaml>=6.0",
+    "pillow>=10.3",
+    "httpx>=0.27",
+    "edge-tts>=7.0",
+]
+
+[project.optional-dependencies]
+# Local TTS on CPU (laptop) - Piper ONNX voices
+piper = ["piper-tts>=1.3"]
+# Word-level caption alignment (CPU int8 on laptop, CUDA on GPU node)
+align = ["faster-whisper>=1.1"]
+# GPU worker node (M3.5) - HTTP job server
+worker = ["fastapi>=0.115", "uvicorn>=0.30"]
+# Everything a GPU node needs from this package; heavy models (torch, ComfyUI,
+# F5-TTS...) are installed separately - see docs/SETUP_GPU_NODE.md
+gpu = ["piper-tts>=1.3", "faster-whisper>=1.1", "fastapi>=0.115", "uvicorn>=0.30"]
+dev = ["pytest>=8.2", "ruff>=0.5"]
+
+[project.scripts]
+studio = "studio.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/studio"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "ffmpeg: needs ffmpeg/ffprobe available",
+    "slow: full-resolution render",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["B008"]

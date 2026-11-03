@@ -1,0 +1,10 @@
+name: listicle_stock
+tier: M1
+status: planned
+description: "Top-N / explainer over Pexels/Pixabay stock footage (free API keys)."
+cost: "~0"
+formats: [short_9x16, long_16x9]
+# No dedicated stages yet: works today with scenes written by hand in project.json.
+stages: [validate, voice, render, qc, package]
+defaults:
+  timing_mode: audio_driven

@@ -1,0 +1,10 @@
+name: text_quote
+tier: S2
+status: planned
+description: "Quotes/facts as kinetic text on gradient or asset backgrounds."
+cost: "~0"
+formats: [short_9x16]
+# No dedicated stages yet: works today with scenes written by hand in project.json.
+stages: [validate, voice, render, qc, package]
+defaults:
+  timing_mode: audio_driven

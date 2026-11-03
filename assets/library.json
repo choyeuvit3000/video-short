@@ -1,0 +1,19 @@
+{
+  "_doc": "Index of reusable assets. Media files are NOT committed (see .gitignore) - copy them onto each machine. Reference an asset in project.json as \"asset:<path>\". Only add files you have the right to use.",
+  "assets": [
+    {
+      "path": "shared/caption_styles/bold_pop.yaml",
+      "kind": "caption_style",
+      "tags": ["short", "highlight"],
+      "license": "own",
+      "source_url": null
+    },
+    {
+      "path": "shared/caption_styles/clean_box.yaml",
+      "kind": "caption_style",
+      "tags": ["long", "explainer"],
+      "license": "own",
+      "source_url": null
+    }
+  ]
+}

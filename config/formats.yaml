@@ -1,0 +1,63 @@
+# Output format profiles. Caption sizes are ASS pixels relative to the video height (PlayResY = height).
+formats:
+  short_9x16:
+    width: 1080
+    height: 1920
+    fps: 30
+    max_duration_sec: 180     # TikTok / YouTube Shorts / Reels
+    caption:
+      font_size: 78
+      margin_v: 620           # keep captions above TikTok/Shorts bottom UI (~ lower third)
+      margin_h: 90
+      max_words: 3
+      max_chars: 18
+    safe_zone: {top: 220, bottom: 480, left: 60, right: 140}
+  long_16x9:
+    width: 1920
+    height: 1080
+    fps: 30
+    max_duration_sec: 7200
+    caption:
+      font_size: 56
+      margin_v: 90
+      margin_h: 160
+      max_words: 7
+      max_chars: 42
+    safe_zone: {top: 60, bottom: 60, left: 96, right: 96}
+  square_1x1:
+    width: 1080
+    height: 1080
+    fps: 30
+    max_duration_sec: 600
+    caption:
+      font_size: 60
+      margin_v: 140
+      margin_h: 80
+      max_words: 4
+      max_chars: 24
+    safe_zone: {top: 60, bottom: 120, left: 60, right: 60}
+  # Fast low-res profile used by tests
+  test_9x16:
+    width: 360
+    height: 640
+    fps: 30
+    max_duration_sec: 600
+    caption:
+      font_size: 28
+      margin_v: 200
+      margin_h: 30
+      max_words: 3
+      max_chars: 18
+    safe_zone: {top: 70, bottom: 160, left: 20, right: 46}
+  test_16x9:
+    width: 640
+    height: 360
+    fps: 30
+    max_duration_sec: 600
+    caption:
+      font_size: 24
+      margin_v: 30
+      margin_h: 50
+      max_words: 6
+      max_chars: 36
+    safe_zone: {top: 20, bottom: 20, left: 32, right: 32}

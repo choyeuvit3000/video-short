@@ -1,0 +1,18 @@
+# L1 - the original spec: AI storyboard, keyframes (ChatGPT) and clips (Google Flow) made by hand.
+name: ai_cinematic
+tier: L1
+status: ready
+description: AI-storyboarded short; clips made by hand in Google Flow (manual gate), fixed timing.
+cost: "Flow / ChatGPT subscription credits + your time"
+formats: [short_9x16]
+stages: [storyboard, media, validate, voice, render, qc, package]
+llm_chain: [claude_cli, agy_cli, codex_cli, manual]
+defaults:
+  timing_mode: fixed
+  ai_generated: true
+  platforms: [tiktok, youtube_shorts]
+  video: {caption_style: bold_pop, background: "color:#000000"}
+  options:
+    scene_count: 6
+    clip_sec: 8
+    allow_still_fallback: true    # images/<scene_id>.png is used (Ken Burns) until the clip exists

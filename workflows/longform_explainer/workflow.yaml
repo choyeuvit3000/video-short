@@ -1,0 +1,10 @@
+name: longform_explainer
+tier: L2
+status: planned
+description: "8-15 min YouTube explainer: chapters, B-roll mix, thumbnail."
+cost: "low"
+formats: [long_16x9]
+# No dedicated stages yet: works today with scenes written by hand in project.json.
+stages: [validate, voice, render, qc, package]
+defaults:
+  timing_mode: audio_driven

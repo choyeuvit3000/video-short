@@ -1,0 +1,29 @@
+# S1 - read a Reddit/Threads/web post aloud over a looping background. Cost ~0.
+name: story_reader
+tier: S1
+status: ready
+description: Post card + background loop + TTS + word captions. Reddit/Threads/web stories, high volume.
+cost: "~0 (free TTS, subscription CLI for rewrite, or none)"
+formats: [short_9x16, long_16x9]
+stages: [source, script, scenes, validate, voice, render, qc, package]
+# AI is used only for the rewrite/translation; the first CLI that answers wins, "manual" = paste into a web chat.
+llm_chain: [claude_cli, agy_cli, codex_cli, manual]
+defaults:
+  timing_mode: audio_driven
+  ai_generated: true
+  platforms: [tiktok, youtube_shorts, reels]
+  video:
+    caption_style: bold_pop
+    background: auto            # auto = a file from assets/workflows/story_reader/backgrounds/, else gradient
+  options:
+    rewrite: auto               # auto (AI if a CLI answers, else read as-is) | llm (require AI) | none
+    target_sec: 60
+    include_comments: 0
+    card_theme: light           # light | dark
+    card_width_ratio: 0.86
+    scene_max_chars: 260
+format_overrides:
+  long_16x9:
+    platforms: [youtube]
+    video: {caption_style: clean_box}
+    options: {target_sec: 420, include_comments: 4, card_width_ratio: 0.55, card_theme: dark}

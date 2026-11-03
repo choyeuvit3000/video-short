@@ -1,0 +1,55 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# Secrets & machine-local config
+.env
+config/local.yaml
+
+# Caches
+cache/
+
+# Voice models & samples (large, downloaded per machine)
+voices/local/models/*
+!voices/local/models/.gitkeep
+voices/samples/*
+!voices/samples/.gitkeep
+voices/clones/*
+!voices/clones/README.md
+
+# Media assets (keep folder structure + library.json, not the media)
+assets/**/*.mp4
+assets/**/*.mov
+assets/**/*.webm
+assets/**/*.mp3
+assets/**/*.wav
+assets/**/*.m4a
+assets/**/*.png
+assets/**/*.jpg
+assets/**/*.jpeg
+assets/**/*.webp
+assets/**/*.ttf
+assets/**/*.otf
+
+# Project media & generated output (keep project.json / script / source text)
+projects/**/clips/
+projects/**/images/
+projects/**/audio/
+projects/**/subtitles/
+projects/**/music/
+projects/**/work/
+projects/**/output/
+projects/**/logs/
+projects/**/cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

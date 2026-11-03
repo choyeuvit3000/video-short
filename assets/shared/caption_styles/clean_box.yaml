@@ -1,0 +1,14 @@
+# Calm captions on a dark box - good for long-form 16:9 and explainers.
+font: Arial
+bold: true
+uppercase: false
+color: "#FFFFFF"
+highlight_color: "#7FD1FF"
+outline_color: "#101010"
+outline: 10
+shadow: 0
+shadow_color: "#000000"
+shadow_alpha: 64
+box: true
+mode: plain
+size_scale: 0.85

@@ -1,0 +1,26 @@
+# Worker machines (milestone M3.5 - the worker service is not implemented yet; `studio doctor --gpu`
+# already checks a GPU machine). Tokens are never written here: token_env names a variable in .env.
+nodes:
+  - id: laptop
+    role: controller
+    url: null
+    capabilities:
+      gpu: null
+      services: [ffmpeg_cpu, tts_cpu, whisper_cpu]
+
+  - id: home-gpu
+    role: worker
+    enabled: false
+    # Prefer the Tailscale address (100.x.y.z or machine name) - do NOT expose the worker publicly.
+    url: http://home-gpu:8765
+    token_env: STUDIO_NODE_HOME_GPU_TOKEN
+    capabilities:
+      gpu: rtx3080
+      vram_gb: 10
+      services: [ffmpeg_nvenc, tts_gpu, whisper_cuda, comfyui, blender]
+    schedule:
+      timezone: Asia/Ho_Chi_Minh
+      windows: ["mon-fri 08:30-17:30"]
+    policy:
+      yield_if_user_active: true
+      max_vram_gb: 9

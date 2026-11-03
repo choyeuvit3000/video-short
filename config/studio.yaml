@@ -1,0 +1,49 @@
+# Global defaults. Machine-specific overrides go in config/local.yaml (gitignored),
+# e.g. on the RTX 3080 PC:  render: {encoder: h264_nvenc}
+version: 1
+
+paths:
+  projects: projects
+  assets: assets
+  voices: voices
+  workflows: workflows
+  cache: cache
+
+render:
+  encoder: libx264          # libx264 | h264_nvenc (GPU node) - final encode
+  crf: 20                   # libx264 quality; nvenc uses cq with the same number
+  preset: medium
+  intermediate_crf: 16      # per-scene intermediates in work/
+  intermediate_preset: veryfast
+  audio_sample_rate: 48000
+  audio_bitrate: 192k
+  fit_mode: crop            # crop | pad - how non-matching clips/images are fitted
+
+timing:
+  scene_tail_pad_sec: 0.25      # audio_driven: silence after each scene's voice
+  min_scene_sec: 1.5
+  voice_overflow_tolerance_ms: 200   # fixed mode: voice longer than scene by more -> FAIL
+
+qc:
+  duration_tolerance_sec: 0.3
+  max_caption_chars_per_line: 42
+
+budget:
+  default_max_cost_usd: 0.0     # paid providers refuse to run unless a project raises this
+
+# Order = preference. First provider that is available and allowed wins; "manual" writes
+# TODO_MANUAL.md and pauses the pipeline.
+providers:
+  llm: [claude_cli, agy_cli, codex_cli, manual]
+  align: [provider_words, faster_whisper, estimate]
+
+align:
+  faster_whisper_model: small    # CPU laptop: small/base int8; GPU node: large-v3
+  device: auto                   # auto | cpu | cuda
+  compute_type: auto             # auto -> int8 on cpu, float16 on cuda
+
+llm:
+  timeout_sec: 300
+  claude_cli: {command: claude, model: null}
+  agy_cli: {command: agy, model: null}
+  codex_cli: {command: codex, model: null}

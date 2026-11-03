@@ -1,0 +1,104 @@
+# Local models. Files are downloaded into voices/local/models/<id>/ by
+#   studio voices install <id>
+# (official URLs only; sha256 is recorded on first install in models/<id>/SHA256SUMS).
+#
+# location: laptop  -> runs on CPU, fine on any machine
+# location: node:home-gpu -> needs the RTX 3080 machine (CUDA); installed there, see docs/SETUP_GPU_NODE.md
+profiles:
+  # ---------- CPU (laptop + any machine) ----------
+  - id: piper-vi-vais1000
+    lang: vi
+    tier: local
+    provider: piper
+    status: ready
+    location: any
+    license: "see model card (vais1000 dataset)"
+    params:
+      model: vi_VN-vais1000-medium.onnx
+      length_scale: 1.0
+    files:
+      - url: https://huggingface.co/rhasspy/piper-voices/resolve/main/vi/vi_VN/vais1000/medium/vi_VN-vais1000-medium.onnx
+      - url: https://huggingface.co/rhasspy/piper-voices/resolve/main/vi/vi_VN/vais1000/medium/vi_VN-vais1000-medium.onnx.json
+    cost_per_1k_chars: 0
+
+  - id: piper-en-lessac
+    lang: en
+    tier: local
+    provider: piper
+    status: ready
+    location: any
+    license: "see model card (lessac dataset)"
+    params:
+      model: en_US-lessac-medium.onnx
+      length_scale: 1.0
+    files:
+      - url: https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
+      - url: https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json
+    cost_per_1k_chars: 0
+
+  - id: piper-en-ryan
+    lang: en
+    tier: local
+    provider: piper
+    status: ready
+    location: any
+    license: "see model card"
+    params:
+      model: en_US-ryan-high.onnx
+      length_scale: 1.0
+    files:
+      - url: https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/high/en_US-ryan-high.onnx
+      - url: https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/high/en_US-ryan-high.onnx.json
+    cost_per_1k_chars: 0
+
+  # ---------- GPU node (RTX 3080) - provider adapters arrive with milestone M3.5 ----------
+  - id: f5tts-vi
+    lang: vi
+    tier: local
+    provider: f5tts
+    status: planned
+    location: node:home-gpu
+    license: "check the Vietnamese fine-tune's model card before commercial use"
+    params: {ref_audio: clones/my_voice/ref.wav, ref_text: clones/my_voice/ref.txt}
+    cost_per_1k_chars: 0
+    fallback: edge-vi-hoaimy
+
+  - id: vieneu-vi
+    lang: vi
+    tier: local
+    provider: vieneu
+    status: planned
+    location: node:home-gpu
+    license: "check model card"
+    params: {}
+    cost_per_1k_chars: 0
+    fallback: edge-vi-hoaimy
+
+  - id: xtts-v2-clone
+    lang: en
+    tier: local
+    provider: xtts
+    status: planned
+    location: node:home-gpu
+    license: "Coqui Public Model License - non-commercial"
+    params: {ref_audio: clones/my_voice/ref.wav}
+    cost_per_1k_chars: 0
+    fallback: edge-en-andrew
+
+  # ---------- Testing ----------
+  - id: mock-vi
+    lang: vi
+    tier: local
+    provider: mock
+    status: ready
+    location: any
+    params: {chars_per_sec: 14}
+    cost_per_1k_chars: 0
+  - id: mock-en
+    lang: en
+    tier: local
+    provider: mock
+    status: ready
+    location: any
+    params: {chars_per_sec: 15}
+    cost_per_1k_chars: 0
