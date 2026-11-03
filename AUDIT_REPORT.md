@@ -62,7 +62,7 @@ Quy ước trạng thái:
 | Văn bản dán / file | **Có** | |
 | URL bài viết | **Một phần** | có code, chưa có test với HTML thật hoặc mock |
 | Reddit OAuth, `discover` | **Một phần** | chưa có test, chưa chạy với key thật |
-| Threads API | **Một phần, có lỗi** | `discover` gợi ý `studio new ... --url <url>`, nhưng `from_url` từ chối URL threads.net/threads.com (đã kiểm trong code) |
+| Threads API | **Có** (keyword search) | API không lấy được bài theo URL. `discover threads` lưu bài tìm được vào `cache/threads/posts.json`, rồi `--url <permalink>` đọc lại từ đó. URL chưa có trong cache thì báo dán text |
 | LLM qua `claude -p` / `agy -p` / `codex exec` | **Một phần** | test dùng chain offline; cờ CLI thật chưa có test tích hợp |
 | Dán tay `work/llm/<task>.response.json` | **Có** | demo 2 dùng đường này |
 
@@ -103,17 +103,17 @@ Quy ước trạng thái:
 5. Âm lượng được chuẩn hóa về −14 LUFS.
 6. Fixture test nhẹ hơn: bộ test từ 152 s xuống khoảng 51 s.
 7. Phát hiện khi thêm Manim: video hoàn toàn không có tiếng (không lời đọc, không nhạc) làm `loudnorm` trả NaN và encode AAC thất bại. Nay bỏ qua loudnorm khi project im lặng.
+8. Luồng Threads chạy được: `discover threads` lưu kết quả API vào cache, `--url` tra lại theo permalink (threads.net và threads.com đều được, bỏ qua query string). Có test trong `tests/test_sources.py`.
+9. Dòng `FAILED` / `WAITING` trên console đi qua `redact()` và escape markup. `redact()` nay che được cả `Authorization: Bearer <token>` và `?access_token=`, còn câu như "THREADS_ACCESS_TOKEN not set" vẫn đọc được. Lỗi HTTP của Threads chỉ báo mã trạng thái, không kèm URL có token.
 
 ## 3. Lỗ hổng còn lại, theo mức ưu tiên
 
 | # | Vấn đề | Mức | Đề xuất |
 |---|---|---|---|
-| 1 | Luồng Threads gãy: `discover` in lệnh `--url` mà `from_url` không nhận | Cao | Cho `from_url` gọi Threads API khi gặp URL Threads, hoặc in lệnh đúng |
-| 2 | `_guard` trong `cli.py` in `FAILED {e}` mà không qua `redact()`; nếu thông báo lỗi chứa token (ví dụ URL có query) thì token hiện ra console | Cao | Bọc bằng `redact()` như log file |
-| 3 | Dịch vụ ngoài chưa có test kể cả mock: Reddit, Threads, URL fetch, cờ của claude/agy/codex CLI, TTS trả phí | Trung bình | Thêm test mock HTTP và CLI |
-| 4 | Lớp CLI ít test: `--from`, `--force`, nhánh fallback qua CLI | Trung bình | Test bằng `typer.testing.CliRunner` |
-| 5 | README quick-start không nhắc extra `[worker]`; `piper-en-lessac` chưa cài; registry ghi provider class `manual` không tồn tại | Thấp | Sửa tài liệu và registry |
-| 6 | 5/8 workflow mới là khung; loại job GPU là placeholder | Theo lộ trình | M4, M6, M7 |
-| 7 | edge-tts thỉnh thoảng lỗi liên tục dù đã thử lại 7 lần (khoảng 25 s). Khi đó project chuyển sang piper, và `--strict` fail vì cảnh báo fallback | Thấp | Đây là hành vi đúng (không trộn giọng, không báo thành công giả). Chỉ cần chạy lại `studio run`: cảnh đã có giọng edge lấy từ cache |
-| 8 | Codex CLI với schema nghiêm ngặt có thể không chấp nhận `params` dạng object tự do. Đã nhận cả chuỗi JSON, nhưng chưa thử với codex thật | Thấp | Chạy thử `knowledge_explainer` với chuỗi chỉ có codex |
-| 9 | Worker trên PC phải có manim (extra `[gpu]` đã gồm manim) thì mới render từ xa được cảnh `manim` | Thấp | Ghi trong SETUP_GPU_NODE.md |
+| 1 | Dịch vụ ngoài chưa có test mock đầy đủ: Reddit, URL fetch (Threads đã có), cờ của claude/agy/codex CLI, TTS trả phí | Trung bình | Thêm test mock HTTP và CLI |
+| 2 | Lớp CLI ít test: `--from`, `--force`, nhánh fallback qua CLI | Trung bình | Test bằng `typer.testing.CliRunner` |
+| 3 | README quick-start không nhắc extra `[worker]`; `piper-en-lessac` chưa cài; registry ghi provider class `manual` không tồn tại | Thấp | Sửa tài liệu và registry |
+| 4 | 5/8 workflow mới là khung; loại job GPU là placeholder | Theo lộ trình | M4, M6, M7 |
+| 5 | edge-tts thỉnh thoảng lỗi liên tục dù đã thử lại 7 lần (khoảng 25 s). Khi đó project chuyển sang piper, và `--strict` fail vì cảnh báo fallback | Thấp | Đây là hành vi đúng (không trộn giọng, không báo thành công giả). Chỉ cần chạy lại `studio run`: cảnh đã có giọng edge lấy từ cache |
+| 6 | Codex CLI với schema nghiêm ngặt có thể không chấp nhận `params` dạng object tự do. Đã nhận cả chuỗi JSON, nhưng chưa thử với codex thật | Thấp | Chạy thử `knowledge_explainer` với chuỗi chỉ có codex |
+| 7 | Worker trên PC phải có manim (extra `[gpu]` đã gồm manim) thì mới render từ xa được cảnh `manim` | Thấp | Ghi trong SETUP_GPU_NODE.md |

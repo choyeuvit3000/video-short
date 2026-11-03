@@ -20,13 +20,14 @@ from typing import Annotated
 
 import typer
 import yaml
+from rich.markup import escape
 from rich.table import Table
 
 from . import __version__
 from .core.config import deep_merge, get_settings
 from .core.errors import EXIT_ERROR, EXIT_OK, EXIT_VALIDATION, ManualGateRequired, StudioError, WaitingForNode
 from .core.ffmpeg import ffmpeg_bin, ffprobe_bin, has_encoder, has_filter, run_ffmpeg
-from .core.logging_utils import _RedactFilter, attach_run_log, console, get_logger
+from .core.logging_utils import _RedactFilter, attach_run_log, console, get_logger, redact
 from .core.media_probe import probe
 from .core.project import ProjectContext, scaffold
 from .core.schema import Project
@@ -53,13 +54,13 @@ def _guard(fn: Callable[[], int | None]) -> None:
     try:
         code = fn() or EXIT_OK
     except ManualGateRequired as e:
-        console.print(f"[yellow]WAITING MANUAL[/] {e}")
+        console.print(f"[yellow]WAITING MANUAL[/] {escape(redact(str(e)))}")
         code = e.exit_code
     except WaitingForNode as e:
-        console.print(f"[yellow]WAITING NODE[/] {e}")
+        console.print(f"[yellow]WAITING NODE[/] {escape(redact(str(e)))}")
         code = e.exit_code
-    except StudioError as e:
-        console.print(f"[red]FAILED[/] {e}")
+    except StudioError as e:  # messages may quote URLs or CLI output: never print a token
+        console.print(f"[red]FAILED[/] {escape(redact(str(e)))}")
         code = e.exit_code
     raise typer.Exit(code)
 
@@ -594,11 +595,13 @@ def discover_reddit(
 @discover_app.command("threads")
 def discover_threads(query: str, limit: Annotated[int, typer.Option("--limit")] = 15) -> None:
     """Keyword search on Threads via the official API (needs THREADS_ACCESS_TOKEN)."""
-    from .providers.source import threads_discover
+    from .providers.source import save_threads_posts, threads_discover
 
     def body() -> int:
-        get_settings()
-        _print_posts(threads_discover(query, limit=limit), f"threads: {query}")
+        s = get_settings()
+        posts = threads_discover(query, limit=limit)
+        save_threads_posts(s.path("cache"), posts)  # the API cannot fetch a post by URL later
+        _print_posts(posts, f"threads: {query}")
         return EXIT_OK
 
     _guard(body)

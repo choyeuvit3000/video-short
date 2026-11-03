@@ -90,8 +90,9 @@ def stage_source(ctx: ProjectContext, opts: dict) -> str:
         post = from_text_file(md)
         stype = "manual"
     elif p.source.url:
-        post = from_url(p.source.url, max_comments=int(p.options.get("include_comments", 0)) or 5)
-        stype = "reddit" if post.platform == "reddit" else "url"
+        post = from_url(p.source.url, max_comments=int(p.options.get("include_comments", 0)) or 5,
+                        cache_dir=ctx.settings.path("cache"))
+        stype = post.platform if post.platform in ("reddit", "threads") else "url"
     else:
         raise ManualGateRequired("source", (
             "### Source text\n\n"

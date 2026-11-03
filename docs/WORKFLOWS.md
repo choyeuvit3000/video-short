@@ -61,6 +61,8 @@ studio discover threads "chuyện công sở"                                   
 
 Bạn tự duyệt bài, rồi tạo project bằng `--url`. Tool không tự render hàng loạt các bài chưa duyệt.
 
+Với Threads, API chính thức không đọc được một bài theo URL. Vì vậy `discover threads` lưu bài tìm được vào `cache/threads/posts.json`, rồi `--url` lấy nội dung từ đó. Link Threads khác (chưa qua `discover`) thì phải dán text.
+
 ## L1 · ai_cinematic (ready)
 
 `storyboard → media → validate → voice → render → qc → package`

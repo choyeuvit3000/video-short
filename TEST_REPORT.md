@@ -120,7 +120,7 @@ Demo dùng edge-tts, dịch vụ miễn phí cần internet. Muốn offline hoà
 ## 8. Test tự động
 
 ```text
-pytest -q   → 88 passed in 75.20s   (đợt Manim; đợt củng cố: 75 passed in 50.86s)
+pytest -q   → 93 passed in 82.50s   (sửa Threads + redact; đợt Manim: 88; đợt củng cố: 75)
 ruff check . → All checks passed!
 ```
 
@@ -159,7 +159,7 @@ Lần render đầu có 2 lỗi hiển thị, đã sửa:
 ## Chưa kiểm được trong đợt này
 
 - PC GPU thật qua Tailscale: worker mới chạy trên 127.0.0.1 của laptop.
-- Reddit, Threads, URL fetch, TTS trả phí: cần key hoặc dịch vụ thật, chưa có mock. Xem AUDIT_REPORT §3.
+- Reddit, URL fetch, TTS trả phí: cần key hoặc dịch vụ thật, chưa có mock. Threads có mock (`tests/test_sources.py`) nhưng chưa thử với token thật. Xem AUDIT_REPORT §3.
 - Phát sóng hoặc upload (YouTube): chưa làm, là bước tiếp theo.
 - `knowledge_explainer` với AI CLI thật (claude/agy/codex): demo dùng kịch bản dán tay. Chưa thử schema `params` với codex.
 - Render cảnh `manim` từ xa trên worker.

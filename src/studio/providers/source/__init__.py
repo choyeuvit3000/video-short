@@ -117,13 +117,11 @@ class _TextExtractor(HTMLParser):
             self._buf.append(data)
 
 
-def from_url(url: str, *, max_comments: int = 5) -> SourcePost:
+def from_url(url: str, *, max_comments: int = 5, cache_dir: Path | None = None) -> SourcePost:
     if re.search(r"(^|\.)reddit\.com/|redd\.it/", url):
         return reddit_post(url, max_comments=max_comments)
     if re.search(r"threads\.(net|com)/", url):
-        raise ProviderUnavailable(
-            "Threads posts cannot be fetched by URL with the official API - paste the text into "
-            "source/source.md (or use `studio discover threads` with THREADS_ACCESS_TOKEN)", code="source_manual")
+        return threads_post(url, cache_dir)
     try:
         r = httpx.get(url, headers={"User-Agent": UA}, follow_redirects=True, timeout=30)
         r.raise_for_status()
@@ -232,7 +230,54 @@ def threads_discover(query: str, *, limit: int = 15, search_type: str = "TOP") -
                               "fields": "id,text,username,permalink,timestamp", "access_token": token}, timeout=30)
         r.raise_for_status()
     except httpx.HTTPError as e:
-        raise ProviderUnavailable(f"Threads API error: {e}", code="source_api") from e
+        # httpx puts the request URL (with access_token) in the message: report the status only
+        status = e.response.status_code if isinstance(e, httpx.HTTPStatusError) else type(e).__name__
+        raise ProviderUnavailable(f"Threads API error: {status}", code="source_api") from None
     return [{"id": d.get("id"), "title": (d.get("text") or "")[:90], "author": d.get("username"),
-             "url": d.get("permalink"), "chars": len(d.get("text") or ""), "text": d.get("text")}
+             "url": d.get("permalink"), "chars": len(d.get("text") or ""), "text": d.get("text"),
+             "timestamp": d.get("timestamp")}
             for d in r.json().get("data", [])]
+
+
+def _threads_key(url: str) -> str:
+    """threads.net and threads.com permalinks of one post map to the same key (/@user/post/<code>)."""
+    return httpx.URL(url.strip()).path.rstrip("/")
+
+
+def _threads_cache(cache_dir: Path) -> Path:
+    return cache_dir / "threads" / "posts.json"
+
+
+def save_threads_posts(cache_dir: Path, posts: list[dict]) -> int:
+    """Remember discover results (text from the official API) so `--url <permalink>` can use them later."""
+    f = _threads_cache(cache_dir)
+    known = json.loads(f.read_text(encoding="utf-8")) if f.is_file() else {}
+    n = 0
+    for p in posts:
+        if p.get("url") and p.get("text"):
+            known[_threads_key(p["url"])] = {k: p.get(k) for k in ("id", "url", "author", "text", "timestamp")}
+            n += 1
+    f.parent.mkdir(parents=True, exist_ok=True)
+    tmp = f.with_suffix(".tmp")
+    tmp.write_text(json.dumps(known, ensure_ascii=False, indent=1), encoding="utf-8")
+    tmp.replace(f)
+    return n
+
+
+def threads_post(url: str, cache_dir: Path | None) -> SourcePost:
+    """A Threads post found earlier by `studio discover threads`; the API has no fetch-by-permalink."""
+    f = _threads_cache(cache_dir) if cache_dir else None
+    hit = (json.loads(f.read_text(encoding="utf-8")) if f and f.is_file() else {}).get(_threads_key(url))
+    if not hit:
+        raise ProviderUnavailable(
+            "this Threads post is not in the discover cache - run `studio discover threads <query>` "
+            "(THREADS_ACCESS_TOKEN in .env) to find it first, or paste the text into source/source.md",
+            code="source_manual")
+    text = str(hit.get("text") or "").strip()
+    first, _, rest = text.partition("\n")
+    if rest.strip() and len(first) <= 90:  # same rule as pasted text: first line is the title
+        title, body = first.strip(), rest.strip()
+    else:
+        title, body = f"@{hit.get('author') or 'threads'}", text
+    return SourcePost(platform="threads", title=title, body=body, url=hit.get("url") or url,
+                      author=hit.get("author"))

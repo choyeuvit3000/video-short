@@ -12,11 +12,19 @@ from rich.logging import RichHandler
 
 console = Console(highlight=False)
 
-_SECRET_RE = re.compile(r"(?i)(api[_-]?key|token|secret|authorization|password)([=:\s\"']+)([^\s\"']+)")
+_SECRET_RES = [
+    # key=value, key: value, "key": "value", ?access_token=... (the name may be a suffix: THREADS_ACCESS_TOKEN=)
+    re.compile(r"(?i)(\w*(?:api[_-]?key|token|secret|password))([\"']?\s*[=:]\s*[\"']?)(?!\*\*\*)([^\s\"'&,]+)"),
+    re.compile(r"(?i)(authorization[\"']?\s*[=:]\s*[\"']?(?:bearer|basic|token)?\s*)(?!\*\*\*)([^\s\"'&,]+)"),
+    re.compile(r"(?i)(\bbearer\s+)(?!\*\*\*)([A-Za-z0-9._~+/=-]{8,})"),
+]
 
 
 def redact(text: str) -> str:
-    return _SECRET_RE.sub(lambda m: f"{m.group(1)}{m.group(2)}***", text)
+    """Mask secret values; prose such as 'THREADS_ACCESS_TOKEN not set' is left readable."""
+    for rx in _SECRET_RES:
+        text = rx.sub(lambda m: "".join(m.groups()[:-1]) + "***", text)
+    return text
 
 
 class _RedactFilter(logging.Filter):

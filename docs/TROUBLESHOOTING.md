@@ -28,7 +28,7 @@ Bắt đầu bằng hai bước:
 | `output/history/` ngày càng lớn | Chỉ giữ `output.keep_history` bản (mặc định 3). Đặt 0 để ghi đè như trước |
 | `budget_exceeded` (exit 4) | Giọng/API trả phí vượt `budget.max_cost_usd`; tăng trần trong `project.json` nếu chấp nhận chi phí |
 | Reddit 401/403 | Kiểm tra `REDDIT_CLIENT_ID/SECRET/USER_AGENT` trong `.env`. App Reddit có thể cần được duyệt. Tạm thời dán text vào file và dùng `--text-file` |
-| Link Threads | Threads không có API đọc một bài bất kỳ theo URL: copy nội dung vào file text |
+| Link Threads báo `source_manual` | API Threads không đọc được bài theo URL. Chỉ link có trong kết quả `studio discover threads` mới dùng được với `--url` (lấy từ `cache/threads/`). Link khác thì copy nội dung vào file text |
 | `.ps1 cannot be loaded` | `powershell -ExecutionPolicy Bypass -File .\scripts\...ps1` (chỉ áp dụng cho lần chạy đó) |
 | `gradients` filter missing | FFmpeg quá cũ: cài bản Gyan full build, hoặc đặt `video.background: "color:#101828"` |
 | GPU PC: `h264_nvenc` lỗi | Cập nhật driver NVIDIA; tạm bỏ `render.encoder` trong `config/local.yaml` để dùng libx264 |
