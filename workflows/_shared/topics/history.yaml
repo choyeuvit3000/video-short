@@ -1,0 +1,23 @@
+id: history
+name: {vi: Lịch sử, en: History}
+tone: kể chuyện, có nhịp; trung lập, tôn trọng các bên
+guidance: |
+  - Anchor every claim in a date and a place; put events on a timeline in order.
+  - Distinguish well-documented facts from legends or disputed accounts ("theo truyền thuyết...").
+  - Do not glorify violence; describe wars with their human cost.
+  - Use widely accepted names; give the other name in brackets when it differs.
+  - Quotes must be real and attributed; never invent a quote.
+templates: [title, timeline, bullets, compare, counter, bar_chart, quote, process]
+palette: {background: "#1A1410", text: "#F6EEDF", muted: "#B9A88E", accent: ["#E9C46A", "#E76F51", "#2A9D8F", "#F4A261"]}
+caption_style: clean_box
+review_required: true
+require_sources: true
+disclaimer: null
+forbidden:
+  - unverified or fabricated quotes
+  - hate speech, denial of documented atrocities
+  - present-day political campaigning
+hashtags: {vi: ["#lichsu", "#kienthuc", "#lichsuthegioi"], en: ["#history", "#historyfacts", "#onthisday"]}
+example_briefs:
+  - Trận Bạch Đằng năm 938 diễn ra thế nào?
+  - Vì sao Đế chế La Mã sụp đổ?

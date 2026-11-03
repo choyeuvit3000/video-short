@@ -1,0 +1,23 @@
+# Topic pack: how a knowledge video on this subject is written, checked and styled.
+# Used by knowledge_explainer (`studio new knowledge_explainer <name> --topic science`); see docs/MANIM.md.
+id: science
+name: {vi: Khoa học, en: Science}
+tone: tò mò, rõ ràng, có ví dụ đời thường; không giật gân
+guidance: |
+  - Explain one phenomenon per video: what happens, why, and one surprising consequence.
+  - Use correct numbers with units (SI); round sensibly ("khoảng 150 triệu km").
+  - Separate established science from hypotheses ("các nhà khoa học cho rằng...").
+  - Prefer a process or a graph over a list when something changes or flows.
+templates: [title, bullets, counter, process, function_graph, line_chart, bar_chart, compare, formula, quote]
+palette: {background: "#0B1426", text: "#F1F5FF", muted: "#93A3C0", accent: ["#4CC9F0", "#80ED99", "#FFD166", "#F72585"]}
+caption_style: clean_box
+review_required: true
+require_sources: true
+disclaimer: null
+forbidden:
+  - pseudoscience presented as fact (astrology, homeopathy, miracle cures)
+  - invented statistics or studies
+hashtags: {vi: ["#khoahoc", "#kienthuc", "#hoccungshorts"], en: ["#science", "#learnontiktok", "#facts"]}
+example_briefs:
+  - Vì sao bầu trời màu xanh còn hoàng hôn màu đỏ?
+  - Hố đen hình thành như thế nào?

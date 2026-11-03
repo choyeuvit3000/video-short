@@ -19,6 +19,7 @@ from pathlib import Path
 
 from PIL import Image, ImageFilter
 
+from ..core.cache import build_cached as _build_cached
 from ..core.cache import cache_key
 from ..core.config import load_yaml
 from ..core.errors import StudioError, ValidationError
@@ -34,28 +35,6 @@ log = get_logger()
 
 GRADIENT_COLORS = ["0x0f0c29", "0x302b63", "0x24243e", "0x16213e"]
 SEGMENT_REV = 1  # bump when background/segment rendering changes, so cached segments are rebuilt
-
-
-def _key_file(out: Path) -> Path:
-    return out.with_name(out.name + ".key")
-
-
-def _reusable(out: Path, key: str) -> bool:
-    kf = _key_file(out)
-    try:
-        return out.is_file() and out.stat().st_size > 0 and kf.read_text(encoding="utf-8") == key
-    except OSError:
-        return False
-
-
-def _build_cached(out: Path, key: str, build) -> bool:
-    """Run `build()` unless `out` was made from the same `key`; returns True if reused."""
-    if _reusable(out, key):
-        return True
-    _key_file(out).unlink(missing_ok=True)  # a failed build must never look valid
-    build()
-    _key_file(out).write_text(key, encoding="utf-8")
-    return False
 
 
 def _file_sha(ctx: ProjectContext, path: Path) -> str | None:
@@ -174,7 +153,7 @@ def _ken_burns(effect: str, n: int) -> str:
 
 
 def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, background: Path | None,
-                 background_key: str | None = None) -> tuple[Path, bool]:
+                 background_key: str | None = None, voice_ms: int | None = None) -> tuple[Path, bool]:
     """One scene segment; returns (path, reused-from-cache)."""
     fmt = ctx.fmt
     w, h, fps = fmt.width, fmt.height, fmt.fps
@@ -200,6 +179,13 @@ def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, backgro
         prepared = ctx.work / f"still_{scene.scene_id}.jpg"
         inputs = ["-loop", "1", "-framerate", str(fps), "-i", str(prepared)]
         chain = f"{_ken_burns(v.ken_burns, n)}:s={w}x{h}:fps={fps}"
+    elif v.type == "manim":
+        from .manim_render import render_manim
+
+        path, mkey = render_manim(ctx, scene, dur_ms, dur_ms if voice_ms is None else voice_ms)
+        shas.append(mkey)
+        inputs = ["-i", str(path)]
+        chain = f"{_fit_filter(w, h, 'crop')},fps={fps},tpad=stop_mode=clone:stop_duration={dur},trim=duration={dur}"
     elif v.type == "color":
         color = (v.color or "#000000").replace("#", "0x")
         inputs = ["-f", "lavfi", "-i", f"color=c={color}:s={w}x{h}:r={fps}"]
@@ -351,7 +337,7 @@ def render_project(ctx: ProjectContext, *, burn_subs: bool | None = None, allow_
 
     segs, reused = [], 0
     for s, sc in zip(p.scenes, tl["scenes"], strict=True):
-        seg, hit = render_scene(ctx, s, sc["start_ms"], sc["duration_ms"], background, bg_key)
+        seg, hit = render_scene(ctx, s, sc["start_ms"], sc["duration_ms"], background, bg_key, sc.get("voice_ms"))
         segs.append(seg)
         reused += hit
     if reused:
@@ -387,7 +373,8 @@ def render_project(ctx: ProjectContext, *, burn_subs: bool | None = None, allow_
     tmp.unlink(missing_ok=True)
     sr = str(ctx.settings.get("render.audio_sample_rate", 48000))
     af = [f"aresample={sr}"]
-    if ctx.settings.get("render.loudnorm", True):
+    silent = not any(sc.get("audio") for sc in tl["scenes"]) and not p.audio.background_music
+    if ctx.settings.get("render.loudnorm", True) and not silent:  # loudnorm turns pure silence into NaN
         target = float(ctx.settings.get("render.loudness_lufs", -14))
         tp = float(ctx.settings.get("render.true_peak_db", -1.5))
         af.insert(0, f"loudnorm=I={target:g}:TP={tp:g}:LRA=11")

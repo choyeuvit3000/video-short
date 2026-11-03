@@ -33,10 +33,15 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
 - `src/studio/renderers/render.py` — per-scene segments (cached via `.key`, bump `SEGMENT_REV`) → concat →
   audio mix/ducking + loudnorm → captions (margins inside `safe_zone`) → previous final to `output/history/`
   (`core/outputs.py`) → atomic final. `core/qc_analysis.py`: loudness/silence/black/freeze + caption safe zone.
+- `src/studio/renderers/manim_render.py` — visual type `manim`: pydantic param models per template, spec JSON
+  (`STUDIO_MANIM_SPEC`), `python -m manim render` subprocess, cached via `core/cache.build_cached` (bump `MANIM_REV`).
+  `renderers/manim_scenes/templates.py` is standalone (runs inside manim, never imported by studio — importing
+  manim in-process hijacks logging). Custom scenes: `visual.file` + `scene_class`, user-written only.
 - `src/studio/providers/` — `llm/` (claude/agy/codex CLIs + manual), `tts/` (edge, piper, mock, paid adapters
   disabled), `align.py` (provider words → faster-whisper → estimate), `source/` (text file, URL, Reddit OAuth,
   Threads API). `renderers/card.py` draws the post card; `voices.py` loads the voice registry.
-- `src/studio/workflows/` — stage functions per workflow (`story_reader.py`, `ai_cinematic.py`, `common.py`);
+- `src/studio/workflows/` — stage functions per workflow (`story_reader.py`, `ai_cinematic.py`, `knowledge.py`,
+  `common.py`); `topics.py` loads topic packs `workflows/_shared/topics/<id>.yaml` (science, history, finance...);
   recipes live in `workflows/<name>/workflow.yaml` (stages, defaults, format_overrides, llm_chain) + prompts.
 - `voices/` — registry + profile YAMLs; models in `voices/local/models/` (gitignored, per machine).
 - `config/nodes.yaml` — worker nodes (tokens only via `token_env` → `.env`); `config/local.yaml` patches by id.
@@ -53,14 +58,16 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
 2. Every subprocess call uses an argument list — never `shell=True`. Paths with spaces + Vietnamese must work.
 3. Errors carry `code` and `scene_id` when scene-specific; exit codes: 0 ok, 1 error, 2 validation,
    3 waiting_manual, 4 budget, 5 QC fail, 6 waiting_node. Never report success without a probed, valid output file.
-4. No browser automation, scraping, cookie/session capture or quota bypass of Claude/ChatGPT/Flow/etc.
+4. AI never writes code that runs: knowledge scenes are templates + validated JSON params. `3b1b/videos` is
+   CC BY-NC-SA — reference only, never copy its code. Engine is ManimCE (MIT), not ManimGL.
+5. No browser automation, scraping, cookie/session capture or quota bypass of Claude/ChatGPT/Flow/etc.
    Content comes from official APIs or text the user pastes.
-5. Secrets only in `.env` (gitignored). Never log or commit tokens. Paid providers are disabled by default and
+6. Secrets only in `.env` (gitignored). Never log or commit tokens. Paid providers are disabled by default and
    gated by `budget.max_cost_usd` (default 0) through the cost ledger.
-6. No watermark removal. Voices are never mixed inside one video (fallback switches the whole project).
-7. `providers.llm` in config is the machine allow-list; a workflow's `llm_chain` only orders it.
+7. No watermark removal. Voices are never mixed inside one video (fallback switches the whole project).
+8. `providers.llm` in config is the machine allow-list; a workflow's `llm_chain` only orders it.
    A file `work/llm/<task>.response.json` always wins over any CLI (manual paste path).
-8. Don't claim tests pass unless you ran them; report real output.
+9. Don't claim tests pass unless you ran them; report real output.
 
 ## Conventions
 - Workflows are data: add `workflows/<name>/workflow.yaml` + stage functions registered in
@@ -72,6 +79,6 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
 - Docs for the user are in Vietnamese (`README.md`, `docs/`).
 
 ## Roadmap
-M0–M3.5 done on laptop (core, voices, story_reader, ai_cinematic, worker + remote run; the worker is not yet
+M0–M3.5 done on laptop (core, voices, story_reader, ai_cinematic, knowledge_explainer + Manim, worker + remote run; the worker is not yet
 installed on the GPU PC). Next: GPU job types on the worker (TTS GPU voices, ComfyUI) · M4 text_quote / listicle_stock / ai_slideshow (ComfyUI on GPU node) · M6 longform ·
 M7 motion_3d. See `docs/ARCHITECTURE.md` and `docs/WORKFLOWS.md`.

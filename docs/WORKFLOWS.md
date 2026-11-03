@@ -11,6 +11,7 @@ Mỗi workflow là một **recipe dữ liệu** đặt tại `workflows/<tên>/w
 | Top-N, kiến thức, tin tức | M1 listicle_stock *(planned)* | Stock footage miễn phí (Pexels/Pixabay) |
 | Lịch sử, bí ẩn, kể chuyện có minh họa | M2 ai_slideshow *(planned)* | Ảnh AI (ComfyUI trên PC GPU hoặc ChatGPT) + Ken Burns |
 | Video "wow", nhân vật nhất quán | **L1 ai_cinematic** | Clip Google Flow, timing cố định (đúng spec gốc) |
+| Kiến thức: khoa học, lịch sử, tài chính, toán... | **K knowledge_explainer** | Animation Manim chạy theo lời đọc, có bước duyệt nguồn, chi phí ~0 |
 | YouTube dài 8–15 phút | L2 longform_explainer *(planned)* | Chương, B-roll, thumbnail |
 | 3D, chuyển cảnh phức tạp | XL motion_3d *(planned)* | Remotion / Blender trên PC GPU |
 
@@ -69,9 +70,23 @@ Bạn tự duyệt bài, rồi tạo project bằng `--url`. Tool không tự re
 - Chưa có clip mà đã có `images/scene_NN.png` → tạm dùng ảnh tĩnh với Ken Burns (`allow_still_fallback`).
 - Timing `fixed`: nếu giọng dài hơn cảnh quá 200 ms thì **fail**. Khi đó rút ngắn lời thoại hoặc tăng `duration_sec`.
 
+## K · knowledge_explainer (ready)
+
+`explainer → review → validate → voice → render → qc → package`
+
+- **explainer**: brief lấy từ `--brief`, `source/brief.md` hoặc `source/source.md`. Chưa có brief thì dừng ở bước thủ công.
+  AI CLI viết lời đọc theo chủ đề (`--topic`, xem `studio topics`). Mỗi cảnh có một template Manim, tham số JSON và nguồn của từng số liệu.
+- **review**: manual gate. Đọc `TODO_MANUAL.md`, kiểm tra số liệu và nguồn, sửa `project.json` nếu cần, rồi chạy `studio approve <dir>`.
+- **render**: mỗi cảnh `manim` được dựng thành `work/manim/<scene>.mp4` (có cache). Hình chạy theo mốc từ của giọng đọc.
+- Mặc định: `audio_driven`, 6 cảnh khoảng 8 giây (bản 16:9 dài: 14 cảnh khoảng 20 giây), caption `clean_box`.
+- Chi tiết template và cảnh tự viết: [MANIM.md](MANIM.md).
+
+Loại visual `manim` dùng được trong mọi workflow, không riêng workflow này. Ví dụ: chèn một biểu đồ vào video `story_reader` bằng cách sửa
+`visual` của cảnh trong `project.json`.
+
 ## Workflow planned
 
-`text_quote`, `listicle_stock`, `ai_slideshow`, `longform_explainer`, `motion_3d` đã có `workflow.yaml` và README nhưng chưa có stage riêng. Bạn vẫn có thể tự điền `scenes` trong `project.json` (loại visual `clip` / `still` / `background` / `color`), và các stage chung sẽ render bình thường.
+`text_quote`, `listicle_stock`, `ai_slideshow`, `longform_explainer`, `motion_3d` đã có `workflow.yaml` và README nhưng chưa có stage riêng. Bạn vẫn có thể tự điền `scenes` trong `project.json` (loại visual `clip` / `still` / `background` / `color` / `manim`), và các stage chung sẽ render bình thường.
 
 ## Thêm workflow mới
 

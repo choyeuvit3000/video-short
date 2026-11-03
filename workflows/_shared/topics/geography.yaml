@@ -1,0 +1,19 @@
+id: geography
+name: {vi: Địa lý, en: Geography}
+tone: khám phá, so sánh bằng con số dễ hình dung
+guidance: |
+  - Give scale with comparisons ("diện tích gấp 3 lần Việt Nam").
+  - Numbers (population, area, height) need the year and the source.
+  - Use neutral, internationally recognised names for disputed places and mention the dispute neutrally.
+templates: [title, counter, bar_chart, compare, bullets, timeline, line_chart]
+palette: {background: "#0A1A22", text: "#EAF6F8", muted: "#8FB1BA", accent: ["#48CAE4", "#90BE6D", "#F9C74F", "#F3722C"]}
+caption_style: clean_box
+review_required: true
+require_sources: true
+disclaimer: null
+forbidden:
+  - taking sides in territorial disputes
+hashtags: {vi: ["#dialy", "#kienthuc", "#thegioi"], en: ["#geography", "#maps", "#worldfacts"]}
+example_briefs:
+  - Vì sao Biển Chết lại mặn đến vậy?
+  - 5 quốc gia đông dân nhất thế giới

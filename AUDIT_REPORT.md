@@ -72,6 +72,7 @@ Quy ước trạng thái:
 |---|---|---|
 | `story_reader` | **Có** | demo 1 |
 | `ai_cinematic` | **Có** | demo 2 (clip mẫu thay cho Flow) |
+| `knowledge_explainer` + visual `manim` | **Có** | 11 template ManimCE, 8 topic pack, bước duyệt nguồn; demo 9:16 khoa học (xem TEST_REPORT §9) |
 | `text_quote`, `listicle_stock`, `ai_slideshow` | **Khung** | M4 |
 | `longform_explainer` | **Khung** | M6 |
 | `motion_3d` | **Khung** | M7 |
@@ -101,6 +102,7 @@ Quy ước trạng thái:
 4. Render lần hai không làm mất bản trước (`output/history/`), kể cả khi kéo kết quả về từ worker.
 5. Âm lượng được chuẩn hóa về −14 LUFS.
 6. Fixture test nhẹ hơn: bộ test từ 152 s xuống khoảng 51 s.
+7. Phát hiện khi thêm Manim: video hoàn toàn không có tiếng (không lời đọc, không nhạc) làm `loudnorm` trả NaN và encode AAC thất bại. Nay bỏ qua loudnorm khi project im lặng.
 
 ## 3. Lỗ hổng còn lại, theo mức ưu tiên
 
@@ -111,5 +113,7 @@ Quy ước trạng thái:
 | 3 | Dịch vụ ngoài chưa có test kể cả mock: Reddit, Threads, URL fetch, cờ của claude/agy/codex CLI, TTS trả phí | Trung bình | Thêm test mock HTTP và CLI |
 | 4 | Lớp CLI ít test: `--from`, `--force`, nhánh fallback qua CLI | Trung bình | Test bằng `typer.testing.CliRunner` |
 | 5 | README quick-start không nhắc extra `[worker]`; `piper-en-lessac` chưa cài; registry ghi provider class `manual` không tồn tại | Thấp | Sửa tài liệu và registry |
-| 6 | 5/7 workflow mới là khung; loại job GPU là placeholder | Theo lộ trình | M4, M6, M7 |
+| 6 | 5/8 workflow mới là khung; loại job GPU là placeholder | Theo lộ trình | M4, M6, M7 |
 | 7 | edge-tts thỉnh thoảng lỗi liên tục dù đã thử lại 7 lần (khoảng 25 s). Khi đó project chuyển sang piper, và `--strict` fail vì cảnh báo fallback | Thấp | Đây là hành vi đúng (không trộn giọng, không báo thành công giả). Chỉ cần chạy lại `studio run`: cảnh đã có giọng edge lấy từ cache |
+| 8 | Codex CLI với schema nghiêm ngặt có thể không chấp nhận `params` dạng object tự do. Đã nhận cả chuỗi JSON, nhưng chưa thử với codex thật | Thấp | Chạy thử `knowledge_explainer` với chuỗi chỉ có codex |
+| 9 | Worker trên PC phải có manim (extra `[gpu]` đã gồm manim) thì mới render từ xa được cảnh `manim` | Thấp | Ghi trong SETUP_GPU_NODE.md |

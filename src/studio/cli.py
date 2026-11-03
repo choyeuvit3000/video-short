@@ -110,7 +110,8 @@ def doctor(gpu: Annotated[bool, typer.Option("--gpu", help="Also check NVIDIA GP
         path = shutil.which(s.get(f"llm.{cli}_cli.command") or cli)
         add(f"{cli} CLI", True if path else None, path or "not on PATH (LLM chain skips it)")
     for mod, label in (("edge_tts", "edge-tts"), ("piper", "piper-tts [piper]"),
-                       ("faster_whisper", "faster-whisper [align]"), ("fastapi", "fastapi [worker]")):
+                       ("faster_whisper", "faster-whisper [align]"), ("fastapi", "fastapi [worker]"),
+                       ("manim", "manim [manim]")):
         found = importlib.util.find_spec(mod) is not None
         add(label, True if found else (False if mod == "edge_tts" else None), "")
     for key in ("projects", "cache"):
@@ -122,6 +123,8 @@ def doctor(gpu: Annotated[bool, typer.Option("--gpu", help="Also check NVIDIA GP
             add(f"write {key}/", True, str(d))
         except OSError as e:
             add(f"write {key}/", False, str(e))
+    add("LaTeX (manim formulas, optional)", True if shutil.which("latex") else None,
+        "not needed: formulas fall back to Unicode text")
     add(".env", True if (s.root / ".env").exists() else None, "copy .env.example -> .env for API keys")
     if gpu:
         smi = shutil.which("nvidia-smi")
@@ -176,6 +179,22 @@ def workflows() -> None:
 
 
 @app.command()
+def topics() -> None:
+    """List knowledge topic packs (workflows/_shared/topics) for knowledge_explainer --topic."""
+    from .workflows.topics import list_topics
+
+    t = Table(title="topics")
+    for c in ("id", "name", "review", "sources", "disclaimer", "templates"):
+        t.add_column(c, overflow="fold")
+    for tp in list_topics(get_settings()):
+        t.add_row(tp.id, tp.label("vi"), "yes" if tp.review_required else "no",
+                  "required" if tp.require_sources else "-",
+                  ("on screen" if tp.disclaimer_on_screen else "description") if tp.disclaimer else "-",
+                  str(len(tp.templates)))
+    console.print(t)
+
+
+@app.command()
 def new(
     workflow: Annotated[str, typer.Argument(help="story_reader | ai_cinematic | ... (see `studio workflows`)")],
     name: Annotated[str, typer.Argument(help="Short name; becomes the folder slug")],
@@ -183,7 +202,10 @@ def new(
     lang: Annotated[str, typer.Option("--lang", help="vi | en")] = "vi",
     text_file: Annotated[Path | None, typer.Option("--text-file", help="Source text (copied to source/)")] = None,
     url: Annotated[str | None, typer.Option("--url", help="Source URL (Reddit uses the official API)")] = None,
-    brief_file: Annotated[Path | None, typer.Option("--brief-file", help="ai_cinematic brief")] = None,
+    brief_file: Annotated[Path | None, typer.Option("--brief-file", help="Brief file (ai_cinematic, "
+                                                                     "knowledge_explainer)")] = None,
+    brief: Annotated[str | None, typer.Option("--brief", help="Brief as text (stored in options.brief)")] = None,
+    topic: Annotated[str | None, typer.Option("--topic", help="Knowledge topic (see `studio topics`)")] = None,
     voice: Annotated[str | None, typer.Option("--voice", help="Voice id (see `studio voices list`)")] = None,
     out_dir: Annotated[Path | None, typer.Option("--dir", help="Exact project folder (single format)")] = None,
     sets: Annotated[list[str], typer.Option("--set", help="Workflow option key=value, e.g. rewrite=none")] = None,
@@ -213,6 +235,10 @@ def new(
             if not sep or not key.strip():
                 raise StudioError(f"--set expects key=value, got {item!r}", code="bad_args")
             options[key.strip()] = yaml.safe_load(value) if value else ""
+        if brief:
+            options["brief"] = brief
+        if topic:
+            options["topic"] = topic
         base = f"{datetime.now():%Y%m%d}_{slugify(name)}"
         created = []
         for f in formats:
@@ -226,6 +252,8 @@ def new(
             })
             if voice:
                 data.setdefault("audio", {})["voice_profile"] = voice
+            if data.get("options", {}).get("topic"):
+                _apply_topic(s, data)
             if url:
                 data["source"] = {"type": "url", "url": url}
             scaffold(pdir, Project.model_validate(data))
@@ -240,6 +268,20 @@ def new(
         return EXIT_OK
 
     _guard(body)
+
+
+def _apply_topic(s, data: dict) -> None:
+    """Topic pack look (caption style, palette, on-screen disclaimer) as project defaults - editable later."""
+    from .workflows.topics import load_topic
+
+    tp = load_topic(s, str(data["options"]["topic"]))
+    if tp.caption_style:
+        data.setdefault("video", {})["caption_style"] = tp.caption_style
+    if tp.palette:
+        data["options"].setdefault("palette", tp.palette)
+    note = tp.disclaimer_for(data.get("language", "vi"))
+    if note and tp.disclaimer_on_screen:
+        data["options"].setdefault("on_screen_note", note)
 
 
 # ------------------------------------------------------------------ pipeline commands
@@ -312,6 +354,22 @@ def _run_remote(ctx: ProjectContext, ro, node_id: str, *, wait: bool, timeout_mi
     wait_for_job(client, job_id, poll_sec=float(s.get("remote.poll_sec", 10)),
                  timeout_sec=60 * float(timeout_min or s.get("remote.wait_timeout_min", 180)))
     pull_job(ctx, client, job_id)
+
+
+@app.command()
+def approve(project: ProjectArg) -> None:
+    """Mark the script as fact-checked (options.reviewed = true) so the review gate passes."""
+
+    def body() -> int:
+        ctx = _ctx(project, "approve")
+        if not ctx.project.scenes:
+            raise StudioError("nothing to approve: the project has no scenes yet - run it first", code="no_scenes")
+        ctx.project.options["reviewed"] = True
+        ctx.save()
+        console.print(f"[green]approved[/] {len(ctx.project.scenes)} scenes - next: studio run \"{project}\"")
+        return EXIT_OK
+
+    _guard(body)
 
 
 @app.command()

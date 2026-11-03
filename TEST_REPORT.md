@@ -120,20 +120,46 @@ Demo dùng edge-tts, dịch vụ miễn phí cần internet. Muốn offline hoà
 ## 8. Test tự động
 
 ```text
-pytest -q   → 75 passed in 50.86s
+pytest -q   → 88 passed in 75.20s   (đợt Manim; đợt củng cố: 75 passed in 50.86s)
 ruff check . → All checks passed!
 ```
 
 Bộ test gồm:
 
 - `tests/test_hardening.py` (mới): fingerprint, history, QC nội dung, safe zone, parse log ffmpeg;
+- `tests/test_manim.py` (mới): tham số template, mốc cue, vùng nội dung theo 3 format, topic pack, bước duyệt + approve, validator, render e2e có cache, cảnh Manim tự viết;
 - test core, voices, workflow;
 - test worker qua HTTP thật trên 127.0.0.1.
 
 Test cần ffmpeg chạy được vì có `STUDIO_FFMPEG_DIR`.
+
+## 9. knowledge_explainer + Manim, demo 9:16 thật
+
+Project `projects\knowledge_explainer61103_bau-troi-xanh`:
+
+- chủ đề `science`, giọng `edge-vi-hoaimy`, format `short_9x16`;
+- kịch bản "Vì sao bầu trời màu xanh?" dán tay vào `work/llm/explainer.response.json`, không gọi LLM;
+- 6 cảnh dùng các template `title`, `process`, `formula`, `bar_chart`, `compare`, `bullets`.
+
+| Bước | Kết quả |
+|---|---|
+| `studio run` | dừng ở `review`, có `TODO_MANUAL.md` (exit 3) |
+| `studio approve` rồi `studio run --strict` | exit 0. Video 1080x1920, 55,93 s. Render 71 s trên CPU, khoảng 7–12 s mỗi cảnh |
+| QC | **PASS**, 0 cảnh báo. −14,1 LUFS, true peak −1,5 dB. 64 caption, không caption nào ra ngoài vùng an toàn |
+
+Lần render đầu có 2 lỗi hiển thị, đã sửa:
+
+- ký hiệu `∝` hiện thành ô vuông vì Arial thiếu glyph; công thức nay dùng font toán khi máy có;
+- tiêu đề nhiều dòng bị căn trái; nay căn giữa.
+
+Đã render lại và kiểm tra bằng ảnh khung hình.
+
+Đợt này cũng tìm ra một lỗi cũ: video hoàn toàn im lặng làm `loudnorm` trả NaN. Lỗi đã sửa và có test.
 
 ## Chưa kiểm được trong đợt này
 
 - PC GPU thật qua Tailscale: worker mới chạy trên 127.0.0.1 của laptop.
 - Reddit, Threads, URL fetch, TTS trả phí: cần key hoặc dịch vụ thật, chưa có mock. Xem AUDIT_REPORT §3.
 - Phát sóng hoặc upload (YouTube): chưa làm, là bước tiếp theo.
+- `knowledge_explainer` với AI CLI thật (claude/agy/codex): demo dùng kịch bản dán tay. Chưa thử schema `params` với codex.
+- Render cảnh `manim` từ xa trên worker.

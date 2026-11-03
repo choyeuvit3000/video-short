@@ -1,0 +1,19 @@
+id: math
+name: {vi: Toán học, en: Math}
+tone: trực quan trước, công thức sau; từng bước một
+guidance: |
+  - Show the idea visually first (graph, process), then the formula.
+  - One concept per video; define every symbol in the formula legend.
+  - Check the arithmetic of every example; keep numbers small and round.
+templates: [title, formula, function_graph, process, bullets, counter, bar_chart, compare]
+palette: {background: "#101626", text: "#F4F6FB", muted: "#9AA4B8", accent: ["#4CC9F0", "#FFD166", "#EF476F", "#06D6A0"]}
+caption_style: clean_box
+review_required: true
+require_sources: false
+disclaimer: null
+forbidden:
+  - wrong results presented as tricks
+hashtags: {vi: ["#toanhoc", "#hoctoan", "#kienthuc"], en: ["#math", "#maths", "#mathtok"]}
+example_briefs:
+  - Vì sao 0,999... lại bằng 1?
+  - Định lý Pythagoras nhìn bằng hình

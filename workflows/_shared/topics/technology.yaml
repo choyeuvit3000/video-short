@@ -1,0 +1,20 @@
+id: technology
+name: {vi: Công nghệ, en: Technology}
+tone: giải thích "nó hoạt động thế nào", gọn, không quảng cáo
+guidance: |
+  - Explain how something works step by step (process), with one everyday analogy.
+  - Date-sensitive facts (versions, prices, market share) need the year next to them.
+  - No brand promotion; compare technologies, not products, unless the brief asks.
+templates: [title, process, bullets, compare, counter, bar_chart, line_chart, timeline]
+palette: {background: "#0D1117", text: "#E6EDF3", muted: "#8B98A8", accent: ["#58A6FF", "#3FB950", "#D29922", "#F778BA"]}
+caption_style: clean_box
+review_required: true
+require_sources: true
+disclaimer: null
+forbidden:
+  - instructions for hacking, piracy or bypassing security
+  - unverified rumours about products or companies
+hashtags: {vi: ["#congnghe", "#kienthuccongnghe", "#tech"], en: ["#tech", "#howitworks", "#technology"]}
+example_briefs:
+  - Internet đi qua đáy biển như thế nào?
+  - Mật khẩu được lưu an toàn ra sao (hash là gì)?

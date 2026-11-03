@@ -1,0 +1,26 @@
+id: finance
+name: {vi: Tài chính cá nhân, en: Personal finance}
+tone: thực tế, bình tĩnh, giải thích khái niệm; không hứa hẹn lợi nhuận
+guidance: |
+  - Teach concepts (compound interest, inflation, diversification, risk), not what to buy.
+  - Every number needs its assumption ("giả sử lãi 7%/năm, chưa tính thuế và phí").
+  - Always mention risk next to return; past performance is not a promise.
+  - Use function_graph for growth over time, compare for trade-offs, counter for one key figure.
+  - Never name a specific stock, coin or fund as a recommendation; no price targets.
+templates: [title, counter, function_graph, line_chart, bar_chart, compare, formula, bullets, process]
+palette: {background: "#0E1A14", text: "#EEF7F1", muted: "#98B3A4", accent: ["#06D6A0", "#FFD166", "#EF476F", "#118AB2"]}
+caption_style: clean_box
+review_required: true
+require_sources: true
+disclaimer:
+  vi: Nội dung chỉ nhằm mục đích giáo dục, không phải lời khuyên đầu tư.
+  en: Educational content only, not financial advice.
+disclaimer_on_screen: true
+forbidden:
+  - buy/sell recommendations, guaranteed or "sure" returns
+  - promoting a specific coin, stock, broker or scheme
+  - get-rich-quick or MLM content
+hashtags: {vi: ["#taichinh", "#taichinhcanhan", "#kienthuctaichinh"], en: ["#personalfinance", "#moneytips", "#financialliteracy"]}
+example_briefs:
+  - Lãi kép là gì và vì sao bắt đầu sớm lại quan trọng?
+  - Lạm phát làm tiền tiết kiệm mất giá như thế nào?

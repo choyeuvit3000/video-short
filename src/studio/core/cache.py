@@ -16,6 +16,27 @@ def cache_key(*parts: Any) -> str:
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:32]
 
 
+def key_file(out: Path) -> Path:
+    return out.with_name(out.name + ".key")
+
+
+def build_cached(out: Path, key: str, build) -> bool:
+    """Run `build()` (which writes `out`) unless `out` was already made from the same `key`.
+
+    The key is stored in `<out>.key`; returns True when the existing file was reused.
+    """
+    kf = key_file(out)
+    try:
+        if out.is_file() and out.stat().st_size > 0 and kf.read_text(encoding="utf-8") == key:
+            return True
+    except OSError:
+        pass
+    kf.unlink(missing_ok=True)  # a failed build must never look valid
+    build()
+    kf.write_text(key, encoding="utf-8")
+    return False
+
+
 def file_sha256(path: Path) -> str:
     h = hashlib.sha256()
     with path.open("rb") as f:

@@ -40,6 +40,29 @@ def _check_ref(ctx: ProjectContext, ref: str, issues: list[Issue], *, code: str,
     return True
 
 
+def _check_manim(ctx: ProjectContext, scene_id: str, v, issues: list[Issue]) -> None:
+    from ..renderers.manim_render import manim_available, validate_params
+
+    if not manim_available():
+        issues.append(Issue("error", "manim_missing", 'manim is not installed - uv pip install -e ".[manim]"',
+                            scene_id))
+    if v.file:
+        if not v.file.endswith(".py") or not v.scene_class:
+            issues.append(Issue("error", "bad_manim_params", "custom manim scene needs file: <name>.py and "
+                                "scene_class", scene_id))
+        elif _check_ref(ctx, v.file, issues, code="missing_manim_file", scene_id=scene_id, what="manim file"):
+            issues.append(Issue("warning", "custom_code", f"{v.file} is Python that runs on this machine - "
+                                "render only files you wrote or reviewed", scene_id))
+    elif not v.template:
+        issues.append(Issue("error", "schema_error", "visual.type=manim needs a template (or file + scene_class)",
+                            scene_id))
+    else:
+        try:
+            validate_params(v.template, v.params)
+        except StudioError as e:
+            issues.append(Issue("error", e.code, str(e), scene_id))
+
+
 def validate_project(ctx: ProjectContext, *, require_media: bool = True, require_audio: bool = False) -> list[Issue]:
     p = ctx.project
     issues: list[Issue] = []
@@ -82,6 +105,8 @@ def validate_project(ctx: ProjectContext, *, require_media: bool = True, require
                                                 "last frame will be frozen", s.scene_id))
                 except StudioError as e:
                     issues.append(Issue("error", e.code, str(e), s.scene_id))
+        if v.type == "manim":
+            _check_manim(ctx, s.scene_id, v, issues)
         if v.overlay:
             _check_ref(ctx, v.overlay, issues, code="missing_overlay", scene_id=s.scene_id, what="overlay")
         if p.audio.source == "manual" or require_audio:

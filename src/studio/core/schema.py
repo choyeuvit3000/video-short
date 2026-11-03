@@ -22,17 +22,23 @@ class VisualSpec(_Model):
     still      - an image animated with Ken Burns
     background - the project-level background (video loop, gradient or color)
     color      - a flat color (`color`)
+    manim      - a Manim animation: `template` + `params` (renderers/manim_render.py), or a reviewed custom
+                 scene `file` (project-relative .py) + `scene_class`
     `overlay` is an optional PNG composited on top (e.g. the Reddit post card).
     Paths are project-relative, or `asset:<path>` relative to the repo assets/ folder.
     """
 
-    type: Literal["clip", "still", "background", "color"] = "background"
+    type: Literal["clip", "still", "background", "color", "manim"] = "background"
     path: str | None = None
     fit_mode: Literal["crop", "pad"] | None = None
     ken_burns: Literal["zoom_in", "zoom_out", "pan_left", "pan_right", "none"] = "zoom_in"
     color: str | None = None
     overlay: str | None = None
     overlay_until_sec: float | None = None  # show overlay only for the first N seconds of the scene
+    template: str | None = None  # manim
+    params: dict[str, Any] | None = None  # manim template params
+    file: str | None = None  # manim custom scene file
+    scene_class: str | None = None
 
 
 class Scene(_Model):

@@ -1,4 +1,4 @@
-﻿"""Workflow recipes. The recipe (stages, defaults, prompts) is data in workflows/<name>/workflow.yaml;
+"""Workflow recipes. The recipe (stages, defaults, prompts) is data in workflows/<name>/workflow.yaml;
 the stage functions live in this package and are looked up by name."""
 
 from __future__ import annotations
@@ -59,7 +59,7 @@ def fill(template: str, values: dict[str, Any]) -> str:
 
 
 def get_stages() -> dict[str, StageFn]:
-    from . import ai_cinematic, story_reader
+    from . import ai_cinematic, knowledge, story_reader
     from .common import COMMON_STAGES
 
-    return {**COMMON_STAGES, **story_reader.STAGES, **ai_cinematic.STAGES}
+    return {**COMMON_STAGES, **story_reader.STAGES, **ai_cinematic.STAGES, **knowledge.STAGES}

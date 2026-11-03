@@ -21,7 +21,7 @@ from ..core.cache import cache_key
 from ..core.errors import StudioError
 from ..core.project import ProjectContext
 
-REV = 2
+REV = 3
 
 SKIPPABLE = ("render", "qc", "package")
 MACHINE_KEYS = {"encoder"}  # render.* keys that only change speed, not the picture
@@ -47,6 +47,8 @@ def _render_inputs(ctx: ProjectContext) -> dict[str, Any]:
     media = {}
     for s in p.scenes:
         media[s.scene_id] = [_ref_sha(ctx, s.visual.path, "clip"), _ref_sha(ctx, s.visual.overlay, "overlay")]
+        if s.visual.type == "manim":
+            media[s.scene_id].append(_ref_sha(ctx, s.visual.file, "manim file"))
     audio = {}
     if tl.is_file():
         for sc in json.loads(tl.read_text(encoding="utf-8")).get("scenes", []):
@@ -69,7 +71,15 @@ def _render_inputs(ctx: ProjectContext) -> dict[str, Any]:
         "music": _ref_sha(ctx, p.audio.background_music, "music"),
         "caption_style": _ref_sha(ctx, f"asset:shared/caption_styles/{p.video.caption_style}.yaml", "style"),
         "fonts": font_shas,
+        "manim": _manim_inputs(ctx) if any(s.visual.type == "manim" for s in p.scenes) else None,
     }
+
+
+def _manim_inputs(ctx: ProjectContext) -> list[Any]:
+    from ..renderers.manim_render import MANIM_REV, TEMPLATE_SCRIPT
+
+    o = ctx.project.options
+    return [MANIM_REV, ctx.hashes.sha(TEMPLATE_SCRIPT), o.get("palette"), o.get("manim_font"), o.get("on_screen_note")]
 
 
 def outputs_for(ctx: ProjectContext, stage: str) -> list[str]:

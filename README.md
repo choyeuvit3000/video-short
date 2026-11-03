@@ -45,6 +45,7 @@ Muốn render lại dù không đổi gì: `studio run DIR --from render --force
 | M1 | `listicle_stock` | planned | stock Pexels/Pixabay | ~0 |
 | M2 | `ai_slideshow` | planned | ảnh AI + Ken Burns | credits / GPU nhà |
 | L1 | `ai_cinematic` | **ready** | clip Google Flow (thủ công) | credits Flow |
+| K | `knowledge_explainer` | **ready** | animation Manim (biểu đồ, timeline, công thức) | ~0 |
 | L2 | `longform_explainer` | planned | mix stock + ảnh + chart | thấp |
 | XL | `motion_3d` | planned | Remotion / Blender | thời gian máy |
 
@@ -61,6 +62,9 @@ studio run DIR [--from STAGE] [--only STAGE]... [--force] [--overwrite] [--stric
 studio status DIR                       trạng thái từng stage
 studio validate|voice|render|qc|package DIR
 studio voices list|install|preview|test
+studio topics                           chủ đề kiến thức (khoa học, lịch sử, tài chính...)
+studio new knowledge_explainer NAME --topic finance --brief "..."
+studio approve DIR                      duyệt kịch bản kiến thức (sau khi đọc TODO_MANUAL.md)
 studio discover reddit SUB [--period day] | studio discover threads QUERY
 
 # đa máy
@@ -94,6 +98,7 @@ docs/        hướng dẫn
 - [docs/SETUP_GPU_NODE.md](docs/SETUP_GPU_NODE.md): cài trên PC RTX 3080, viết dạng checklist để Claude Code trên PC làm theo
 - [docs/WORKFLOWS.md](docs/WORKFLOWS.md): chọn workflow, các stage, cách thêm workflow mới
 - [docs/WORKFLOW_MANUAL.md](docs/WORKFLOW_MANUAL.md): làm bước thủ công (ChatGPT, Flow, dán kết quả AI)
+- [docs/MANIM.md](docs/MANIM.md): video kiến thức bằng Manim, template, chủ đề, cảnh tự viết, bản quyền
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md): kiến trúc, `project.json`, timing, đa máy
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): xử lý lỗi thường gặp
 

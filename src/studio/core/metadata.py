@@ -31,6 +31,11 @@ def write_metadata(ctx: ProjectContext) -> str:
             if v:
                 lines.append(f"- {k}: {v}")
         lines.append("")
+    sources = p.options.get("sources") or []
+    if sources:  # knowledge videos: the references behind the claims, ready to paste under the video
+        lines += ["## Sources", ""]
+        lines += [f"- {x.get('claim', '')}: {x.get('source', '')}" for x in sources if isinstance(x, dict)]
+        lines.append("")
     lines += ["## Assets used", ""]
     seen = set()
     refs = [p.video.background, p.audio.background_music] + [s.visual.path for s in p.scenes] + \

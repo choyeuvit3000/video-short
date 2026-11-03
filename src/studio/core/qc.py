@@ -14,6 +14,9 @@ from .project import ProjectContext
 from .qc_analysis import analyze_av, caption_layout, overlap
 from .subtitles import check_cues, read_srt
 
+# visuals that are legitimately dark (flat colors, Manim's dark backgrounds): no black-frame warnings
+DARK_OK = {"color", "manim"}
+
 
 def check_media(path: Path, *, width: int, height: int, fps: int, expected_sec: float | None,
                 tolerance_sec: float) -> tuple[dict[str, Any], list[str], list[str]]:
@@ -92,7 +95,7 @@ def _content_checks(ctx: ProjectContext, final: Path, summary: dict, tl: dict | 
             if gap >= max_sil:
                 warnings.append(f"{s.scene_id}: {gap:.1f}s of continuous silence inside the narration")
         end = start + sc["duration_ms"] / 1000
-        if s.visual.type != "color":
+        if s.visual.type not in DARK_OK:
             dark = overlap(a["black"], start, end)
             if dark >= max_black:
                 warnings.append(f"{s.scene_id}: {dark:.1f}s of black frames")
@@ -101,7 +104,7 @@ def _content_checks(ctx: ProjectContext, final: Path, summary: dict, tl: dict | 
             if frozen >= max_freeze:
                 warnings.append(f"{s.scene_id}: clip frozen for {frozen:.1f}s")
     black_total = overlap(a["black"], 0, duration)
-    if duration and black_total > duration / 2 and not all(s.visual.type == "color" for s in p.scenes):
+    if duration and black_total > duration / 2 and not all(s.visual.type in DARK_OK for s in p.scenes):
         errors.append(f"{black_total:.1f}s of {duration:.1f}s is black - missing or broken visuals?")
     return {"audio": {"integrated_lufs": lufs, "true_peak_db": peak, "silences": a["silence"]},
             "video": {"black": a["black"], "freeze": a["freeze"]}}

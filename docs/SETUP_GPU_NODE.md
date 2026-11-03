@@ -54,6 +54,7 @@ Copy-Item .env.example .env
 ```
 
 - [ ] `.\.venv\Scripts\studio.exe doctor --gpu`: các mục python, ffmpeg, libass, font, `nvidia-smi` và `h264_nvenc encode` phải **OK**.
+  Dòng `manim` cũng phải OK, vì extra `[gpu]` đã gồm manim. Thiếu manim thì worker không render được cảnh kiến thức (`knowledge_explainer`).
 - [ ] Tạo `config/local.yaml` (gitignored) cho riêng máy này:
 
 ```yaml

@@ -1,0 +1,24 @@
+id: health
+name: {vi: Sức khỏe, en: Health}
+tone: thận trọng, dựa trên bằng chứng, không gây hoang mang
+guidance: |
+  - Explain how the body works or what the evidence says; never prescribe treatment or doses.
+  - Cite guidelines (WHO, Bộ Y tế, CDC) or reviews, not single small studies.
+  - Say "hãy hỏi bác sĩ" for anything personal.
+templates: [title, bullets, process, counter, bar_chart, compare]
+palette: {background: "#0C1B1D", text: "#EFFAF9", muted: "#93B5B2", accent: ["#2EC4B6", "#FFBF69", "#FF6B6B", "#CBF3F0"]}
+caption_style: clean_box
+review_required: true
+require_sources: true
+disclaimer:
+  vi: Thông tin tham khảo, không thay thế tư vấn y tế. Hãy hỏi bác sĩ cho trường hợp của bạn.
+  en: For information only, not medical advice. Ask a doctor about your own case.
+disclaimer_on_screen: true
+forbidden:
+  - treatment, dosage or supplement recommendations
+  - anti-vaccine or miracle-cure claims
+  - weight-loss or body-shaming content
+hashtags: {vi: ["#suckhoe", "#kienthucyte", "#khoahoc"], en: ["#health", "#healthfacts", "#science"]}
+example_briefs:
+  - Chuyện gì xảy ra với cơ thể khi bạn thiếu ngủ?
+  - Vaccine giúp cơ thể miễn dịch như thế nào?

@@ -1,0 +1,23 @@
+id: psychology
+name: {vi: Tâm lý học, en: Psychology}
+tone: đồng cảm, thận trọng, dựa trên nghiên cứu
+guidance: |
+  - Explain effects and biases with an everyday example; name the original study if known.
+  - Say how strong the evidence is; note replication problems when they exist.
+  - Never diagnose the viewer; suggest a professional for real problems.
+templates: [title, bullets, compare, process, counter, bar_chart, quote]
+palette: {background: "#17122A", text: "#F3F0FF", muted: "#A79FC4", accent: ["#B388EB", "#FFD166", "#72DDF7", "#FF8FAB"]}
+caption_style: clean_box
+review_required: true
+require_sources: true
+disclaimer:
+  vi: Nội dung mang tính tham khảo, không thay thế tư vấn của chuyên gia tâm lý.
+  en: For general information only, not a substitute for professional help.
+disclaimer_on_screen: false
+forbidden:
+  - diagnosing viewers, pop-psychology labels as fact
+  - content that encourages self-harm
+hashtags: {vi: ["#tamlyhoc", "#kienthuc", "#hieuminh"], en: ["#psychology", "#psychologyfacts", "#mindset"]}
+example_briefs:
+  - Hiệu ứng Dunning-Kruger là gì?
+  - Vì sao chúng ta hay trì hoãn?
