@@ -25,7 +25,7 @@ from ..core.subtitles import (
 )
 from ..providers import align
 from ..providers.tts import get_provider
-from ..voices import VoiceProfile, VoiceRegistry, load_registry
+from ..voices import VoiceProfile, VoiceRegistry, load_registry, with_speed
 
 log = get_logger()
 
@@ -75,6 +75,7 @@ def _synthesize_all(ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile,
     if node and node != ctx.settings.get("worker.node_id"):
         raise ProviderUnavailable(f"voice {prof.id} runs only on node '{node}' - use `studio run --node {node}`",
                                   code="tts_wrong_node")
+    prof = with_speed(prof, ctx.project.audio.speed)  # also for a fallback voice
     provider = get_provider(prof.provider, reg)
     reason = provider.check(prof)
     if reason:

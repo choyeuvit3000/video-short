@@ -5,7 +5,7 @@ status: ready
 description: Narrated explainer; each scene is a Manim animation (chart, timeline, formula...) synced to the voice.
 cost: "~0 (subscription CLI writes the script; Manim renders on CPU)"
 formats: [short_9x16, long_16x9]
-stages: [explainer, review, validate, voice, render, qc, package]
+stages: [explainer, images, review, validate, voice, render, qc, package]
 # The model only picks a template + JSON params per scene; it never writes code that runs.
 llm_chain: [claude_cli, agy_cli, codex_cli, manual]
 defaults:
@@ -13,11 +13,13 @@ defaults:
   ai_generated: true
   platforms: [tiktok, youtube_shorts, reels]
   video: {caption_style: clean_box, background: "color:#000000"}
+  audio: {speed: 1.25}       # voice speed (1.0 = profile's normal pace)
   options:
     topic: science          # a file in workflows/_shared/topics/ (`studio topics`)
     scene_count: 6
     scene_sec: 8            # target narration length per scene
     review: true            # stop for a human fact check before voicing (topic may require it anyway)
+    photos: 2               # scenes with a real, credited Wikimedia Commons photo (0 = none)
 format_overrides:
   long_16x9:
     platforms: [youtube]

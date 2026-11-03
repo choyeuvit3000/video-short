@@ -21,7 +21,7 @@ from ..core.cache import cache_key
 from ..core.errors import StudioError
 from ..core.project import ProjectContext
 
-REV = 3
+REV = 4
 
 SKIPPABLE = ("render", "qc", "package")
 MACHINE_KEYS = {"encoder"}  # render.* keys that only change speed, not the picture

@@ -41,7 +41,7 @@ def _check_ref(ctx: ProjectContext, ref: str, issues: list[Issue], *, code: str,
 
 
 def _check_manim(ctx: ProjectContext, scene_id: str, v, issues: list[Issue]) -> None:
-    from ..renderers.manim_render import manim_available, validate_params
+    from ..renderers.manim_render import manim_available, photo_path, validate_params
 
     if not manim_available():
         issues.append(Issue("error", "manim_missing", 'manim is not installed - uv pip install -e ".[manim]"',
@@ -58,7 +58,9 @@ def _check_manim(ctx: ProjectContext, scene_id: str, v, issues: list[Issue]) -> 
                             scene_id))
     else:
         try:
-            validate_params(v.template, v.params)
+            params = validate_params(v.template, v.params)
+            if v.template == "photo":
+                photo_path(ctx, params, scene_id)
         except StudioError as e:
             issues.append(Issue("error", e.code, str(e), scene_id))
 

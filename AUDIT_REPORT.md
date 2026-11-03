@@ -50,6 +50,7 @@ Quy ước trạng thái:
 |---|---|---|
 | edge-tts (VI/EN) | **Có** | cần internet; thỉnh thoảng lỗi "No audio was received" (xem TEST_REPORT §3) |
 | Piper (CPU, offline) | **Có** | `piper-vi-vais1000` đã cài; `piper-en-lessac` khai báo nhưng chưa tải model |
+| Tốc độ đọc `audio.speed` (mặc định 1.25 cho knowledge) | **Có** | edge `rate`, piper `length_scale`, mock; đổi tốc độ thì cache TTS tạo lại *(mới)* |
 | Fallback cả project sang giọng khác | **Có** | không trộn giọng trong một video; chạy thật trong demo 2 |
 | Căn thời gian từng từ (faster-whisper / ước lượng) | **Có** | |
 | TTS trả phí (ElevenLabs, OpenAI) | **Một phần** | adapter có, tắt mặc định, `voice_id` vẫn là placeholder, chưa gọi thật |
@@ -72,7 +73,8 @@ Quy ước trạng thái:
 |---|---|---|
 | `story_reader` | **Có** | demo 1 |
 | `ai_cinematic` | **Có** | demo 2 (clip mẫu thay cho Flow) |
-| `knowledge_explainer` + visual `manim` | **Có** | 11 template ManimCE, 8 topic pack, bước duyệt nguồn; demo 9:16 khoa học (xem TEST_REPORT §9) |
+| `knowledge_explainer` + visual `manim` | **Có** | 12 template ManimCE (thêm `photo`), 8 topic pack, bước duyệt nguồn và ảnh; demo 9:16 (TEST_REPORT §9–§11) |
+| Ảnh thật từ Wikimedia Commons (bước `images`) | **Có** | API chính thức, chỉ giấy phép tự do, credit trên màn hình và trong `metadata.md`; HTTP mock trong test, chạy thật 3 video *(mới)* |
 | `text_quote`, `listicle_stock`, `ai_slideshow` | **Khung** | M4 |
 | `longform_explainer` | **Khung** | M6 |
 | `motion_3d` | **Khung** | M7 |
@@ -106,6 +108,7 @@ Quy ước trạng thái:
 8. Luồng Threads chạy được: `discover threads` lưu kết quả API vào cache, `--url` tra lại theo permalink (threads.net và threads.com đều được, bỏ qua query string). Có test trong `tests/test_sources.py`.
 9. Dòng `FAILED` / `WAITING` trên console đi qua `redact()` và escape markup. `redact()` nay che được cả `Authorization: Bearer <token>` và `?access_token=`, còn câu như "THREADS_ACCESS_TOKEN not set" vẫn đọc được. Lỗi HTTP của Threads chỉ báo mã trạng thái, không kèm URL có token.
 10. Chạy thật với claude, codex và agy (TEST_REPORT §10). Codex từ chối schema có object tự do (`params`): schema gửi cho codex nay đổi object đó thành chuỗi JSON, và `knowledge_explainer` giải mã lại. Lời đọc bỏ chú thích `[...]` (TTS đọc cả ngoặc). Project chọn được CLI bằng `--set llm_chain=codex_cli`.
+11. Ảnh thật, căn giữa, tốc độ 1.25x (TEST_REPORT §11). Hộp nội dung Manim và lề phụ đề nay đối xứng trái/phải (lấy lề lớn hơn của `safe_zone`), khối tiêu đề + nội dung được căn giữa theo chiều dọc. Chú thích `[...]` bị xóa cả khỏi chữ trên màn hình (khoảng số như `[0, 10]` vẫn giữ). Tên tác giả lặp của Commons được gộp.
 
 ## 3. Lỗ hổng còn lại, theo mức ưu tiên
 
@@ -118,3 +121,4 @@ Quy ước trạng thái:
 | 5 | edge-tts thỉnh thoảng lỗi liên tục dù đã thử lại 7 lần (khoảng 25 s). Khi đó project chuyển sang piper, và `--strict` fail vì cảnh báo fallback | Thấp | Đây là hành vi đúng (không trộn giọng, không báo thành công giả). Chỉ cần chạy lại `studio run`: cảnh đã có giọng edge lấy từ cache |
 | 6 | agy (Antigravity) chậm, khoảng 3–5 phút cho 6 cảnh, và 2 lần trả lời không có JSON sau khoảng 25 s khi chạy song song với CLI khác. Chạy riêng thì 3/3 lần thành công | Thấp | Chạy agy một mình; timeout đã nâng lên 600 s; lỗi nay kèm phần đầu câu trả lời để chẩn đoán |
 | 7 | Worker trên PC phải có manim (extra `[gpu]` đã gồm manim) thì mới render từ xa được cảnh `manim` | Thấp | Ghi trong SETUP_GPU_NODE.md |
+| 8 | Tìm ảnh Commons còn lỏng: kết quả đúng từ khóa nhưng có thể không đúng nội dung (vd. ảnh phòng trưng bày thay vì cận cảnh cọc) hoặc không đúng sự kiện | Trung bình | Bước `review` liệt kê ảnh để người duyệt; đổi `params.query` rồi `--from images --force`, hoặc đặt file riêng vào `params.file` |

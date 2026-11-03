@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -39,6 +39,23 @@ class VoiceProfile:
 
     def estimate_cost(self, text: str) -> float:
         return len(text) / 1000 * float(self.cost_per_1k_chars or 0)
+
+
+def with_speed(prof: VoiceProfile, speed: float) -> VoiceProfile:
+    """The profile with its pace multiplied by `speed`, in each provider's own parameter."""
+    if abs(speed - 1.0) < 1e-6:
+        return prof
+    params = dict(prof.params)
+    if prof.provider == "edge":
+        base = float(str(params.get("rate", "+0%")).rstrip("%") or 0)
+        params["rate"] = f"{round(((1 + base / 100) * speed - 1) * 100):+d}%"
+    elif prof.provider == "piper":
+        params["length_scale"] = round(float(params.get("length_scale", 1.0)) / speed, 4)
+    elif prof.provider == "mock":
+        params["chars_per_sec"] = float(params.get("chars_per_sec", 14)) * speed
+    else:
+        params["speed"] = round(float(params.get("speed", 1.0)) * speed, 4)
+    return replace(prof, params=params)
 
 
 @dataclass

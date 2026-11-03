@@ -74,12 +74,17 @@ Với Threads, API chính thức không đọc được một bài theo URL. Vì
 
 ## K · knowledge_explainer (ready)
 
-`explainer → review → validate → voice → render → qc → package`
+`explainer → images → review → validate → voice → render → qc → package`
 
 - **explainer**: brief lấy từ `--brief`, `source/brief.md` hoặc `source/source.md`. Chưa có brief thì dừng ở bước thủ công.
   AI CLI viết lời đọc theo chủ đề (`--topic`, xem `studio topics`). Mỗi cảnh có một template Manim, tham số JSON và nguồn của từng số liệu.
+- **images**: cảnh dùng template `photo` được gắn một ảnh thật từ **Wikimedia Commons**, lấy qua API chính thức, không cần key.
+  Chỉ lấy ảnh có giấy phép tự do: public domain, CC0, CC BY, CC BY-SA. Ảnh lưu ở `work/images/<scene>.jpg|png` (có cache trong `cache/images/`).
+  Tác giả và giấy phép hiện ngay dưới ảnh, và được ghi vào `output/metadata.md` ở mục "Images".
+  Không tìm được ảnh phù hợp, hoặc mất mạng, thì cảnh đó đổi thành thẻ tiêu đề và có cảnh báo trong log. Số cảnh ảnh đặt bằng `options.photos` (mặc định 2, đặt 0 để tắt).
 - **review**: manual gate. Đọc `TODO_MANUAL.md`, kiểm tra số liệu và nguồn, sửa `project.json` nếu cần, rồi chạy `studio approve <dir>`.
 - **render**: mỗi cảnh `manim` được dựng thành `work/manim/<scene>.mp4` (có cache). Hình chạy theo mốc từ của giọng đọc.
+- Tốc độ giọng: `audio.speed` (mặc định của workflow là **1.25**; 1.0 là tốc độ gốc của giọng). Áp dụng cho edge, piper và mock, kể cả khi chuyển sang giọng dự phòng.
 - Mặc định: `audio_driven`, 6 cảnh khoảng 8 giây (bản 16:9 dài: 14 cảnh khoảng 20 giây), caption `clean_box`.
 - Chi tiết template và cảnh tự viết: [MANIM.md](MANIM.md).
 

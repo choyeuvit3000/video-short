@@ -19,6 +19,7 @@ Scenes:
 - For list templates, set each item's `cue` to the first word of the narration where that item is mentioned,
   copied exactly, so the item appears when it is spoken.
 - Vary the templates; use charts, timelines and formulas where they explain better than text.
+- {{photo_rule}}
 
 Templates:
 {{templates}}

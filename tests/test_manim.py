@@ -149,6 +149,18 @@ def test_explainer_drops_bracket_notes_from_narration(tmp_path, settings):
     assert ctx.project.scenes[1].narration == SCRIPT["scenes"][1]["narration"]
 
 
+def test_explainer_drops_word_notes_from_on_screen_text(tmp_path, settings):
+    script = json.loads(json.dumps(SCRIPT))
+    script["scenes"][0]["params"] = {"label": "Ái Châu [Thanh Hóa] tiến quân", "end": 100,
+                                     "note": "khoảng [0, 10] năm"}
+    script["scenes"][1]["params"] = json.dumps({"items": [{"text": "Nam Hán [Southern Han]"}]}, ensure_ascii=False)
+    ctx = _explainer_project(tmp_path, settings, script=script)
+    run_pipeline(ctx, RunOptions(only=["explainer"]))
+    s1, s2 = (sc.visual.params for sc in ctx.project.scenes[:2])
+    assert s1["label"] == "Ái Châu tiến quân" and s1["note"] == "khoảng [0, 10] năm"  # an interval stays
+    assert s2["items"][0]["text"] == "Nam Hán"
+
+
 def test_explainer_without_brief_waits(tmp_path, settings):
     ctx = _explainer_project(tmp_path, settings, brief="")
     with pytest.raises(ManualGateRequired) as e:

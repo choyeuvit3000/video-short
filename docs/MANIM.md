@@ -44,6 +44,7 @@ Animation tự nằm **trong vùng an toàn của nền tảng và phía trên 2
 | `formula` | công thức + chú giải ký hiệu | `text` (Unicode), `tex?`, `legend?[{symbol, meaning}]` |
 | `process` | các bước nối bằng mũi tên, vòng lặp (`loop: true`) | `title?`, `steps[{text, cue?}]`, `loop?` |
 | `quote` | trích dẫn thật, có tác giả | `text`, `author`, `context?` |
+| `photo` | ảnh thật (địa điểm, hiện vật, nhân vật, hiện tượng) từ Wikimedia Commons, có ghi công | `query` (tiếng Anh, có tên riêng), `caption?`; `file` và `credit` do stage `images` điền |
 
 Ví dụ đầy đủ của từng template: `EXAMPLES` trong `src/studio/renderers/manim_render.py`. AI cũng nhận đúng
 danh sách này trong prompt.
@@ -60,6 +61,23 @@ Sửa tay một cảnh trong `project.json`:
 ```
 
 Rồi chạy `studio run <dir>`. Chỉ cảnh đó được dựng lại.
+
+## Ảnh thật (`photo`)
+
+- Stage `images` tìm ảnh trên Wikimedia Commons bằng `query`. Kết quả được chấm điểm theo số từ trùng với tên file và mô tả (bỏ dấu tiếng Việt),
+  ảnh phải rộng ít nhất 800 px (SVG thì không giới hạn) và có giấy phép tự do.
+- Tìm kiếm của Commons khá lỏng: ví dụ "Earth axial tilt seasons" có thể trả về ảnh về tuế sai trục Trái Đất (axial precession) chứ không phải ảnh bốn mùa. Vì vậy `TODO_MANUAL.md` của bước duyệt liệt kê từng ảnh kèm link trang gốc, và có checklist "ảnh đúng với lời đọc".
+- Ảnh sai thì có 2 cách:
+  - sửa `params.query` rồi chạy `studio run <dir> --from images --force`;
+  - tự đặt file của bạn vào thư mục project rồi ghi `params.file` (cùng `params.credit` nếu ảnh cần ghi công).
+- Với ảnh CC BY / CC BY-SA, phải giữ dòng ghi công khi đăng video. Mục "Images" trong `metadata.md` có đủ thông tin để dán vào mô tả.
+- Bố cục: ảnh nằm giữa vùng nội dung, có khung màu, chú thích ở dưới, rồi tới dòng ghi công. Ảnh phóng chậm (push-in) cho tới hết cảnh.
+
+## Căn giữa
+
+- Vùng nội dung và phụ đề dùng **cùng một lề cho hai bên**, lấy theo bên lớn hơn của safe zone, nên luôn nằm giữa màn hình.
+- Tiêu đề và nội dung của mỗi cảnh được căn giữa theo chiều dọc như một khối. Nội dung ngắn sẽ nằm ngay dưới tiêu đề, không bị kéo dãn ra hết vùng.
+  Biểu đồ cột, dòng thời gian và bảng so sánh cũng được căn giữa.
 
 ## Chủ đề (topic packs)
 

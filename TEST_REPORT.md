@@ -120,7 +120,7 @@ Demo dùng edge-tts, dịch vụ miễn phí cần internet. Muốn offline hoà
 ## 8. Test tự động
 
 ```text
-pytest -q   → 96 passed in 92.33s   (CLI thật: +3 test; sửa Threads + redact: 93; đợt Manim: 88; đợt củng cố: 75)
+pytest -q   → 108 passed in 96.99s  (ảnh thật + tốc độ + căn giữa: +12; CLI thật: 96; sửa Threads + redact: 93; đợt Manim: 88; đợt củng cố: 75)
 ruff check . → All checks passed!
 ```
 
@@ -190,6 +190,48 @@ Như vậy bước duyệt tay là cần thiết, nhất là với chủ đề l
 Lần render đầu của video claude: edge-tts lỗi mạng sau 7 lần thử, project chuyển cả sang giọng Piper và `--strict`
 dừng với exit 5 (đúng thiết kế, xem AUDIT_REPORT §3 mục 5). `studio run --strict --from voice` chạy lại thì qua
 với giọng edge.
+
+## 11. Ảnh thật, căn giữa và tốc độ đọc 1.25x (3 CLI, chạy lại)
+
+Ba thay đổi:
+
+- bước `images` lấy ảnh từ Wikimedia Commons qua API chính thức (MediaWiki, không cần key). Chỉ nhận giấy phép
+  tự do (PD, CC0, CC BY, CC BY-SA) và hiện credit trên màn hình, kèm mục "Images" trong `metadata.md`;
+- khối nội dung Manim và phụ đề căn giữa;
+- `audio.speed: 1.25` cho `knowledge_explainer`.
+
+Không tự động hóa Chrome hay ChatGPT/Flow (bất biến 5). Bước duyệt `review` do Claude làm thay người dùng: kiểm từng
+sự kiện, từng ảnh, rồi `studio approve`.
+
+| CLI | Chủ đề | Ảnh Commons | Video | QC `--strict` |
+|---|---|---|---|---|
+| claude | lãi kép | chân dung Franklin (Duplessis, PD); sàn NYSE (Highsmith, PD) | 50,47 s | **PASS**, 0 cảnh báo |
+| codex | bốn mùa | Bondi Beach 2014 (CC BY-SA 4.0); "The Midnight Sun in McMurdo Sound" (Ponting, PD) | 35,73 s | **PASS**, 0 cảnh báo |
+| agy | Bạch Đằng 938 | phòng trưng bày cọc, Bảo tàng Quảng Ninh (CC BY-SA 4.0); tranh thủy chiến Bạch Đằng (CC0) | 41,57 s | **PASS**, 0 cảnh báo |
+
+Cả 3 video đều 1080x1920, giọng `edge-vi-hoaimy` ở +25%. Đã xem ảnh khung hình: nội dung nằm giữa theo chiều ngang,
+và khối tiêu đề + nội dung nằm giữa theo chiều dọc.
+
+Lỗi tìm ra và đã sửa:
+
+- Commons search cần đủ mọi từ, nên truy vấn dài của codex ("Bondi Beach Sydney Australia summer beachgoers") không
+  ra kết quả. Nay tự thử lại với truy vấn ngắn dần (`_relaxed`).
+- Lần render đầu của video claude: edge-tts báo "No audio received", project chuyển sang piper và `--strict` dừng
+  với exit 5. Đã đo: `+0%` thành công 6/8 lần, `+25%` thành công 8/8 lần, nên lỗi do dịch vụ chứ không do tốc độ.
+  `studio run --strict --from voice --overwrite` chạy lại thì qua.
+- agy lần đầu trả lời không có JSON. Chạy lại riêng thì thành công sau 256 s.
+- agy viết chú thích `[Southern Han]`, `[Thanh Hóa]` trong chữ trên màn hình. Bước `explainer` nay xóa `[...]` có
+  chữ khỏi params (khoảng số như `[0, 10]` vẫn giữ; template `formula` không đụng tới).
+- Commons trả tên tác giả lặp ("Unknown author Unknown author"). Nay gộp lại thành "không rõ tác giả".
+
+Khi duyệt kịch bản agy, đã sửa tay:
+
+- scene_03 gắn bãi cọc khai quật ở Yên Giang với năm 938. Bãi cọc ở Quảng Yên thuộc trận năm 1288. Đã viết lại lời
+  đọc, chú thích ảnh và nguồn.
+- chú thích ảnh scene_05 ghi "dòng sông" nhưng ảnh là tranh vẽ trận thủy chiến. Đã đổi thành "Tranh minh họa thủy
+  chiến trên sông Bạch Đằng".
+
+Ảnh Commons đúng từ khóa nhưng chưa chắc đúng nội dung, nên bước duyệt ảnh vẫn cần thiết (AUDIT_REPORT §3 mục 8).
 
 ## Chưa kiểm được trong đợt này
 

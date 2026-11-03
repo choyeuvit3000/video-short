@@ -73,6 +73,22 @@ def _brief(ctx: ProjectContext) -> str:
     return ""
 
 
+_GLOSS = re.compile(r"\s*\[[^\]]*\]")
+# on screen only word notes go; "[0, 10]" (an interval) stays
+_WORD_GLOSS = re.compile(r"\s*\[[^\]]*[^\W\d_][^\]]*\]")
+
+
+def _unglossed(value: object) -> object:
+    """Drop `[gloss]` notes from on-screen text ("Ái Châu [Thanh Hóa]" -> "Ái Châu"), at any depth."""
+    if isinstance(value, str):
+        return " ".join(_WORD_GLOSS.sub("", value).split()) if "[" in value else value
+    if isinstance(value, list):
+        return [_unglossed(v) for v in value]
+    if isinstance(value, dict):
+        return {k: _unglossed(v) for k, v in value.items()}
+    return value
+
+
 def _scene_visual(i: int, s: dict, title: str, warnings: list[str]) -> VisualSpec:
     template = str(s.get("template") or "")
     raw = s.get("params")
@@ -82,7 +98,10 @@ def _scene_visual(i: int, s: dict, title: str, warnings: list[str]) -> VisualSpe
                 raw = json.loads(raw)
             except ValueError:
                 raise StudioError("params are not valid JSON", code="bad_manim_params") from None
-        params = validate_params(template, raw)
+        clean = raw if template == "formula" else _unglossed(raw)  # LaTeX uses brackets
+        if clean != raw:
+            warnings.append(f"scene_{i:02d}: removed [..] notes from the on-screen text")
+        params = validate_params(template, clean)
     except StudioError as e:
         warnings.append(f"scene_{i:02d}: {e} -> using a title card")
         text = " ".join(str(s.get("narration") or title).split())
@@ -92,7 +111,7 @@ def _scene_visual(i: int, s: dict, title: str, warnings: list[str]) -> VisualSpe
 
 def _spoken(i: int, text: str, warnings: list[str]) -> str:
     """TTS reads brackets aloud: drop `[gloss]` notes some models add to the narration."""
-    clean = " ".join(re.sub(r"\s*\[[^\]]*\]", "", text).split())
+    clean = " ".join(_GLOSS.sub("", text).split())
     if clean != " ".join(text.split()):
         warnings.append(f"scene_{i:02d}: removed [..] notes from the narration")
     return clean
@@ -113,12 +132,18 @@ def stage_explainer(ctx: ProjectContext, opts: dict) -> str:
     n = int(p.options.get("scene_count", 6))
     scene_sec = float(p.options.get("scene_sec", 8))
     portrait = ctx.fmt.height > ctx.fmt.width
+    photos = int(p.options.get("photos", 0))
+    templates = list(topic.templates) + (["photo"] if photos > 0 and "photo" not in topic.templates else [])
+    photo_rule = (f"Use the `photo` template for {photos} scene(s) where a real picture makes the fact credible "
+                  "(a place, artefact, person, phenomenon): `query` in English with specific proper names; leave "
+                  "out `file` and `credit`." if photos > 0 else "Do not use the `photo` template.")
     prompt = fill(read_prompt(ctx.settings, WORKFLOW, "script.md"), {
         "language": "Vietnamese" if lang == "vi" else "English",
         "topic": topic.label("en"), "tone": topic.tone, "guidance": topic.guidance.strip(),
         "forbidden": "\n".join(f"- {f}" for f in topic.forbidden) or "- (none)",
-        "templates": catalog(topic.templates), "scene_count": n,
-        "words": int(scene_sec * (2.6 if lang == "vi" else 2.4)),
+        "templates": catalog(templates), "scene_count": n, "photo_rule": photo_rule,
+        # words per second of the profile at speed 1.0, times the project's voice speed
+        "words": int(scene_sec * (2.6 if lang == "vi" else 2.4) * p.audio.speed),
         "orientation": "vertical 9:16 phone screen (keep texts short)" if portrait else "horizontal 16:9 screen",
         "sources_rule": ("Every number, date and factual claim must appear in `sources` with a real, checkable "
                          "source (publication, institution, book or URL). If unsure, leave the claim out."
@@ -133,7 +158,7 @@ def stage_explainer(ctx: ProjectContext, opts: dict) -> str:
     scenes = []
     for i, s in enumerate(data.get("scenes") or [], start=1):
         visual = _scene_visual(i, s, title, warnings)
-        if visual.template not in topic.templates:
+        if visual.template not in templates:
             log.info("[explainer] scene_%02d uses %s (not in the %s topic list)", i, visual.template, topic.id)
         scenes.append(Scene(scene_id=f"scene_{i:02d}", narration=_spoken(i, str(s.get("narration") or ""), warnings),
                             visual=visual))
@@ -161,6 +186,63 @@ def stage_explainer(ctx: ProjectContext, opts: dict) -> str:
     return f"{len(scenes)} scenes via {provider}{extra}"
 
 
+def _have_file(ctx: ProjectContext, ref: str | None) -> bool:
+    if not ref:
+        return False
+    try:
+        return ctx.resolve(ref, what="photo").is_file()
+    except StudioError:
+        return False
+
+
+def stage_images(ctx: ProjectContext, opts: dict) -> str:
+    """Fetch a freely licensed Commons photo for each `photo` scene (kept unless --force); none -> title card."""
+    from ..core.errors import ProviderUnavailable
+    from ..providers.images import find_photo
+
+    p = ctx.project
+    credits = {c.get("scene_id"): c for c in p.options.get("image_credits") or []}
+    used = {c.get("title") for c in credits.values()}
+    got, fell = 0, []
+    for s in p.scenes:
+        v = s.visual
+        if v.type != "manim" or v.template != "photo":
+            continue
+        params = dict(v.params or {})
+        if _have_file(ctx, params.get("file")) and not opts.get("force"):
+            continue
+        stem = ctx.work / "images" / s.scene_id
+        stem.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            hit = find_photo(ctx.settings.path("cache"), params["query"], stem, avoid=used)
+        except ProviderUnavailable as e:
+            log.warning("[images] %s: %s", s.scene_id, e)
+            hit = None
+        if hit is None:
+            text = params.get("caption") or " ".join(s.narration.split()) or p.title or "..."
+            v.template, v.params = "title", validate_params("title", {"title": text[:77] + "..." if len(text) > 80
+                                                                       else text})
+            credits.pop(s.scene_id, None)
+            fell.append(s.scene_id)
+            continue
+        path, photo = hit
+        rel = path.relative_to(ctx.dir).as_posix()
+        params.update(file=rel, credit=photo.credit())
+        v.params = validate_params("photo", params)
+        used.add(photo.title)
+        credits[s.scene_id] = {"scene_id": s.scene_id, "title": photo.title, "author": photo.author,
+                               "license": photo.license, "license_url": photo.license_url, "page": photo.page,
+                               "file": rel, "query": params["query"]}
+        got += 1
+    p.options["image_credits"] = [credits[s.scene_id] for s in p.scenes if s.scene_id in credits]
+    ctx.save()
+    for sid in fell:
+        log.warning("[images] %s: no free photo found -> title card", sid)
+    if not got and not fell:
+        return "no new photos needed"
+    return f"{got} photo(s) from Wikimedia Commons" + (f", {len(fell)} fell back to a title card" if fell else "")
+
+
 def stage_review(ctx: ProjectContext, opts: dict) -> str:
     p = ctx.project
     topic = _topic(ctx)
@@ -175,6 +257,11 @@ def stage_review(ctx: ProjectContext, opts: dict) -> str:
              f'    studio approve "{ctx.dir}"', "", "and re-run `studio run`.", "", "#### Scenes", ""]
     for s in p.scenes:
         lines.append(f"- **{s.scene_id}** [{s.visual.template or s.visual.type}] {s.narration}")
+    images = p.options.get("image_credits") or []
+    if images:
+        lines += ["", "#### Photos (Wikimedia Commons)", ""]
+        lines += [f"- **{c['scene_id']}** `{c['file']}` — {c['title']} · {c['author']} · {c['license']} — {c['page']}"
+                  for c in images]
     lines += ["", "#### Sources", ""]
     if sources:
         lines += [f"- {x.get('claim')} — {x.get('source')}" for x in sources]
@@ -185,6 +272,9 @@ def stage_review(ctx: ProjectContext, opts: dict) -> str:
               "- [ ] every number, date and name is correct and matches a source",
               "- [ ] quotes are real and attributed",
               "- [ ] numbers on screen (params) match the narration"]
+    if images:
+        lines.append("- [ ] each photo shows what its caption and narration say (else change `params.query` and "
+                     "re-run with `--from images --force`, or put your own file in `params.file`)")
     lines += [f"- [ ] not: {f}" for f in topic.forbidden]
     note = topic.disclaimer_for(p.language)
     if note:
@@ -193,4 +283,4 @@ def stage_review(ctx: ProjectContext, opts: dict) -> str:
     raise ManualGateRequired("review", "\n".join(lines) + "\n")
 
 
-STAGES = {"explainer": stage_explainer, "review": stage_review}
+STAGES = {"explainer": stage_explainer, "images": stage_images, "review": stage_review}

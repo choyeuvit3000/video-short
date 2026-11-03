@@ -39,7 +39,9 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
   manim in-process hijacks logging). Custom scenes: `visual.file` + `scene_class`, user-written only.
 - `src/studio/providers/` — `llm/` (claude/agy/codex CLIs + manual), `tts/` (edge, piper, mock, paid adapters
   disabled), `align.py` (provider words → faster-whisper → estimate), `source/` (text file, URL, Reddit OAuth,
-  Threads API). `renderers/card.py` draws the post card; `voices.py` loads the voice registry.
+  Threads API), `images.py` (Wikimedia Commons API, free licences only, credited; used by the knowledge `images`
+  stage for `photo` scenes). `renderers/card.py` draws the post card; `voices.py` loads the voice registry
+  (`with_speed` applies `audio.speed` per provider).
 - `src/studio/workflows/` — stage functions per workflow (`story_reader.py`, `ai_cinematic.py`, `knowledge.py`,
   `common.py`); `topics.py` loads topic packs `workflows/_shared/topics/<id>.yaml` (science, history, finance...);
   recipes live in `workflows/<name>/workflow.yaml` (stages, defaults, format_overrides, llm_chain) + prompts.

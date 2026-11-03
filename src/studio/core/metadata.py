@@ -36,6 +36,13 @@ def write_metadata(ctx: ProjectContext) -> str:
         lines += ["## Sources", ""]
         lines += [f"- {x.get('claim', '')}: {x.get('source', '')}" for x in sources if isinstance(x, dict)]
         lines.append("")
+    images = p.options.get("image_credits") or []
+    if images:  # free licences (CC BY / BY-SA) require this attribution wherever the video is posted
+        lines += ["## Images", ""]
+        lines += [f"- {c.get('title', '')} — {c.get('author', '')}, {c.get('license', '')}"
+                  f"{(' (' + c['license_url'] + ')') if c.get('license_url') else ''} — {c.get('page', '')}"
+                  for c in images if isinstance(c, dict)]
+        lines.append("")
     lines += ["## Assets used", ""]
     seen = set()
     refs = [p.video.background, p.audio.background_music] + [s.visual.path for s in p.scenes] + \

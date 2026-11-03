@@ -31,9 +31,11 @@ from manim import (
     CurvedArrow,
     Dot,
     FadeIn,
+    Group,
     GrowArrow,
     GrowFromCenter,
     GrowFromEdge,
+    ImageMobject,
     Indicate,
     Line,
     MathTex,
@@ -48,6 +50,7 @@ from manim import (
     Write,
     always_redraw,
     config,
+    linear,
     smooth,
 )
 
@@ -207,15 +210,29 @@ class Base(Scene):
             self.wait(rest)
 
     def header(self, title: str | None):
-        """Title at the top of the box; returns (mobject or None, y of the free area's top)."""
+        """Title at the top of the box (shown by `settle`); returns (mobject or None, y of the free area's top)."""
         if not title:
             return None, BOX_TOP
         t = fit(txt(title, 76, bold=True, wrap_at=chars(20, 40), center=True), BOX_W, BOX_H * 0.22)
         t.move_to([BOX_C[0], BOX_TOP - t.height / 2, 0])
         bar = Line(t.get_corner(DOWN + LEFT), t.get_corner(DOWN + RIGHT), color=acc(0), stroke_width=6)
         bar.shift(DOWN * 0.18)
-        self.play(FadeIn(t, shift=DOWN * 0.2), Create(bar), run_time=0.7)
         return VGroup(t, bar), bar.get_y() - 0.35
+
+    def settle(self, head, content, gap: float = 0.5) -> None:
+        """Centre header + content as one block in the box (short content moves up under its header), then
+        show the header. Call once the content is laid out in `area()` and before it is animated."""
+        if head is None:
+            return
+        lift = head.get_bottom()[1] - gap - content.get_top()[1]
+        if lift > 0:
+            content.shift(UP * lift)
+        top, bottom = head.get_top()[1], min(content.get_bottom()[1], head.get_bottom()[1])
+        d = (BOX_TOP + self.bottom) / 2 - (top + bottom) / 2
+        d = max(min(d, BOX_TOP - top), self.bottom - bottom)
+        head.shift(UP * d)
+        content.shift(UP * d)
+        self.play(FadeIn(head[0], shift=DOWN * 0.2), Create(head[1]), run_time=0.7)
 
     def area(self, top: float) -> tuple[np.ndarray, float, float]:
         """Centre, width, height of the free area between `top` and the bottom of the box."""
@@ -255,7 +272,7 @@ class T_title(Base):
 class T_bullets(Base):
     def construct(self):
         p = self.p
-        _, top = self.header(p.get("title"))
+        head, top = self.header(p.get("title"))
         c, w, h = self.area(top)
         rows = []
         for i, it in enumerate(p["items"]):
@@ -265,6 +282,7 @@ class T_bullets(Base):
             dot.shift(DOWN * 0.12)
         g = VGroup(*rows).arrange(DOWN, buff=0.55, aligned_edge=LEFT)
         fit(g, w * 0.95, h * 0.95).move_to(c)
+        self.settle(head, g)
         times = self.times or self.spread(len(rows))
         for i, row in enumerate(rows):
             self.at(times[i])
@@ -305,7 +323,7 @@ class T_counter(Base):
 class T_bar_chart(Base):
     def construct(self):
         p = self.p
-        _, top = self.header(p.get("title"))
+        head, top = self.header(p.get("title"))
         c, w, h = self.area(top)
         bars = p["bars"]
         vmax = max(b["value"] for b in bars)
@@ -319,7 +337,7 @@ class T_bar_chart(Base):
             label_w = w * 0.32
             max_len = w - label_w - w * 0.2
             for i, b in enumerate(bars):
-                y = c[1] + h / 2 - row_h * (i + 0.5)
+                y = c[1] + row_h * n / 2 - row_h * (i + 0.5)  # rows centred in the area
                 color = acc(1) if hi == i else acc(0)
                 length = max(0.02, max_len * b["value"] / vmax)
                 bar = Rectangle(width=length, height=row_h * 0.62, color=color, fill_opacity=0.9).set_stroke(width=0)
@@ -346,6 +364,7 @@ class T_bar_chart(Base):
                           col_w * 0.95, h * 0.1)
                 val.next_to(bar, UP, buff=0.12)
                 groups.append((bar, lab, val, DOWN))
+        self.settle(head, VGroup(*[VGroup(*g[:3]) for g in groups]))
         times = self.times or self.spread(len(groups))
         for i, (bar, lab, val, edge) in enumerate(groups):
             self.at(times[i])
@@ -387,7 +406,7 @@ def _axes(c, w, h, x0, x1, y0, y1):
 class T_line_chart(Base):
     def construct(self):
         p = self.p
-        _, top = self.header(p.get("title"))
+        head, top = self.header(p.get("title"))
         c, w, h = self.area(top)
         xs = p["x_labels"]
         n = len(xs)
@@ -399,6 +418,7 @@ class T_line_chart(Base):
         xlabels = VGroup(*[fit(txt(xs[i], 34, PAL["muted"]), w / 5, h * 0.08).next_to(ax.c2p(i, y0), DOWN, buff=0.2)
                            for i in range(0, n, step)])
         xlabels[0].align_to(ax.c2p(0, y0), LEFT)  # clear of the lowest y label
+        self.settle(head, VGroup(ax, ylabels, xlabels))
         self.play(Create(ax), FadeIn(ylabels), FadeIn(xlabels), run_time=0.8)
         unit = p.get("unit", "")
         draw = self.budget(len(p["series"]))
@@ -430,7 +450,7 @@ def _curve(kind: str, a: float, b: float, c: float):
 class T_function_graph(Base):
     def construct(self):
         p = self.p
-        _, top = self.header(p.get("title"))
+        head, top = self.header(p.get("title"))
         c, w, h = self.area(top)
         x0, x1 = p["x_range"]
         fns = [_curve(cv["kind"], cv["a"], cv["b"], cv["c"]) for cv in p["curves"]]
@@ -445,6 +465,7 @@ class T_function_graph(Base):
         if p.get("y_label"):
             extra.append(fit(txt(p["y_label"], 34, PAL["muted"]), w / 3, h * 0.08).next_to(ax.c2p(x0, y1), UP,
                                                                                          buff=0.2))
+        self.settle(head, VGroup(ax, ylabels, xl, *extra))
         self.play(Create(ax), FadeIn(ylabels), FadeIn(xl), *[FadeIn(e) for e in extra], run_time=0.8)
         draw = self.budget(len(fns))
         tags: list = []
@@ -472,17 +493,18 @@ class T_function_graph(Base):
 class T_timeline(Base):
     def construct(self):
         p = self.p
-        _, top = self.header(p.get("title"))
+        head, top = self.header(p.get("title"))
         c, w, h = self.area(top)
         ev = p["events"]
         n = len(ev)
         items = []
         if PORTRAIT:
             x = c[0] - w * 0.38
-            line = Line([x, c[1] + h / 2 - 0.2, 0], [x, c[1] - h / 2 + 0.2, 0], color=PAL["muted"], stroke_width=4)
-            gap = (h - 0.4) / n
+            gap = min((h - 0.4) / n, 2.2)  # a few events stay together instead of spreading over the box
+            y_top = c[1] + gap * n / 2
+            line = Line([x, y_top, 0], [x, y_top - gap * n, 0], color=PAL["muted"], stroke_width=4)
             for i, e in enumerate(ev):
-                y = c[1] + h / 2 - 0.2 - gap * (i + 0.5)
+                y = y_top - gap * (i + 0.5)
                 dot = Dot([x, y, 0], radius=0.14, color=acc(i))
                 year = fit(txt(e["year"], 54, acc(i), bold=True), w * 0.7, gap * 0.45)
                 lab = fit(txt(e["label"], 46, wrap_at=chars(24, 40)), w * 0.78, gap * 0.5)
@@ -502,6 +524,7 @@ class T_timeline(Base):
                 side = UP if i % 2 == 0 else DOWN
                 g.next_to(dot, side, buff=0.3)
                 items.append((dot, g))
+        self.settle(head, VGroup(line, *[VGroup(d, g) for d, g in items]))
         self.play(Create(line), run_time=0.6)
         times = self.times or self.spread(n)
         for i, (dot, g) in enumerate(items):
@@ -514,28 +537,38 @@ class T_timeline(Base):
 class T_compare(Base):
     def construct(self):
         p = self.p
-        _, top = self.header(p.get("title"))
+        head, top = self.header(p.get("title"))
         c, w, h = self.area(top)
         verdict_h = h * 0.16 if p.get("verdict") else 0
         col_w = w * 0.46
-        col_h = h - verdict_h - 0.2
-        cols, points = [], []
+        max_h = h - verdict_h - 0.2
+        sides = []
         for k, side in enumerate((p["left"], p["right"])):
-            x = c[0] + (-1 if k == 0 else 1) * (w / 2 - col_w / 2)
-            y = c[1] + h / 2 - col_h / 2
-            panel = RoundedRectangle(width=col_w, height=col_h, corner_radius=0.25, color=acc(k),
-                                     fill_opacity=0.08, stroke_width=4).move_to([x, y, 0])
-            title = fit(txt(side["title"], 58, acc(k), bold=True), col_w * 0.9, col_h * 0.15)
-            title.move_to([x, y + col_h / 2 - 0.25 - title.height / 2, 0])
+            title = fit(txt(side["title"], 58, acc(k), bold=True), col_w * 0.9, max_h * 0.15)
             ps = VGroup(*[txt("• " + s, 42, wrap_at=chars(13, 26)) for s in side["points"]])
             ps.arrange(DOWN, buff=0.35, aligned_edge=LEFT)
-            fit(ps, col_w * 0.88, col_h * 0.7).next_to(title, DOWN, buff=0.4)
+            fit(ps, col_w * 0.88, max_h * 0.7)
+            sides.append((title, ps))
+        col_h = min(max_h, max(t.height + ps.height for t, ps in sides) + 1.4)  # panels as tall as their points
+        block = col_h + (verdict_h + 0.2 if verdict_h else 0)
+        y = c[1] + block / 2 - col_h / 2
+        cols, points = [], []
+        for k, (title, ps) in enumerate(sides):
+            x = c[0] + (-1 if k == 0 else 1) * (w / 2 - col_w / 2)
+            panel = RoundedRectangle(width=col_w, height=col_h, corner_radius=0.25, color=acc(k),
+                                     fill_opacity=0.08, stroke_width=4).move_to([x, y, 0])
+            title.move_to([x, y + col_h / 2 - 0.25 - title.height / 2, 0])
+            ps.next_to(title, DOWN, buff=0.4)
             cols.append(VGroup(panel, title))
             points.append(list(ps))
-        vs_y = c[1] + h / 2 - col_h / 2
         badge = Circle(radius=0.42, color=PAL["muted"], stroke_width=3, fill_color=PAL["background"], fill_opacity=1)
-        vs = VGroup(badge, fit(txt("VS", 44, PAL["text"], bold=True), 0.56, 0.5)).move_to([c[0], vs_y, 0])
+        vs = VGroup(badge, fit(txt("VS", 44, PAL["text"], bold=True), 0.56, 0.5)).move_to([c[0], y, 0])
         vs.set_z_index(2)
+        verdict = None
+        if p.get("verdict"):
+            verdict = fit(txt(p["verdict"], 48, acc(1), bold=True, wrap_at=chars(28, 56), center=True), w, verdict_h)
+            verdict.move_to([c[0], y - col_h / 2 - 0.2 - verdict_h / 2, 0])
+        self.settle(head, VGroup(*cols, *[m for pts in points for m in pts], vs, *([verdict] if verdict else [])))
         steps = [cols[0], *points[0], cols[1], *points[1]]
         times = self.spread(len(steps))
         for i, m in enumerate(steps):
@@ -543,17 +576,15 @@ class T_compare(Base):
             extra = [FadeIn(vs)] if m is cols[1] else []
             nxt = times[i + 1] if i + 1 < len(times) else None
             self.play(FadeIn(m, shift=UP * 0.15), *extra, run_time=self.rt(0.5, nxt))
-        if p.get("verdict"):
-            v = fit(txt(p["verdict"], 48, acc(1), bold=True, wrap_at=chars(28, 56), center=True), w, verdict_h)
-            v.move_to([c[0], c[1] - h / 2 + verdict_h / 2, 0])
-            self.play(Write(v), run_time=0.8)
+        if verdict:
+            self.play(Write(verdict), run_time=0.8)
         self.finish()
 
 
 class T_formula(Base):
     def construct(self):
         p = self.p
-        _, top = self.header(p.get("title"))
+        head, top = self.header(p.get("title"))
         c, w, h = self.area(top)
         if SPEC.get("latex") and p.get("tex"):
             f = MathTex(p["tex"], color=PAL["text"])
@@ -571,6 +602,7 @@ class T_formula(Base):
             fit(legend, w * 0.9, h * 0.5)
         g = VGroup(f, legend).arrange(DOWN, buff=0.9) if len(legend) else VGroup(f)
         g.move_to(c)
+        self.settle(head, g)
         box = SurroundingRectangle(f, color=acc(1), buff=0.3, corner_radius=0.15, stroke_width=5)
         self.play(Write(f), run_time=min(1.6, max(0.8, DUR * 0.25)))
         self.play(Create(box), run_time=0.5)
@@ -584,7 +616,7 @@ class T_formula(Base):
 class T_process(Base):
     def construct(self):
         p = self.p
-        _, top = self.header(p.get("title"))
+        head, top = self.header(p.get("title"))
         c, w, h = self.area(top)
         n = len(p["steps"])
         boxes = []
@@ -595,6 +627,7 @@ class T_process(Base):
             boxes.append(VGroup(r, t))
         g = VGroup(*boxes).arrange(DOWN if PORTRAIT else RIGHT, buff=0.7)
         fit(g, w * (0.8 if p.get("loop") else 0.95), h * 0.92).move_to(c + (LEFT * w * 0.06 if p.get("loop") else 0))
+        self.settle(head, g)
         arrows = []
         for a, b in zip(boxes, boxes[1:], strict=False):
             if PORTRAIT:
@@ -629,6 +662,33 @@ class T_quote(Base):
         self.play(FadeIn(mark, shift=DOWN * 0.3), run_time=0.4)
         self.play(FadeIn(body, lag_ratio=0.02), run_time=min(3.0, max(1.0, VOICE * 0.6)))
         self.play(FadeIn(who, shift=UP * 0.15), run_time=0.5)
+        self.finish()
+
+
+class T_photo(Base):
+    """A credited photo (file prepared by the images stage) with a caption and a slow push-in."""
+
+    def construct(self):
+        p = self.p
+        c, w, h = self.area(BOX_TOP)
+        cap = None
+        if p.get("caption"):
+            cap = fit(txt(p["caption"], 56, bold=True, wrap_at=chars(24, 48), center=True), w, h * 0.16)
+        credit = fit(txt(p.get("credit") or "Wikimedia Commons", 26, PAL["muted"], wrap_at=chars(52, 104),
+                         center=True), w, h * 0.08)
+        room = h - credit.height - 0.3 - ((cap.height + 0.3) if cap else 0)
+        img = ImageMobject(SPEC["image"])
+        img.scale_to_fit_width(w * 0.94)
+        if img.height > room * 0.94:
+            img.scale_to_fit_height(room * 0.94)
+        frame = SurroundingRectangle(img, color=acc(0), buff=0.04, stroke_width=4)
+        pic = Group(img, frame)
+        Group(pic, *([cap] if cap else []), credit).arrange(DOWN, buff=0.3).move_to(c)
+        self.play(FadeIn(img, scale=0.96), Create(frame), run_time=0.8)
+        self.play(FadeIn(credit), *([FadeIn(cap, shift=UP * 0.15)] if cap else []), run_time=0.5)
+        rest = DUR - self.now() - 0.05
+        if rest > 0.5:  # a slow push-in keeps the picture alive while the narration runs
+            self.play(pic.animate.scale(1.03), run_time=rest, rate_func=linear)
         self.finish()
 
 

@@ -72,6 +72,7 @@ class AudioSettings(_Model):
     voice_profile: str | None = None  # id from voices/ registry; None -> registry default for language
     source: Literal["tts", "manual"] = "tts"
     volume: float = Field(default=1.0, ge=0, le=4)
+    speed: float = Field(default=1.0, ge=0.5, le=2.0)  # voice pace; 1.25 = 25% faster than the profile
     background_music: str | None = None
     music_volume_db: float = Field(default=-22, le=0)
     ducking: bool = True

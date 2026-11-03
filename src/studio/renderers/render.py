@@ -290,9 +290,9 @@ def caption_box(fmt) -> dict:
     """Caption settings with margins pushed inside the safe zone (platform buttons / title bars)."""
     cap = dict(fmt.caption)
     safe = fmt.safe_zone or {}
-    mh = int(cap.get("margin_h", 60))
-    cap["margin_l"] = max(mh, int(safe.get("left", 0)))
-    cap["margin_r"] = max(mh, int(safe.get("right", 0)))
+    # one margin for both sides: centred captions (the larger safe side wins)
+    side = max(int(cap.get("margin_h", 60)), int(safe.get("left", 0)), int(safe.get("right", 0)))
+    cap["margin_l"] = cap["margin_r"] = side
     cap["margin_v"] = max(int(cap.get("margin_v", 200)), int(safe.get("bottom", 0)))
     return cap
 

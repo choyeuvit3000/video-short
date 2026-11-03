@@ -7,7 +7,7 @@ formats:
     max_duration_sec: 180     # TikTok / YouTube Shorts / Reels
     caption:
       font_size: 78
-      margin_v: 620           # keep captions above TikTok/Shorts bottom UI (~ lower third)
+      margin_v: 560           # keep captions above TikTok/Shorts bottom UI (~ lower third)
       margin_h: 90
       max_words: 3
       max_chars: 18

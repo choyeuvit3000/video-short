@@ -38,7 +38,7 @@ from ..core.project import ProjectContext
 
 log = get_logger()
 
-MANIM_REV = 1  # bump when templates.py or the spec changes the picture for the same inputs
+MANIM_REV = 2  # bump when templates.py or the spec changes the picture for the same inputs
 TEMPLATE_SCRIPT = Path(__file__).parent / "manim_scenes" / "templates.py"
 DEFAULT_PALETTE = {"background": "#101626", "text": "#F4F6FB", "muted": "#9AA4B8",
                    "accent": ["#4CC9F0", "#FFD166", "#EF476F", "#06D6A0"]}
@@ -210,10 +210,20 @@ class QuoteP(_P):
     context: str | None = Field(default=None, max_length=60, description="e.g. the year or the work")
 
 
+class PhotoP(_P):
+    """A real photo, painting, map or diagram from Wikimedia Commons (free licence, credited on screen) that makes
+    the fact concrete: a place, an artefact, a famous person, a phenomenon. `query` = specific English search
+    words with proper names (e.g. 'Bach Dang river', 'Hubble Space Telescope'); `caption` = what it shows."""
+    query: str = Field(min_length=3, max_length=100)
+    caption: str | None = Field(default=None, max_length=80)
+    file: str | None = Field(default=None, max_length=200, description="set by the images stage (or by you)")
+    credit: str | None = Field(default=None, max_length=200, description="set by the images stage")
+
+
 TEMPLATES: dict[str, type[_P]] = {
     "title": TitleP, "bullets": BulletsP, "counter": CounterP, "bar_chart": BarChartP, "line_chart": LineChartP,
     "function_graph": FunctionGraphP, "timeline": TimelineP, "compare": CompareP, "formula": FormulaP,
-    "process": ProcessP, "quote": QuoteP,
+    "process": ProcessP, "quote": QuoteP, "photo": PhotoP,
 }
 # which list in the params is revealed item by item, following the narration
 CUED_LIST = {"bullets": "items", "bar_chart": "bars", "timeline": "events", "process": "steps"}
@@ -242,6 +252,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
         {"text": "Lá hấp thụ ánh sáng"}, {"text": "Nước + CO₂"}, {"text": "Đường + O₂"}]},
     "quote": {"text": "Điều khó hiểu nhất về vũ trụ là nó có thể hiểu được.", "author": "Albert Einstein",
               "context": "1936"},
+    "photo": {"query": "Hubble Space Telescope in orbit", "caption": "Kính Hubble trên quỹ đạo"},
 }
 
 
@@ -265,6 +276,17 @@ def catalog(templates: list[str] | None = None) -> str:
         doc = " ".join((TEMPLATES[name].__doc__ or "").split())
         lines.append(f"- `{name}`: {doc}\n  example params: `{json.dumps(EXAMPLES[name], ensure_ascii=False)}`")
     return "\n".join(lines)
+
+
+def photo_path(ctx: ProjectContext, params: dict[str, Any], scene_id: str) -> Path:
+    """The photo scene's image file (inside the project); StudioError if the images stage has not run."""
+    if not params.get("file"):
+        raise StudioError("photo scene has no image yet - run the `images` stage or set params.file",
+                          code="missing_photo", scene_id=scene_id)
+    path = ctx.resolve(params["file"], what="photo")
+    if not path.is_file():
+        raise StudioError(f"photo not found: {params['file']}", code="missing_photo", scene_id=scene_id)
+    return path
 
 
 def manim_available() -> bool:
@@ -312,12 +334,12 @@ def item_times(cues: list[str | None], words: list[dict], voice_sec: float, *, l
 
 
 def content_box(fmt, *, captions: bool) -> dict[str, int]:
-    """Pixel box for the animation: inside the safe zone and above the burned-in captions."""
+    """Pixel box for the animation: centred, inside the safe zone and above the burned-in captions."""
     from .render import caption_box
 
     safe = fmt.safe_zone or {}
-    x0 = int(safe.get("left", 0))
-    x1 = fmt.width - int(safe.get("right", 0))
+    side = max(int(safe.get("left", 0)), int(safe.get("right", 0)))  # same margin both sides -> centred
+    x0, x1 = side, fmt.width - side
     y0 = int(safe.get("top", 0))
     y1 = fmt.height - int(safe.get("bottom", 0))
     if captions:
@@ -357,6 +379,10 @@ def build_spec(ctx: ProjectContext, scene, dur_ms: int, voice_ms: int) -> dict[s
         params = validate_params(v.template or "", v.params)
         spec["template"] = v.template
         spec["params"] = params
+        if v.template == "photo":
+            img = photo_path(ctx, params, scene.scene_id)
+            spec["image"] = str(img)
+            spec["image_sha"] = ctx.hashes.sha(img)
         list_key = CUED_LIST.get(v.template or "")
         if list_key:
             cues = [it.get("cue") for it in params[list_key]]
