@@ -38,7 +38,7 @@ $clips = @(
 foreach ($c in $clips) {
     $target = Join-Path $Out $c.Name
     & $ffmpeg -v error -y `
-        -f lavfi -i "color=c=$($c.Color):s=$($Size):r=30:d=$Seconds" `
+        -f lavfi -i "color=c=$($c.Color):s=$($Size):r=30:d=$Seconds,hue=H=2*PI*t/$Seconds" `
         -f lavfi -i "sine=frequency=$($c.Freq):sample_rate=48000:duration=$Seconds" `
         -c:v libx264 -pix_fmt yuv420p -c:a aac -shortest $target
     if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed creating $target" }

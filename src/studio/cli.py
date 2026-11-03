@@ -250,7 +250,8 @@ def run(
     project: ProjectArg,
     from_stage: Annotated[str | None, typer.Option("--from", help="Start at this stage")] = None,
     only: Annotated[list[str], typer.Option("--only", help="Run only these stages (repeatable)")] = None,
-    force: Annotated[bool, typer.Option("--force", help="Regenerate source/script/scenes/storyboard")] = False,
+    force: Annotated[bool, typer.Option("--force", help="Regenerate source/script/scenes/storyboard and rebuild "
+                                                     "render/qc/package even if up to date")] = False,
     overwrite: Annotated[bool, typer.Option("--overwrite", help="Re-synthesize TTS audio")] = False,
     strict: Annotated[bool, typer.Option("--strict", help="QC warnings fail the run")] = False,
     allow_sidecar: Annotated[bool, typer.Option("--allow-sidecar-subs")] = False,

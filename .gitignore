@@ -48,6 +48,7 @@ projects/**/work/
 projects/**/output/
 projects/**/logs/
 projects/**/cache/
+projects/_demo/
 
 # OS / editor
 .DS_Store

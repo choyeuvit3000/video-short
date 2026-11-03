@@ -17,6 +17,7 @@ uv venv --python 3.11 .venv ; uv pip install -e ".[piper,align,dev]"     # lapto
 .\.venv\Scripts\python.exe -m pytest -q          # needs ffmpeg on PATH or $env:STUDIO_FFMPEG_DIR, else ffmpeg tests skip
 .\.venv\Scripts\ruff.exe check .                 # line-length 120
 powershell -ExecutionPolicy Bypass -File .\scripts\smoke_test_windows.ps1    # 3 real renders, --strict
+powershell -ExecutionPolicy Bypass -File .\scripts\demo_videos.ps1          # 2 demo videos (edge voice, manual gate)
 powershell -ExecutionPolicy Bypass -File .\scripts\smoke_worker_local.ps1    # worker over real HTTP, 127.0.0.1
 studio doctor [--gpu]
 ```
@@ -27,8 +28,11 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
   (`resolve_inside` refuses traversal/absolute), ffmpeg (arg lists only), media_probe, subtitles (SRT/ASS,
   word highlight), validator, qc, cost ledger, cache, logging, errors (exit codes).
 - `src/studio/pipeline/` — `runner.py` (stages, state.json, manual gate → TODO_MANUAL.md + exit 3), `voice.py`
-  (TTS + alignment + timeline.json).
-- `src/studio/renderers/render.py` — per-scene segments → concat → audio mix/ducking → captions → atomic final.
+  (TTS + alignment + timeline.json), `fingerprint.py` (render/qc/package skipped when inputs + outputs unchanged;
+  bump `REV` when their output changes for the same inputs).
+- `src/studio/renderers/render.py` — per-scene segments (cached via `.key`, bump `SEGMENT_REV`) → concat →
+  audio mix/ducking + loudnorm → captions (margins inside `safe_zone`) → previous final to `output/history/`
+  (`core/outputs.py`) → atomic final. `core/qc_analysis.py`: loudness/silence/black/freeze + caption safe zone.
 - `src/studio/providers/` — `llm/` (claude/agy/codex CLIs + manual), `tts/` (edge, piper, mock, paid adapters
   disabled), `align.py` (provider words → faster-whisper → estimate), `source/` (text file, URL, Reddit OAuth,
   Threads API). `renderers/card.py` draws the post card; `voices.py` loads the voice registry.

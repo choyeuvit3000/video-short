@@ -1,7 +1,8 @@
 """Stage runner: runs a workflow's stages in order, records state.json, stops at manual gates.
 
 Re-running is always safe: generator stages (source/script/scenes/storyboard) keep their previous
-output unless --force; voice uses the TTS cache; render/qc/package are rebuilt from the project.
+output unless --force; voice uses the TTS cache; render/qc/package are skipped when their fingerprint
+(pipeline/fingerprint.py) and outputs are unchanged, otherwise rebuilt from the project. --force rebuilds all.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ from ..core.errors import EXIT_OK, ManualGateRequired, StudioError, ValidationEr
 from ..core.logging_utils import get_logger
 from ..core.project import ProjectContext
 from ..workflows import get_stages, load_workflow
+from . import fingerprint
 
 log = get_logger()
 
@@ -50,6 +52,13 @@ def select_stages(ctx: ProjectContext, ro: RunOptions) -> list[str]:
 
 
 def run_pipeline(ctx: ProjectContext, ro: RunOptions) -> int:
+    try:
+        return _run(ctx, ro)
+    finally:
+        ctx.save_hashes()
+
+
+def _run(ctx: ProjectContext, ro: RunOptions) -> int:
     names = stages_for(ctx)
     registry = get_stages()
     selected = select_stages(ctx, ro)
@@ -58,6 +67,13 @@ def run_pipeline(ctx: ProjectContext, ro: RunOptions) -> int:
         if fn is None:
             raise StudioError(f"stage '{name}' has no implementation", code="bad_stage")
         opts = {**ro.stage_opts, "force": ro.force}
+        fp = fingerprint.compute(ctx, name, opts)
+        if not ro.force and fingerprint.up_to_date(ctx, name, fp):
+            prev = ctx.state()["stages"][name]
+            log.info("[%s] up to date - skipped (inputs unchanged; --force to rebuild)", name)
+            ctx.set_stage(name, "done", prev.get("message", ""), fingerprint=fp, outputs=prev["outputs"],
+                          skipped=True)
+            continue
         ctx.set_stage(name, "running")
         t0 = time.monotonic()
         try:
@@ -73,7 +89,8 @@ def run_pipeline(ctx: ProjectContext, ro: RunOptions) -> int:
         except Exception as e:  # unexpected: record, then let the CLI report it
             ctx.set_stage(name, "failed", f"{type(e).__name__}: {e}")
             raise
-        ctx.set_stage(name, "done", msg or "")
+        extra = {"fingerprint": fp, "outputs": fingerprint.output_shas(ctx, name)} if fp else {}
+        ctx.set_stage(name, "done", msg or "", **extra)
         log.info("[%s] done in %.1fs - %s", name, time.monotonic() - t0, msg)
     if selected and selected[-1] == names[-1]:
         (ctx.dir / "TODO_MANUAL.md").unlink(missing_ok=True)

@@ -2,11 +2,14 @@
 
 Steps (all intermediates in work/, inputs are never modified):
   1. background track for the whole timeline (gradient / color / looped asset video or image)
-  2. one video segment per scene (clip | still Ken Burns | background slice) + optional overlay PNG
+  2. one video segment per scene (clip | still Ken Burns | background slice) + optional overlay PNG.
+     The background and every segment carry a `.key` file (hash of everything they are made from): an
+     unchanged scene is reused instead of encoded again.
   3. concat segments (stream copy)
   4. narration: per-scene audio padded to the scene length, concatenated; optional music with ducking
   5. captions: ASS (word highlight) burned in, SRT sidecar
-  6. final encode to a temp file, sanity probe, atomic rename to output/final.mp4
+  6. final encode (audio loudness-normalised) to a temp file, sanity probe; the previous final moves to
+     output/history/, then atomic rename to output/final.mp4
 """
 
 from __future__ import annotations
@@ -16,11 +19,13 @@ from pathlib import Path
 
 from PIL import Image, ImageFilter
 
+from ..core.cache import cache_key
 from ..core.config import load_yaml
 from ..core.errors import StudioError, ValidationError
 from ..core.ffmpeg import escape_filter_path, has_filter, run_ffmpeg
 from ..core.logging_utils import get_logger
 from ..core.media_probe import probe
+from ..core.outputs import archive_previous
 from ..core.paths import atomic_replace
 from ..core.project import ProjectContext
 from ..core.subtitles import build_ass, load_words, write_srt
@@ -28,6 +33,33 @@ from ..core.subtitles import build_ass, load_words, write_srt
 log = get_logger()
 
 GRADIENT_COLORS = ["0x0f0c29", "0x302b63", "0x24243e", "0x16213e"]
+SEGMENT_REV = 1  # bump when background/segment rendering changes, so cached segments are rebuilt
+
+
+def _key_file(out: Path) -> Path:
+    return out.with_name(out.name + ".key")
+
+
+def _reusable(out: Path, key: str) -> bool:
+    kf = _key_file(out)
+    try:
+        return out.is_file() and out.stat().st_size > 0 and kf.read_text(encoding="utf-8") == key
+    except OSError:
+        return False
+
+
+def _build_cached(out: Path, key: str, build) -> bool:
+    """Run `build()` unless `out` was made from the same `key`; returns True if reused."""
+    if _reusable(out, key):
+        return True
+    _key_file(out).unlink(missing_ok=True)  # a failed build must never look valid
+    build()
+    _key_file(out).write_text(key, encoding="utf-8")
+    return False
+
+
+def _file_sha(ctx: ProjectContext, path: Path) -> str | None:
+    return ctx.hashes.sha(path) if path.is_file() else None
 
 
 def _vcodec_args(ctx: ProjectContext, *, intermediate: bool) -> list[str]:
@@ -56,7 +88,8 @@ def _frames(ms: int, fps: int) -> int:
 # ------------------------------------------------------------------ background
 
 
-def render_background(ctx: ProjectContext, total_ms: int) -> Path:
+def render_background(ctx: ProjectContext, total_ms: int) -> tuple[Path, str]:
+    """Background track for the whole timeline; returns (path, cache key)."""
     fmt = ctx.fmt
     w, h, fps = fmt.width, fmt.height, fmt.fps
     out = ctx.work / "background.mp4"
@@ -64,6 +97,7 @@ def render_background(ctx: ProjectContext, total_ms: int) -> Path:
     dur = f"{total_ms / 1000:.3f}"
     bg = ctx.project.video.background
     fit = ctx.settings.get("render.fit_mode", "crop")
+    src_sha = None
     if bg == "gradient":
         cols = ":".join(f"c{i}={c}" for i, c in enumerate(GRADIENT_COLORS))
         src = ["-f", "lavfi", "-i",
@@ -75,6 +109,7 @@ def render_background(ctx: ProjectContext, total_ms: int) -> Path:
         vf = "format=yuv420p,setsar=1"
     else:
         path = ctx.resolve(bg, what="background")
+        src_sha = _file_sha(ctx, path)
         info = probe(path)
         is_image = path.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp") or info.duration < 0.1
         if is_image:
@@ -82,9 +117,11 @@ def render_background(ctx: ProjectContext, total_ms: int) -> Path:
         else:
             src = ["-stream_loop", "-1", "-i", str(path)]
         vf = f"{_fit_filter(w, h, fit)},fps={fps},setsar=1,format=yuv420p"
-    run_ffmpeg([*src, "-vf", vf, "-frames:v", str(n), "-t", dur, "-an",
-                *_vcodec_args(ctx, intermediate=True), str(out)], stage="background")
-    return out
+    inter = _vcodec_args(ctx, intermediate=True)
+    key = cache_key("background", SEGMENT_REV, bg, src_sha, total_ms, w, h, fps, fit, GRADIENT_COLORS, inter)
+    _build_cached(out, key, lambda: run_ffmpeg([*src, "-vf", vf, "-frames:v", str(n), "-t", dur, "-an",
+                                                *inter, str(out)], stage="background"))
+    return out, key
 
 
 # ------------------------------------------------------------------ stills (Ken Burns)
@@ -136,7 +173,9 @@ def _ken_burns(effect: str, n: int) -> str:
 # ------------------------------------------------------------------ scene segments
 
 
-def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, background: Path | None) -> Path:
+def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, background: Path | None,
+                 background_key: str | None = None) -> tuple[Path, bool]:
+    """One scene segment; returns (path, reused-from-cache)."""
     fmt = ctx.fmt
     w, h, fps = fmt.width, fmt.height, fmt.fps
     n = _frames(dur_ms, fps)
@@ -145,8 +184,10 @@ def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, backgro
     fit = v.fit_mode or ctx.settings.get("render.fit_mode", "crop")
     out = ctx.work / f"seg_{scene.scene_id}.mp4"
     inputs: list[str]
+    shas: list[str | None] = []
     if v.type == "clip":
         path = ctx.resolve(v.path, what="clip")
+        shas.append(_file_sha(ctx, path))
         info = probe(path, scene_id=scene.scene_id)
         if info.duration + 0.04 < dur_ms / 1000:
             log.warning("[render][%s] clip %.2fs < scene %.2fs -> freezing last frame", scene.scene_id,
@@ -155,7 +196,8 @@ def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, backgro
         chain = f"{_fit_filter(w, h, fit)},fps={fps},tpad=stop_mode=clone:stop_duration={dur},trim=duration={dur}"
     elif v.type == "still":
         path = ctx.resolve(v.path, what="image")
-        prepared = _prepare_still(path, ctx.work / f"still_{scene.scene_id}.jpg", w, h, fit)
+        shas.append(_file_sha(ctx, path))
+        prepared = ctx.work / f"still_{scene.scene_id}.jpg"
         inputs = ["-loop", "1", "-framerate", str(fps), "-i", str(prepared)]
         chain = f"{_ken_burns(v.ken_burns, n)}:s={w}x{h}:fps={fps}"
     elif v.type == "color":
@@ -167,9 +209,11 @@ def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, backgro
             raise StudioError("background track missing", code="render_error", scene_id=scene.scene_id)
         inputs = ["-ss", f"{start_ms / 1000:.3f}", "-i", str(background)]
         chain = "null"
+        shas += [background_key, str(start_ms)]
     chain += ",setsar=1,format=yuv420p"
     if v.overlay:
         ov = ctx.resolve(v.overlay, what="overlay")
+        shas.append(_file_sha(ctx, ov))
         inputs += ["-loop", "1", "-framerate", str(fps), "-i", str(ov)]
         until = v.overlay_until_sec
         enable = f":enable='lte(t,{until:.3f})'" if until else ""
@@ -177,9 +221,16 @@ def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, backgro
         maps = ["-filter_complex", graph, "-map", "[v]"]
     else:
         maps = ["-vf", chain]
-    run_ffmpeg([*inputs, *maps, "-frames:v", str(n), "-r", str(fps), "-an",
-                *_vcodec_args(ctx, intermediate=True), str(out)], stage="render", scene_id=scene.scene_id)
-    return out
+    inter = _vcodec_args(ctx, intermediate=True)
+    key = cache_key("segment", SEGMENT_REV, v.model_dump(mode="json"), dur_ms, w, h, fps, fit, inter, shas)
+
+    def build() -> None:
+        if v.type == "still":
+            _prepare_still(path, prepared, w, h, fit)
+        run_ffmpeg([*inputs, *maps, "-frames:v", str(n), "-r", str(fps), "-an", *inter, str(out)],
+                   stage="render", scene_id=scene.scene_id)
+
+    return out, _build_cached(out, key, build)
 
 
 def _concat_list(path: Path, files: list[Path]) -> Path:
@@ -249,6 +300,17 @@ def caption_style(ctx: ProjectContext) -> dict:
     return load_yaml(path)
 
 
+def caption_box(fmt) -> dict:
+    """Caption settings with margins pushed inside the safe zone (platform buttons / title bars)."""
+    cap = dict(fmt.caption)
+    safe = fmt.safe_zone or {}
+    mh = int(cap.get("margin_h", 60))
+    cap["margin_l"] = max(mh, int(safe.get("left", 0)))
+    cap["margin_r"] = max(mh, int(safe.get("right", 0)))
+    cap["margin_v"] = max(int(cap.get("margin_v", 200)), int(safe.get("bottom", 0)))
+    return cap
+
+
 def build_captions(ctx: ProjectContext, tl: dict) -> tuple[Path | None, Path | None]:
     words_file = ctx.work / "words.json"
     if ctx.project.video.subtitle_mode == "none" or not words_file.exists():
@@ -258,7 +320,7 @@ def build_captions(ctx: ProjectContext, tl: dict) -> tuple[Path | None, Path | N
         return None, None
     fmt = ctx.fmt
     ass_text, cues = build_ass(words, width=fmt.width, height=fmt.height, style=caption_style(ctx),
-                               caption=fmt.caption)
+                               caption=caption_box(fmt))
     # never let a caption run past the end
     total = tl["total_ms"]
     cues = [c for c in cues if c.start_ms < total]
@@ -285,11 +347,15 @@ def render_project(ctx: ProjectContext, *, burn_subs: bool | None = None, allow_
     log.info("[render] %s %dx%d@%d, %.2fs, %d scenes, encoder %s", fmt.name, fmt.width, fmt.height, fmt.fps,
              total_ms / 1000, len(p.scenes), ctx.settings.get("render.encoder", "libx264"))
     needs_bg = any(s.visual.type == "background" for s in p.scenes)
-    background = render_background(ctx, total_ms) if needs_bg else None
+    background, bg_key = render_background(ctx, total_ms) if needs_bg else (None, None)
 
-    segs = []
+    segs, reused = [], 0
     for s, sc in zip(p.scenes, tl["scenes"], strict=True):
-        segs.append(render_scene(ctx, s, sc["start_ms"], sc["duration_ms"], background))
+        seg, hit = render_scene(ctx, s, sc["start_ms"], sc["duration_ms"], background, bg_key)
+        segs.append(seg)
+        reused += hit
+    if reused:
+        log.info("[render] reused %d/%d unchanged scene segment(s)", reused, len(segs))
     video = ctx.work / "video_concat.mp4"
     run_ffmpeg(["-f", "concat", "-safe", "0", "-i", str(_concat_list(ctx.work / "video_concat.txt", segs)),
                 "-c", "copy", str(video)], stage="concat")
@@ -320,8 +386,13 @@ def render_project(ctx: ProjectContext, *, burn_subs: bool | None = None, allow_
     tmp = out_dir / "final.tmp.mp4"
     tmp.unlink(missing_ok=True)
     sr = str(ctx.settings.get("render.audio_sample_rate", 48000))
+    af = [f"aresample={sr}"]
+    if ctx.settings.get("render.loudnorm", True):
+        target = float(ctx.settings.get("render.loudness_lufs", -14))
+        tp = float(ctx.settings.get("render.true_peak_db", -1.5))
+        af.insert(0, f"loudnorm=I={target:g}:TP={tp:g}:LRA=11")
     run_ffmpeg(["-i", str(video), "-i", str(audio), "-map", "0:v:0", "-map", "1:a:0", "-vf", ",".join(vf),
-                "-r", str(fmt.fps), *_vcodec_args(ctx, intermediate=False),
+                "-af", ",".join(af), "-r", str(fmt.fps), *_vcodec_args(ctx, intermediate=False),
                 "-c:a", "aac", "-b:a", str(ctx.settings.get("render.audio_bitrate", "192k")), "-ar", sr, "-ac", "2",
                 "-t", f"{total_ms / 1000:.3f}", "-movflags", "+faststart", str(tmp)],
                stage="final", cwd=ctx.dir)
@@ -331,6 +402,7 @@ def render_project(ctx: ProjectContext, *, burn_subs: bool | None = None, allow_
         raise StudioError(f"final render looks broken (duration {info.duration:.2f}s, video={info.has_video}, "
                           f"audio={info.has_audio}) - not published", code="render_broken")
     final = out_dir / "final.mp4"
+    archive_previous(out_dir, int(ctx.settings.get("output.keep_history", 3)))
     atomic_replace(tmp, final)
     if srt:
         atomic_replace(srt, out_dir / "captions.srt")

@@ -18,7 +18,14 @@ Bắt đầu bằng hai bước:
 | `stale_timeline` | Đã sửa scenes sau khi tạo giọng: chạy `studio run <dir> --from voice` |
 | `unreadable_media [scene_x]` | File clip/ảnh của cảnh đó hỏng hoặc tải chưa xong; tải lại đúng tên |
 | `path_traversal` / `absolute path` | Đường dẫn trong `project.json` phải tương đối theo project hoặc dạng `asset:...` |
-| QC fail (exit 5) | Xem `output/qc_report.json`. `--strict` coi cảnh báo là lỗi, ví dụ cảnh báo về việc chuyển giọng fallback |
+| QC fail (exit 5) | Xem `output/qc_report.json`, gồm `errors`, `warnings` và phần đo chi tiết ở `checks`. `--strict` coi cảnh báo là lỗi, ví dụ cảnh báo về việc chuyển giọng fallback |
+| QC: `audio is essentially silent` | Có lời đọc hoặc nhạc nhưng tiếng gần như câm: file audio thủ công bị trống, hoặc giọng hỏng. Nghe file trong `audio/` |
+| QC: `loudness ... outside` / `true peak` | Bình thường render đã chuẩn hóa về -14 LUFS (`render.loudnorm`). Nếu bạn tắt loudnorm, hãy chỉnh âm lượng nguồn |
+| QC: `continuous silence inside the narration` | Có một quãng câm dài giữa lời đọc của cảnh đó (TTS lỗi, file audio thủ công có khoảng trống) |
+| QC: `black frames` / `clip frozen` | Clip của cảnh đó bị đen hoặc đứng hình (clip tải chưa xong, clip ngắn hơn cảnh). Cảnh kiểu `color` không bị kiểm tra khung đen |
+| QC: `caption(s) leave the safe zone` / `run off the frame` | Có một từ quá dài so với khung phụ đề. Giảm `caption.font_size` trong `formats.yaml`, đổi `size_scale` của style, hoặc sửa narration |
+| Log ghi `up to date - skipped` nhưng bạn muốn render lại | Đầu vào không đổi nên stage được bỏ qua. Ép làm lại: `studio run DIR --from render --force` |
+| `output/history/` ngày càng lớn | Chỉ giữ `output.keep_history` bản (mặc định 3). Đặt 0 để ghi đè như trước |
 | `budget_exceeded` (exit 4) | Giọng/API trả phí vượt `budget.max_cost_usd`; tăng trần trong `project.json` nếu chấp nhận chi phí |
 | Reddit 401/403 | Kiểm tra `REDDIT_CLIENT_ID/SECRET/USER_AGENT` trong `.env`. App Reddit có thể cần được duyệt. Tạm thời dán text vào file và dùng `--text-file` |
 | Link Threads | Threads không có API đọc một bài bất kỳ theo URL: copy nội dung vào file text |

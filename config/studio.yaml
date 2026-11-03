@@ -18,6 +18,9 @@ render:
   audio_sample_rate: 48000
   audio_bitrate: 192k
   fit_mode: crop            # crop | pad - how non-matching clips/images are fitted
+  loudnorm: true            # EBU R128 loudness normalisation of the final mix
+  loudness_lufs: -14        # YouTube / TikTok / Reels play back around -14 LUFS
+  true_peak_db: -1.5
 
 timing:
   scene_tail_pad_sec: 0.25      # audio_driven: silence after each scene's voice
@@ -27,6 +30,18 @@ timing:
 qc:
   duration_tolerance_sec: 0.3
   max_caption_chars_per_line: 42
+  analyze: true               # one extra decode pass: loudness, silence, black / frozen frames
+  loudness_min_lufs: -20      # warning outside this range (render normalises to render.loudness_lufs)
+  loudness_max_lufs: -9
+  silent_lufs: -50            # below this with narration/music -> error (audio track is empty)
+  max_true_peak_db: -0.5
+  max_silence_sec: 2.0        # silence inside a narrated stretch -> warning
+  max_black_sec: 0.5          # black frames in a non-`color` scene -> warning (> half the video -> error)
+  max_freeze_sec: 2.0         # frozen picture inside a `clip` scene -> warning
+  caption_safe_area: true     # burned captions measured with the real font against formats.yaml safe_zone
+
+output:
+  keep_history: 3           # previous renders kept in output/history/ (0 = overwrite like v1)
 
 budget:
   default_max_cost_usd: 0.0     # paid providers refuse to run unless a project raises this

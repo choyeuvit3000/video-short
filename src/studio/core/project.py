@@ -9,6 +9,7 @@ from typing import Any
 
 from pydantic import ValidationError as PydanticValidationError
 
+from .cache import HashCache
 from .config import Settings, get_settings
 from .errors import ValidationError
 from .paths import resolve_inside
@@ -22,6 +23,18 @@ class ProjectContext:
         self.dir = project_dir.resolve()
         self.settings = settings or get_settings()
         self.project = load_project(self.dir / "project.json")
+        self._hashes: HashCache | None = None
+
+    @property
+    def hashes(self) -> HashCache:
+        """Shared sha256 cache (cache/hashes.json); call save_hashes() when done."""
+        if self._hashes is None:
+            self._hashes = HashCache(self.settings.path("cache") / "hashes.json")
+        return self._hashes
+
+    def save_hashes(self) -> None:
+        if self._hashes is not None:
+            self._hashes.save()
 
     # ---------------------------------------------------------------- persistence
     def save(self) -> None:
@@ -36,12 +49,13 @@ class ProjectContext:
             return json.loads(self.state_path.read_text(encoding="utf-8"))
         return {"stages": {}}
 
-    def set_stage(self, stage: str, status: str, message: str = "") -> None:
+    def set_stage(self, stage: str, status: str, message: str = "", **extra: Any) -> None:
         st = self.state()
         st.setdefault("stages", {})[stage] = {
             "status": status,
             "at": datetime.now(UTC).isoformat(timespec="seconds"),
             "message": message,
+            **extra,
         }
         self.state_path.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
 

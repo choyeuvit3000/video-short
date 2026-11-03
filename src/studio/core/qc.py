@@ -1,4 +1,5 @@
-"""Technical QC of output/final.mp4 against the project's format profile and timeline."""
+"""QC of output/final.mp4: container/codec vs the format profile and timeline, captions, and content
+(loudness, silence, black/frozen frames, caption safe zone - see qc_analysis.py)."""
 
 from __future__ import annotations
 
@@ -7,9 +8,10 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from .errors import StudioError
+from .errors import FFmpegError, StudioError
 from .media_probe import probe
 from .project import ProjectContext
+from .qc_analysis import analyze_av, caption_layout, overlap
 from .subtitles import check_cues, read_srt
 
 
@@ -54,6 +56,57 @@ def check_media(path: Path, *, width: int, height: int, fps: int, expected_sec: 
     return summary, errors, warnings
 
 
+def _content_checks(ctx: ProjectContext, final: Path, summary: dict, tl: dict | None,
+                    errors: list[str], warnings: list[str]) -> dict[str, Any]:
+    """Loudness, silence inside narration, black frames, frozen clips. Thresholds: settings `qc.*`."""
+    cfg = ctx.settings.get
+    duration = float(summary.get("duration_sec") or 0)
+    max_sil = float(cfg("qc.max_silence_sec", 2.0))
+    max_black = float(cfg("qc.max_black_sec", 0.5))
+    max_freeze = float(cfg("qc.max_freeze_sec", 2.0))
+    try:
+        a = analyze_av(final, duration, min_silence=min(0.5, max_sil), min_freeze=min(1.0, max_freeze))
+    except FFmpegError as e:
+        warnings.append(f"content analysis skipped: {e}")
+        return {}
+    p = ctx.project
+    scenes = list(zip(p.scenes, tl["scenes"], strict=False)) if tl else []
+    has_audio_content = any(s.narration.strip() for s in p.scenes) or bool(p.audio.background_music)
+
+    lufs, peak = a["integrated_lufs"], a["true_peak_db"]
+    lo, hi = float(cfg("qc.loudness_min_lufs", -20)), float(cfg("qc.loudness_max_lufs", -9))
+    if lufs is None:
+        warnings.append("loudness could not be measured")
+    elif has_audio_content and lufs < float(cfg("qc.silent_lufs", -50)):
+        errors.append(f"audio is essentially silent ({lufs:.1f} LUFS) although the video has narration/music")
+    elif has_audio_content and not lo <= lufs <= hi:
+        warnings.append(f"loudness {lufs:.1f} LUFS outside {lo:g}..{hi:g} (platforms target about -14)")
+    if peak is not None and peak > float(cfg("qc.max_true_peak_db", -0.5)):
+        warnings.append(f"true peak {peak:.1f} dBFS - audio may clip")
+
+    for s, sc in scenes:
+        start = sc["start_ms"] / 1000
+        if s.narration.strip() and sc.get("voice_ms"):
+            # longest single gap - pauses between sentences are normal, a dead stretch is not
+            gap = max((overlap([iv], start, start + sc["voice_ms"] / 1000) for iv in a["silence"]), default=0.0)
+            if gap >= max_sil:
+                warnings.append(f"{s.scene_id}: {gap:.1f}s of continuous silence inside the narration")
+        end = start + sc["duration_ms"] / 1000
+        if s.visual.type != "color":
+            dark = overlap(a["black"], start, end)
+            if dark >= max_black:
+                warnings.append(f"{s.scene_id}: {dark:.1f}s of black frames")
+        if s.visual.type == "clip":
+            frozen = overlap(a["freeze"], start, end)
+            if frozen >= max_freeze:
+                warnings.append(f"{s.scene_id}: clip frozen for {frozen:.1f}s")
+    black_total = overlap(a["black"], 0, duration)
+    if duration and black_total > duration / 2 and not all(s.visual.type == "color" for s in p.scenes):
+        errors.append(f"{black_total:.1f}s of {duration:.1f}s is black - missing or broken visuals?")
+    return {"audio": {"integrated_lufs": lufs, "true_peak_db": peak, "silences": a["silence"]},
+            "video": {"black": a["black"], "freeze": a["freeze"]}}
+
+
 def run_qc(ctx: ProjectContext) -> dict[str, Any]:
     p = ctx.project
     fmt = ctx.fmt
@@ -65,6 +118,7 @@ def run_qc(ctx: ProjectContext) -> dict[str, Any]:
     errors: list[str] = []
     expected: float | None = None
     scenes_processed = 0
+    tl: dict[str, Any] = {}
     try:
         tl = ctx.load_timeline()
         expected = tl["total_ms"] / 1000
@@ -96,6 +150,22 @@ def run_qc(ctx: ProjectContext) -> dict[str, Any]:
             except (StudioError, UnicodeDecodeError) as e:
                 errors.append(f"captions.srt unreadable: {e}")
 
+    checks: dict[str, Any] = {}
+    if summary and ctx.settings.get("qc.analyze", True):
+        checks.update(_content_checks(ctx, final, summary, tl if scenes_processed else None, errors, warnings))
+    ass = ctx.work / "captions.ass"
+    if (summary and p.video.subtitle_mode == "burn_in" and has_narration and ass.is_file()
+            and ctx.settings.get("qc.caption_safe_area", True)):
+        lay = caption_layout(ass, width=fmt.width, height=fmt.height, safe=fmt.safe_zone,
+                             font_dirs=[ctx.asset_dir("shared/fonts")])
+        checks["captions"] = lay
+        if lay["outside_frame"]:
+            errors.append(f"{len(lay['outside_frame'])} caption(s) run off the frame, e.g. "
+                          f"{lay['outside_frame'][0]!r} - shorten words or lower caption.font_size")
+        if lay["outside_safe_zone"]:
+            warnings.append(f"{len(lay['outside_safe_zone'])} caption(s) leave the safe zone, e.g. "
+                            f"{lay['outside_safe_zone'][0]!r}")
+
     report = {
         "project_id": p.project_id,
         "workflow": p.workflow,
@@ -108,6 +178,7 @@ def run_qc(ctx: ProjectContext) -> dict[str, Any]:
         "video": summary.get("video"),
         "audio": summary.get("audio"),
         "scenes_processed": scenes_processed,
+        "checks": checks,
         "warnings": warnings,
         "errors": errors,
     }

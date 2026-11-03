@@ -287,6 +287,31 @@ def test_submit_run_pull_round_trip(settings, worker, tmp_path, monkeypatch):
     assert svc.process_one() is True
     assert pull_job(ctx, client, job2) == 0
 
+    # a render made on the worker is not rendered again on the laptop
+    from studio.pipeline.runner import RunOptions, run_pipeline
+
+    before = final.stat().st_mtime_ns
+    run_pipeline(ctx, RunOptions(only=list(REMOTE_STAGES)))
+    assert ctx.state()["stages"]["render"].get("skipped") is True
+    assert final.stat().st_mtime_ns == before
+
+
+def test_pull_moves_the_old_final_render_to_history(settings, tmp_path):
+    from studio.nodes.bundle import apply_results
+
+    ctx = make_project(tmp_path / "p", settings)
+    (ctx.output / "final.mp4").write_bytes(b"old video")
+    (ctx.output / "captions.srt").write_text("old", encoding="utf-8")
+    blobs = {hashlib.sha256(b).hexdigest(): b for b in (b"new video", b"new srt")}
+    results = [{"path": "output/captions.srt", "sha256": hashlib.sha256(b"new srt").hexdigest()},
+               {"path": "output/final.mp4", "sha256": hashlib.sha256(b"new video").hexdigest()}]
+    stats = apply_results(ctx, results, {}, lambda sha, dest: dest.write_bytes(blobs[sha]))
+    assert stats["written"] == 2
+    assert (ctx.output / "final.mp4").read_bytes() == b"new video"
+    assert (ctx.output / "captions.srt").read_bytes() == b"new srt"
+    (old,) = (ctx.output / "history").iterdir()
+    assert (old / "final.mp4").read_bytes() == b"old video" and (old / "captions.srt").read_text("utf-8") == "old"
+
 
 @needs_ffmpeg
 def test_pull_keeps_local_edits_as_remote_copy(settings, worker, tmp_path):

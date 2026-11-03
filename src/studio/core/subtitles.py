@@ -237,10 +237,12 @@ def build_ass(
     shadow = float(style.get("shadow", 2))
     margin_v = int(caption.get("margin_v", 200))
     margin_h = int(caption.get("margin_h", 60))
+    margin_l = int(caption.get("margin_l", margin_h))
+    margin_r = int(caption.get("margin_r", margin_h))
     upper = bool(style.get("uppercase", False))
     styles = (
         f"Style: Caption,{font},{size},{primary},{primary},{outline},{back},{bold},0,0,0,100,100,0,0,"
-        f"{border_style},{outline_w},{shadow},2,{margin_h},{margin_h},{margin_v},1"
+        f"{border_style},{outline_w},{shadow},2,{margin_l},{margin_r},{margin_v},1"
     )
     lines = [ASS_HEADER.format(w=width, h=height, styles=styles)]
     chunks = group_words(words, max_words=int(caption.get("max_words", 3)), max_chars=int(caption.get("max_chars", 18)))

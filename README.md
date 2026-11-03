@@ -28,6 +28,14 @@ studio run "projects\story_reader\<ngay>_ban-cung-phong_short"
 # kết quả: output\final.mp4, output\captions.srt, output\metadata.md, output\qc_report.json
 ```
 
+Chạy lại `studio run` lúc nào cũng an toàn:
+
+- stage có đầu vào không đổi thì được bỏ qua, log ghi `up to date - skipped`;
+- cảnh không đổi thì không encode lại, giọng đã tạo thì lấy từ cache;
+- bản render trước được giữ trong `output\history\` (mặc định 3 bản, chỉnh bằng `output.keep_history`).
+
+Muốn render lại dù không đổi gì: `studio run DIR --from render --force`.
+
 ## Workflow
 
 | ID | Tên | Trạng thái | Hình ảnh | Chi phí |
@@ -75,7 +83,8 @@ assets/      shared/ (font, nhạc, sfx, caption style...) + workflows/<wf>/ + l
 voices/      registry.yaml, free/, api/, local/ (manifest + models/), clones/, samples/
 projects/    <workflow>/<yyyymmdd_slug>/ — project.json, source/, clips/, images/, audio/, work/, output/, logs/
 src/studio/  core/ pipeline/ providers/ renderers/ workflows/ nodes/ (laptop) worker/ (PC GPU) cli.py
-scripts/     create_test_fixtures.ps1, smoke_test_windows.ps1, smoke_worker_local.ps1, install_worker.ps1
+scripts/     create_test_fixtures.ps1, smoke_test_windows.ps1, smoke_worker_local.ps1, demo_videos.ps1,
+             install_worker.ps1
 docs/        hướng dẫn
 ```
 
@@ -94,7 +103,18 @@ docs/        hướng dẫn
 .\.venv\Scripts\python.exe -m pytest -q        # offline, các test FFmpeg tự bỏ qua nếu không có ffmpeg
 .\.venv\Scripts\ruff.exe check .
 powershell -ExecutionPolicy Bypass -File .\scripts\smoke_test_windows.ps1   # render thật 3 project, --strict
+powershell -ExecutionPolicy Bypass -File .\scripts\smoke_worker_local.ps1   # worker thật qua HTTP 127.0.0.1
+powershell -ExecutionPolicy Bypass -File .\scripts\demo_videos.ps1          # 2 video demo -> projects\_demo\
 ```
+
+QC (`output/qc_report.json`) kiểm tra cả nội dung chứ không chỉ định dạng file:
+
+- độ to (LUFS, true peak);
+- khoảng im lặng giữa lời đọc;
+- khung đen và clip bị đứng hình;
+- phụ đề có nằm trong vùng an toàn của nền tảng hay không (đo bằng font thật).
+
+Kết quả kiểm thử thật: [TEST_REPORT.md](TEST_REPORT.md). Đối chiếu README với code: [AUDIT_REPORT.md](AUDIT_REPORT.md).
 
 ## Bản quyền & an toàn
 

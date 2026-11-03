@@ -64,9 +64,10 @@ def run_ffmpeg(
     scene_id: str | None = None,
     cwd: Path | None = None,
     timeout: float | None = None,
-) -> None:
-    """Run ffmpeg with `args` (without the binary). Raises FFmpegError with stderr tail on failure."""
-    cmd = [ffmpeg_bin(), "-hide_banner", "-nostdin", "-y", "-loglevel", "error", *args]
+    loglevel: str = "error",
+) -> str:
+    """Run ffmpeg with `args` (without the binary); returns stderr. Raises FFmpegError with stderr tail on failure."""
+    cmd = [ffmpeg_bin(), "-hide_banner", "-nostdin", "-y", "-loglevel", loglevel, *args]
     tag = f"[{stage}]" + (f"[{scene_id}]" if scene_id else "")
     log.debug("%s cmd: %s (cwd=%s)", tag, _fmt_cmd(cmd), cwd)
     t0 = time.monotonic()
@@ -84,9 +85,10 @@ def run_ffmpeg(
         tail = "\n".join((proc.stderr or "").strip().splitlines()[-30:])
         log.error("%s ffmpeg exit %s after %.1fs\n%s", tag, proc.returncode, elapsed, tail)
         raise FFmpegError(f"ffmpeg failed at {stage}", returncode=proc.returncode, stderr_tail=tail, scene_id=scene_id)
-    if proc.stderr.strip():
+    if proc.stderr.strip() and loglevel == "error":
         log.debug("%s ffmpeg stderr: %s", tag, proc.stderr.strip()[-2000:])
     log.debug("%s done in %.1fs", tag, elapsed)
+    return proc.stderr or ""
 
 
 def has_filter(name: str) -> bool:

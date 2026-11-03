@@ -9,10 +9,30 @@ studio run  ──► runner: stage[i](ctx, opts) ──► state.json (running/
                  ├─ source/script/scenes/storyboard  ── providers/source, providers/llm (CLI chain → manual)
                  ├─ validate                          ── core/validator
                  ├─ voice     ── voices registry → providers/tts (edge|piper|mock|manual|paid) → align → timeline.json
-                 ├─ render    ── renderers/render: seg_<scene>.mp4 → concat → mix/ducking → ASS captions → final
-                 ├─ qc        ── core/qc (ffprobe) → output/qc_report.json
+                 ├─ render    ── renderers/render: seg_<scene>.mp4 (+ .key) → concat → mix/ducking + loudnorm
+                 │                → ASS captions (lề nằm trong safe zone) → final (bản cũ → output/history/)
+                 ├─ qc        ── core/qc (ffprobe) + core/qc_analysis (loudness, im lặng, khung đen/đứng hình,
+                 │                phụ đề vs safe zone) → output/qc_report.json
                  └─ package   ── core/metadata → output/metadata.md
 ```
+
+## Chạy lại: bỏ qua phần không đổi
+
+Có ba lớp, từ thô đến mịn:
+
+1. **Stage generator** (`source`, `script`, `scenes`, `storyboard`): giữ kết quả cũ trừ khi có `--force`, nên chỉnh tay trong `project.json` không bị mất.
+2. **Fingerprint của stage** (`pipeline/fingerprint.py`) cho `render`, `qc` và `package`:
+   - fingerprint là hash của mọi thứ stage đọc: phần liên quan của `project.json`, `timeline.json` và `words.json`, sha256 của từng clip, ảnh, audio, nhạc, caption style và font, format, setting `render.*` hoặc `qc.*`;
+   - sau khi chạy xong, `state.json` lưu fingerprint cùng sha256 của từng output;
+   - lần sau stage được bỏ qua khi fingerprint giống hệt **và** output vẫn còn nguyên;
+   - không tính `render.encoder`, nên video render trên GPU worker không bị render lại trên laptop;
+   - sha256 được cache theo (path, size, mtime) trong `cache/hashes.json`, clip nặng chỉ phải hash một lần;
+   - code đổi kết quả cho cùng đầu vào thì tăng `REV`.
+3. **Cache segment** (`renderers/render.py`): nền và từng `seg_<scene>.mp4` có file `.key` (hash nguồn và tham số). Nếu chỉ đổi phụ đề, nhạc hoặc một cảnh, các cảnh còn lại không phải encode lại.
+
+`voice` luôn chạy, nhưng có cache TTS riêng và timeline tính tất định. `validate` luôn chạy.
+
+Muốn làm lại phần dựng dù không đổi gì: `studio run DIR --from render --force`. Lưu ý `--force` không kèm `--from` sẽ tạo lại cả script và scenes. Lệnh đơn `studio render DIR` luôn render.
 
 ## Thư mục project
 
@@ -21,8 +41,9 @@ project.json  state.json  cost.json  TODO_MANUAL.md
 source/   source.md | source.json | brief.md          (đầu vào, không bao giờ bị ghi đè)
 clips/ images/ audio/ music/                           (media người dùng)
 subtitles/<scene>.srt                                  (sinh ra)
-work/     llm/ script.json card.png timeline.json words.json seg_*.mp4 captions.ass ...
+work/     llm/ script.json card.png timeline.json words.json seg_*.mp4(.key) captions.ass ...
 output/   final.mp4 captions.srt qc_report.json metadata.md
+          history/<thời điểm>/   bản render trước (final, captions, qc_report, metadata)
 logs/     run_<time>_<cmd>.log
 ```
 
@@ -78,7 +99,7 @@ Style trong `assets/shared/caption_styles/*.yaml`:
 - `bold_pop`: highlight từng từ, dùng cho short;
 - `clean_box`: chữ trong hộp, dùng cho long.
 
-Kích thước, lề và số từ mỗi dòng lấy theo format. Caption ASS được in lên video bằng libass. Song song đó, studio xuất `captions.srt` gộp từ SRT của từng cảnh, thời gian tính theo mili giây nguyên.
+Kích thước, lề và số từ mỗi dòng lấy theo format. Lề trái, phải và dưới được đẩy vào trong `safe_zone` của format (phần bị nút và tiêu đề của TikTok/Shorts che), và QC đo lại từng phụ đề bằng font thật. Caption ASS được in lên video bằng libass. Song song đó, studio xuất `captions.srt` gộp từ SRT của từng cảnh, thời gian tính theo mili giây nguyên.
 
 ## Lỗi và exit code
 

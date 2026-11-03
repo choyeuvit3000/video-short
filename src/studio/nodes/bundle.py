@@ -6,61 +6,26 @@ the same project re-submitted) is never uploaded twice.
 
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 from typing import Any
 
+from ..core.cache import HashCache
+from ..core.cache import file_sha256 as sha256_file
 from ..core.logging_utils import get_logger
+from ..core.outputs import archive_previous
 from ..core.paths import atomic_replace, is_safe_relative
 from ..core.project import ProjectContext
 
 log = get_logger()
 
-CHUNK = 1024 * 1024
 # work/ files that remote stages read (written by local generator stages); the rest of work/ is rebuilt
 WORK_INPUTS = {"card.png", "script.json", "timeline.json", "words.json"}
 SKIP_DIRS = {"output", "logs", "cache", "__pycache__"}
+SKIP_PREFIXES = ("output/history/",)  # old renders stay on the controller
 # where a worker job may write back into the project (state.json is merged, never copied)
 RESULT_PREFIXES = ("output/", "audio/", "subtitles/", "work/", "logs/")
 RESULT_FILES = {"project.json", "cost.json"}
-
-
-def sha256_file(path: Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as f:
-        while chunk := f.read(CHUNK):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-class HashCache:
-    """sha256 per (absolute path, size, mtime) so unchanged multi-GB clips are hashed once."""
-
-    def __init__(self, path: Path):
-        self.path = path
-        try:
-            self.data: dict[str, str] = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            self.data = {}
-        self.dirty = False
-
-    def sha(self, file: Path) -> str:
-        st = file.stat()
-        key = f"{file.resolve()}|{st.st_size}|{st.st_mtime_ns}"
-        if key not in self.data:
-            self.data[key] = sha256_file(file)
-            self.dirty = True
-        return self.data[key]
-
-    def save(self) -> None:
-        if not self.dirty:
-            return
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = self.path.with_suffix(".json.tmp")
-        tmp.write_text(json.dumps(self.data), encoding="utf-8")
-        atomic_replace(tmp, self.path)
-        self.dirty = False
 
 
 def _entry(path: Path, rel: str, hc: HashCache) -> dict[str, Any]:
@@ -76,7 +41,7 @@ def project_manifest(ctx: ProjectContext, hc: HashCache, *, include_output: bool
         rel = p.relative_to(ctx.dir).as_posix()
         parts = rel.split("/")
         skip = SKIP_DIRS - {"output"} if include_output else SKIP_DIRS
-        if parts[0] in skip or p.suffix == ".tmp" or ".remote" in p.name:
+        if parts[0] in skip or p.suffix == ".tmp" or ".remote" in p.name or rel.startswith(SKIP_PREFIXES):
             continue
         if parts[0] == "work" and (len(parts) != 2 or parts[1] not in WORK_INPUTS):
             continue
@@ -120,11 +85,14 @@ def apply_results(ctx: ProjectContext, results: list[dict[str, Any]], uploaded: 
     - only RESULT_PREFIXES / RESULT_FILES, safe relative paths;
     - files already identical locally are skipped;
     - a file that existed at submit time and was edited locally since then is NOT overwritten:
-      the worker's version is saved next to it as <name>.remote<ext>.
+      the worker's version is saved next to it as <name>.remote<ext>;
+    - a new output/final.mp4 first moves the local final render to output/history/ (like a local render).
     """
     stats = {"written": 0, "same": 0, "conflict": 0, "rejected": 0}
     hc = HashCache(ctx.settings.path("cache") / "hashes.json")
-    for r in results:
+    keep = int(ctx.settings.get("output.keep_history", 3))
+    # final.mp4 first: archiving it also moves the old captions / QC report, which the results then replace
+    for r in sorted(results, key=lambda r: r["path"] != "output/final.mp4"):
         rel, sha = r["path"], r["sha256"]
         if (not is_safe_relative(rel) or
                 not (rel in RESULT_FILES or any(rel.startswith(x) for x in RESULT_PREFIXES))):
@@ -141,6 +109,8 @@ def apply_results(ctx: ProjectContext, results: list[dict[str, Any]], uploaded: 
                 dest = _remote_name(dest)
                 log.warning("[pull] %s changed locally since submit - worker copy saved as %s", rel, dest.name)
                 stats["conflict"] += 1
+            elif rel == "output/final.mp4":
+                archive_previous(ctx.output, keep)
         dest.parent.mkdir(parents=True, exist_ok=True)
         tmp = dest.with_name(dest.name + ".tmp")
         fetch(sha, tmp)

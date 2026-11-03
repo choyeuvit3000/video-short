@@ -46,7 +46,8 @@ def make_project(project_dir: Path, settings: Settings, **fields) -> ProjectCont
 
 def color_clip(path: Path, color: str, seconds: float, size: str = "360x640", fps: int = 30) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    run_ffmpeg(["-f", "lavfi", "-i", f"color=c={color}:s={size}:r={fps}:d={seconds}",
+    # hue rotates over the clip so it is not a frozen picture for QC
+    run_ffmpeg(["-f", "lavfi", "-i", f"color=c={color}:s={size}:r={fps}:d={seconds},hue=H=2*PI*t/{seconds}",
                 "-f", "lavfi", "-i", f"sine=frequency=330:duration={seconds}",
                 "-shortest", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", str(path)], stage="fixture")
     return path

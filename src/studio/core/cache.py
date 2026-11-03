@@ -8,6 +8,8 @@ import shutil
 from pathlib import Path
 from typing import Any
 
+from .paths import atomic_replace
+
 
 def cache_key(*parts: Any) -> str:
     blob = json.dumps(parts, ensure_ascii=False, sort_keys=True, default=str)
@@ -20,6 +22,39 @@ def file_sha256(path: Path) -> str:
         for block in iter(lambda: f.read(1 << 20), b""):
             h.update(block)
     return h.hexdigest()
+
+
+class HashCache:
+    """sha256 per (absolute path, size, mtime) so unchanged multi-GB clips are hashed once."""
+
+    PRUNE_AT = 5000  # entries; stale ones (file gone) are dropped when the cache grows past this
+
+    def __init__(self, path: Path):
+        self.path = path
+        try:
+            self.data: dict[str, str] = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            self.data = {}
+        self.dirty = False
+
+    def sha(self, file: Path) -> str:
+        st = file.stat()
+        key = f"{file.resolve()}|{st.st_size}|{st.st_mtime_ns}"
+        if key not in self.data:
+            self.data[key] = file_sha256(file)
+            self.dirty = True
+        return self.data[key]
+
+    def save(self) -> None:
+        if not self.dirty:
+            return
+        if len(self.data) > self.PRUNE_AT:
+            self.data = {k: v for k, v in self.data.items() if Path(k.rsplit("|", 2)[0]).exists()}
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = self.path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(self.data), encoding="utf-8")
+        atomic_replace(tmp, self.path)
+        self.dirty = False
 
 
 class Cache:
