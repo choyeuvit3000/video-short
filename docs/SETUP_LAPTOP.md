@@ -22,7 +22,7 @@ Bản Gyan *full build* đã có `libass` (cần để in caption lên video) v�
 
 ```powershell
 gh auth login                          # chọn GitHub.com → HTTPS → đăng nhập bằng trình duyệt
-gh repo clone kaitosherlock/video-short F:\Project\video-short
+gh repo clone choyeuvit3000/video-short F:\Project\video-short
 cd F:\Project\video-short
 ```
 

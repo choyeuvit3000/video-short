@@ -4,7 +4,7 @@
 > *"Làm theo docs/SETUP_GPU_NODE.md, từng bước, kiểm tra xong mới sang bước sau, cuối cùng báo cáo bảng kết quả."*
 >
 > Nếu PC chưa có repo, mở Claude Code ở thư mục bất kỳ (ví dụ `D:\`) và nói:
-> *"Cài git, gh, uv rồi clone repo private kaitosherlock/video-short vào D:\video-short, sau đó làm theo docs/SETUP_GPU_NODE.md."*
+> *"Cài git, gh, uv rồi clone repo private choyeuvit3000/video-short vào D:\video-short, sau đó làm theo docs/SETUP_GPU_NODE.md."*
 
 **Ghi chú cho Claude:**
 
@@ -39,7 +39,7 @@ winget install Git.Git GitHub.cli astral-sh.uv Gyan.FFmpeg 7zip.7zip
 
 ```powershell
 gh auth login                                   # NGƯỜI DÙNG đăng nhập: GitHub.com → HTTPS → browser
-gh repo clone kaitosherlock/video-short D:\video-short
+gh repo clone choyeuvit3000/video-short D:\video-short
 cd D:\video-short
 ```
 
