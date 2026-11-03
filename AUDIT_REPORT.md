@@ -63,7 +63,7 @@ Quy ước trạng thái:
 | URL bài viết | **Một phần** | có code, chưa có test với HTML thật hoặc mock |
 | Reddit OAuth, `discover` | **Một phần** | chưa có test, chưa chạy với key thật |
 | Threads API | **Có** (keyword search) | API không lấy được bài theo URL. `discover threads` lưu bài tìm được vào `cache/threads/posts.json`, rồi `--url <permalink>` đọc lại từ đó. URL chưa có trong cache thì báo dán text |
-| LLM qua `claude -p` / `agy -p` / `codex exec` | **Một phần** | test dùng chain offline; cờ CLI thật chưa có test tích hợp |
+| LLM qua `claude -p` / `agy -p` / `codex exec` | **Có** | đã chạy thật cả 3 CLI trên laptop (TEST_REPORT §10); test tự động dùng chain offline + mock CLI |
 | Dán tay `work/llm/<task>.response.json` | **Có** | demo 2 dùng đường này |
 
 ### Workflow
@@ -105,6 +105,7 @@ Quy ước trạng thái:
 7. Phát hiện khi thêm Manim: video hoàn toàn không có tiếng (không lời đọc, không nhạc) làm `loudnorm` trả NaN và encode AAC thất bại. Nay bỏ qua loudnorm khi project im lặng.
 8. Luồng Threads chạy được: `discover threads` lưu kết quả API vào cache, `--url` tra lại theo permalink (threads.net và threads.com đều được, bỏ qua query string). Có test trong `tests/test_sources.py`.
 9. Dòng `FAILED` / `WAITING` trên console đi qua `redact()` và escape markup. `redact()` nay che được cả `Authorization: Bearer <token>` và `?access_token=`, còn câu như "THREADS_ACCESS_TOKEN not set" vẫn đọc được. Lỗi HTTP của Threads chỉ báo mã trạng thái, không kèm URL có token.
+10. Chạy thật với claude, codex và agy (TEST_REPORT §10). Codex từ chối schema có object tự do (`params`): schema gửi cho codex nay đổi object đó thành chuỗi JSON, và `knowledge_explainer` giải mã lại. Lời đọc bỏ chú thích `[...]` (TTS đọc cả ngoặc). Project chọn được CLI bằng `--set llm_chain=codex_cli`.
 
 ## 3. Lỗ hổng còn lại, theo mức ưu tiên
 
@@ -115,5 +116,5 @@ Quy ước trạng thái:
 | 3 | README quick-start không nhắc extra `[worker]`; `piper-en-lessac` chưa cài; registry ghi provider class `manual` không tồn tại | Thấp | Sửa tài liệu và registry |
 | 4 | 5/8 workflow mới là khung; loại job GPU là placeholder | Theo lộ trình | M4, M6, M7 |
 | 5 | edge-tts thỉnh thoảng lỗi liên tục dù đã thử lại 7 lần (khoảng 25 s). Khi đó project chuyển sang piper, và `--strict` fail vì cảnh báo fallback | Thấp | Đây là hành vi đúng (không trộn giọng, không báo thành công giả). Chỉ cần chạy lại `studio run`: cảnh đã có giọng edge lấy từ cache |
-| 6 | Codex CLI với schema nghiêm ngặt có thể không chấp nhận `params` dạng object tự do. Đã nhận cả chuỗi JSON, nhưng chưa thử với codex thật | Thấp | Chạy thử `knowledge_explainer` với chuỗi chỉ có codex |
+| 6 | agy (Antigravity) chậm, khoảng 3–5 phút cho 6 cảnh, và 2 lần trả lời không có JSON sau khoảng 25 s khi chạy song song với CLI khác. Chạy riêng thì 3/3 lần thành công | Thấp | Chạy agy một mình; timeout đã nâng lên 600 s; lỗi nay kèm phần đầu câu trả lời để chẩn đoán |
 | 7 | Worker trên PC phải có manim (extra `[gpu]` đã gồm manim) thì mới render từ xa được cảnh `manim` | Thấp | Ghi trong SETUP_GPU_NODE.md |

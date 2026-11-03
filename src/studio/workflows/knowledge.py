@@ -12,6 +12,7 @@ No generated code runs: the model only picks a template and fills its params.
 from __future__ import annotations
 
 import json
+import re
 
 from ..core.errors import ManualGateRequired, StudioError
 from ..core.logging_utils import get_logger
@@ -89,6 +90,14 @@ def _scene_visual(i: int, s: dict, title: str, warnings: list[str]) -> VisualSpe
     return VisualSpec(type="manim", template=template, params=params)
 
 
+def _spoken(i: int, text: str, warnings: list[str]) -> str:
+    """TTS reads brackets aloud: drop `[gloss]` notes some models add to the narration."""
+    clean = " ".join(re.sub(r"\s*\[[^\]]*\]", "", text).split())
+    if clean != " ".join(text.split()):
+        warnings.append(f"scene_{i:02d}: removed [..] notes from the narration")
+    return clean
+
+
 def stage_explainer(ctx: ProjectContext, opts: dict) -> str:
     p = ctx.project
     if p.scenes and not opts.get("force"):
@@ -126,7 +135,7 @@ def stage_explainer(ctx: ProjectContext, opts: dict) -> str:
         visual = _scene_visual(i, s, title, warnings)
         if visual.template not in topic.templates:
             log.info("[explainer] scene_%02d uses %s (not in the %s topic list)", i, visual.template, topic.id)
-        scenes.append(Scene(scene_id=f"scene_{i:02d}", narration=str(s.get("narration") or "").strip(),
+        scenes.append(Scene(scene_id=f"scene_{i:02d}", narration=_spoken(i, str(s.get("narration") or ""), warnings),
                             visual=visual))
     if not scenes:
         raise StudioError("the explainer answer has no scenes", code="llm_bad_output")

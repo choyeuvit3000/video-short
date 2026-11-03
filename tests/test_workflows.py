@@ -4,9 +4,9 @@ import pytest
 from typer.testing import CliRunner
 
 from studio.cli import app, slugify
-from studio.core.errors import ManualGateRequired, ValidationError
+from studio.core.errors import ManualGateRequired, ProviderUnavailable, ValidationError
 from studio.pipeline.runner import RunOptions, run_pipeline
-from studio.providers.llm import _strict_schema, extract_json, generate_json
+from studio.providers.llm import PROVIDERS, _strict_schema, _unwrap, extract_json, generate_json
 from studio.workflows import list_workflows, load_workflow, project_defaults
 from studio.workflows.story_reader import guess_lang, split_sentences
 
@@ -101,6 +101,33 @@ def test_extract_json_and_strict_schema():
     s = _strict_schema({"type": "object", "properties": {"a": {"type": "object", "properties": {"b": {}}}}})
     assert s["additionalProperties"] is False and s["required"] == ["a"]
     assert s["properties"]["a"]["required"] == ["b"]
+    # codex strict mode rejects free-form objects: they become JSON strings
+    s = _strict_schema({"type": "object", "properties": {"params": {"type": "object"}}})
+    assert s["properties"]["params"]["type"] == "string" and s["required"] == ["params"]
+
+
+def test_unwrap_cli_envelopes():
+    agy = {"status": "SUCCESS", "response": 'Here:\n```json\n{"scenes": []}\n```', "structured_output": None}
+    assert _unwrap(json.dumps(agy)) == {"scenes": []}
+    assert _unwrap(json.dumps({"result": '{"a": 1}'})) == {"a": 1}
+    for out, code in [(json.dumps({"status": "ERROR", "response": "quota"}), "llm_failed"),
+                      (json.dumps({"response": "I cannot do that."}), "llm_bad_output"),
+                      ("plain text, no json", "llm_bad_output")]:
+        with pytest.raises(ProviderUnavailable) as e:
+            _unwrap(out)
+        assert e.value.code == code
+
+
+def test_project_llm_chain_orders_the_allow_list(tmp_path, settings, monkeypatch):
+    settings.data["providers"]["llm"] = ["claude_cli", "codex_cli", "manual"]
+    ctx = make_project(tmp_path / "p", settings)
+    ctx.project.options["llm_chain"] = "agy_cli, codex_cli"  # agy is not allowed on this machine -> skipped
+    asked = []
+    for cls in PROVIDERS.values():
+        monkeypatch.setattr(cls, "check", lambda self: None)
+        monkeypatch.setattr(cls, "generate", lambda self, prompt, schema: asked.append(self.name) or {"ok": 1})
+    data, prov = generate_json(ctx, "t", "prompt", {"type": "object"}, chain=["claude_cli"])
+    assert (data, prov, asked) == ({"ok": 1}, "codex_cli", ["codex_cli"])
 
 
 def test_ai_cinematic_media_gate_and_still_fallback(tmp_path, settings):

@@ -60,7 +60,7 @@ align:
 llm:
   timeout_sec: 300
   claude_cli: {command: claude, model: null}
-  agy_cli: {command: agy, model: null}
+  agy_cli: {command: agy, model: null, timeout_sec: 600}   # agy takes ~3 min for a 6-scene script
   codex_cli: {command: codex, model: null}
 
 # studio-worker (M3.5) - only used on a worker machine (`studio worker serve`). Set node_id and host in

@@ -44,6 +44,9 @@ def _run(cmd: list[str], *, stdin: str, timeout: float) -> str:
     if proc.returncode != 0:
         raise ProviderUnavailable(f"{cmd[0]} exit {proc.returncode}: {(proc.stderr or proc.stdout)[-600:]}",
                                   code="llm_failed")
+    if not proc.stdout.strip():
+        raise ProviderUnavailable(f"{cmd[0]} printed nothing (exit 0): {proc.stderr[-600:] or 'no stderr'}",
+                                  code="llm_bad_output")
     return proc.stdout
 
 
@@ -53,7 +56,7 @@ class LLMProvider:
     def __init__(self, settings):
         self.settings = settings
         self.cfg = settings.get(f"llm.{self.name}", {}) or {}
-        self.timeout = float(settings.get("llm.timeout_sec", 300))
+        self.timeout = float(self.cfg.get("timeout_sec") or settings.get("llm.timeout_sec", 300))
 
     @property
     def command(self) -> str:
@@ -68,16 +71,27 @@ class LLMProvider:
 
 def _unwrap(out: str) -> Any:
     """CLIs wrap answers differently; accept structured_output / result / response / raw JSON."""
-    data = extract_json(out)
+    try:
+        data = extract_json(out)
+    except (ValueError, json.JSONDecodeError) as e:
+        tail = " ".join(out.split())[-300:] or "(empty output)"
+        raise ProviderUnavailable(f"no JSON in CLI output: {tail}", code="llm_bad_output") from e
     if isinstance(data, dict):
         for k in ("structured_output", "structuredOutput"):
             if isinstance(data.get(k), dict):
                 return data[k]
+        if str(data.get("status") or "SUCCESS").upper() not in ("SUCCESS", "OK"):  # agy: status ERROR/...
+            raise ProviderUnavailable(f"CLI status {data.get('status')}: {str(data.get('response'))[:300]}",
+                                      code="llm_failed")
         if data.get("is_error"):
             raise ProviderUnavailable(f"CLI reported an error: {str(data.get('result'))[:400]}", code="llm_failed")
         for k in ("result", "response", "text", "output"):
             if isinstance(data.get(k), str):
-                return extract_json(data[k])
+                try:
+                    return extract_json(data[k])
+                except (ValueError, json.JSONDecodeError) as e:
+                    tail = " ".join(data[k].split())[:300] or "(empty)"
+                    raise ProviderUnavailable(f"answer has no JSON ({k}): {tail}", code="llm_bad_output") from e
     return data
 
 
@@ -122,6 +136,12 @@ def _strict_schema(schema: dict) -> dict:
 
     def walk(node):
         if isinstance(node, dict):
+            if node.get("type") == "object" and "properties" not in node:
+                # strict mode rejects free-form objects: ask for the object as a JSON string instead
+                # (callers such as knowledge._scene_visual decode it)
+                node.clear()
+                node.update({"type": "string", "description": "a JSON object, encoded as a string"})
+                return
             if node.get("type") == "object" and "properties" in node:
                 node["additionalProperties"] = False
                 node["required"] = list(node["properties"].keys())
@@ -151,8 +171,13 @@ def generate_json(ctx: ProjectContext, task: str, prompt: str, schema: dict, *,
         log.info("[llm][%s] using existing %s", task, resp.relative_to(ctx.dir))
         return json.loads(resp.read_text(encoding="utf-8-sig")), "file"
 
-    # providers.llm (config/local.yaml) is the machine allow-list; the workflow chain only orders it
+    # providers.llm (config/local.yaml) is the machine allow-list; the workflow chain (or the project's
+    # options.llm_chain, e.g. `--set llm_chain=codex_cli,agy_cli`) only orders it
     allowed = ctx.settings.get("providers.llm", ["claude_cli", "manual"])
+    override = ctx.project.options.get("llm_chain")
+    if isinstance(override, str):
+        override = [x.strip() for x in override.split(",") if x.strip()]
+    chain = override or chain
     chain = [name for name in (chain or allowed) if name in allowed or name == "manual"]
     errors = []
     for name in chain:

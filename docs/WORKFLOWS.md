@@ -102,4 +102,8 @@ Loại visual `manim` dùng được trong mọi workflow, không riêng workflo
 
 - `llm_chain` trong recipe quy định **thứ tự** thử các CLI, ví dụ `[claude_cli, agy_cli, codex_cli, manual]`.
 - `providers.llm` trong `config/local.yaml` quy định CLI nào **được phép** dùng trên từng máy.
+- Muốn một project dùng CLI khác: `studio new ... --set llm_chain=codex_cli` (hoặc `agy_cli,claude_cli`), hay sửa
+  `options.llm_chain` trong `project.json`. Danh sách này chỉ đổi thứ tự, CLI phải có trong `providers.llm`.
+- Thời gian chờ mỗi CLI: `llm.<tên>.timeout_sec` trong `config/studio.yaml` (agy để 600 s vì mất khoảng 3–5 phút
+  cho kịch bản 6 cảnh), mặc định `llm.timeout_sec` = 300 s.
 - CLI không cài hoặc lỗi thì chuyển sang CLI kế tiếp. `manual` ghi prompt ra file và dừng với exit 3.

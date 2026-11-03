@@ -140,6 +140,15 @@ def test_explainer_writes_scenes_then_waits_for_review(tmp_path, settings):
     assert len(ctx2.project.scenes) == 3 and ctx2.project.options["reviewed"] is False
 
 
+def test_explainer_drops_bracket_notes_from_narration(tmp_path, settings):
+    script = json.loads(json.dumps(SCRIPT))
+    script["scenes"][0]["narration"] = "Quân Nam Hán [Southern Han]  kéo sang [Lưu Hoằng Tháo]."
+    ctx = _explainer_project(tmp_path, settings, script=script)
+    run_pipeline(ctx, RunOptions(only=["explainer"]))
+    assert ctx.project.scenes[0].narration == "Quân Nam Hán kéo sang."
+    assert ctx.project.scenes[1].narration == SCRIPT["scenes"][1]["narration"]
+
+
 def test_explainer_without_brief_waits(tmp_path, settings):
     ctx = _explainer_project(tmp_path, settings, brief="")
     with pytest.raises(ManualGateRequired) as e:

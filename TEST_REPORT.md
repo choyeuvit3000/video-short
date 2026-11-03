@@ -120,7 +120,7 @@ Demo dùng edge-tts, dịch vụ miễn phí cần internet. Muốn offline hoà
 ## 8. Test tự động
 
 ```text
-pytest -q   → 93 passed in 82.50s   (sửa Threads + redact; đợt Manim: 88; đợt củng cố: 75)
+pytest -q   → 96 passed in 92.33s   (CLI thật: +3 test; sửa Threads + redact: 93; đợt Manim: 88; đợt củng cố: 75)
 ruff check . → All checks passed!
 ```
 
@@ -156,10 +156,45 @@ Lần render đầu có 2 lỗi hiển thị, đã sửa:
 
 Đợt này cũng tìm ra một lỗi cũ: video hoàn toàn im lặng làm `loudnorm` trả NaN. Lỗi đã sửa và có test.
 
+## 10. knowledge_explainer với AI CLI thật trên laptop (claude, codex, agy)
+
+Mỗi CLI viết một kịch bản 6 cảnh (chọn bằng `--set llm_chain=<cli>`), giọng `edge-vi-hoaimy`, format `short_9x16`.
+CLI dùng tài khoản đã đăng nhập sẵn, không dùng API key. Không tự động hóa trình duyệt.
+
+| CLI (phiên bản) | Chủ đề | Viết kịch bản | Video | QC `--strict` |
+|---|---|---|---|---|
+| claude 2.1.287 | finance: lãi kép | khoảng 40 s | 56,33 s | **PASS**, 0 cảnh báo (lần 2, xem dưới) |
+| codex-cli 0.163.0 | science: bốn mùa | 109 s (sau khi sửa schema) | 38,60 s | **PASS**, 0 cảnh báo |
+| agy 1.4.2 | history: Bạch Đằng 938 | 189–292 s | 45,63 s | **PASS**, 0 cảnh báo |
+
+Cả 3 video đều 1080x1920, h264 + aac. Render Manim 67–86 s trên CPU. Đã xem ảnh khung hình của từng video.
+
+Lỗi tìm ra và đã sửa:
+
+- **codex** trả HTTP 400: chế độ schema nghiêm ngặt không nhận object tự do (`params`). Schema gửi cho codex nay
+  đổi object đó thành chuỗi JSON, `knowledge_explainer` giải mã lại. Chạy lại thì thành công.
+- **agy** 2 lần trả lời không có JSON sau khoảng 25 s, cả 2 lần đều khi chạy song song với CLI khác. Chạy riêng
+  thì 3/3 lần thành công. Chưa rõ nguyên nhân. Đã nâng timeout agy lên 600 s (một lần mất 292 s, sát mức 300 s cũ).
+  Lỗi nay kèm phần đầu câu trả lời và `status` của agy.
+- Lời đọc của agy có chú thích trong ngoặc vuông, ví dụ `[Lưu Cằng Tháo]`, mà TTS sẽ đọc thành tiếng. Prompt nay
+  cấm ngoặc vuông, và bước `explainer` tự xóa `[...]` khỏi lời đọc.
+
+Khi duyệt kịch bản agy (bước `review`), đã sửa tay trong `project.json` trước khi `approve`:
+
+- nguồn "Báo cáo khai quật bãi cọc Bạch Đằng (Yên Giang), 1988": bãi cọc Yên Giang gắn với trận năm 1288, không
+  phải năm 938. Đã thay bằng Toàn thư.
+- trích dẫn Lê Văn Hưu ghi "Đại Việt sử ký toàn thư (1272)": năm 1272 là bộ Đại Việt sử ký của Lê Văn Hưu. Đã sửa ngữ cảnh.
+
+Như vậy bước duyệt tay là cần thiết, nhất là với chủ đề lịch sử.
+
+Lần render đầu của video claude: edge-tts lỗi mạng sau 7 lần thử, project chuyển cả sang giọng Piper và `--strict`
+dừng với exit 5 (đúng thiết kế, xem AUDIT_REPORT §3 mục 5). `studio run --strict --from voice` chạy lại thì qua
+với giọng edge.
+
 ## Chưa kiểm được trong đợt này
 
 - PC GPU thật qua Tailscale: worker mới chạy trên 127.0.0.1 của laptop.
 - Reddit, URL fetch, TTS trả phí: cần key hoặc dịch vụ thật, chưa có mock. Threads có mock (`tests/test_sources.py`) nhưng chưa thử với token thật. Xem AUDIT_REPORT §3.
 - Phát sóng hoặc upload (YouTube): chưa làm, là bước tiếp theo.
-- `knowledge_explainer` với AI CLI thật (claude/agy/codex): demo dùng kịch bản dán tay. Chưa thử schema `params` với codex.
+- Các bước web (ảnh ChatGPT, clip Google Flow) vẫn là bước thủ công, không tự động hóa qua Chrome.
 - Render cảnh `manim` từ xa trên worker.

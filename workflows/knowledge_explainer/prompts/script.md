@@ -10,7 +10,8 @@ Never include:
 {{forbidden}}
 
 Scenes:
-- `narration`: voice-over in {{language}}, about {{words}} words, spoken naturally; no emojis, no stage directions.
+- `narration`: voice-over in {{language}}, about {{words}} words, spoken naturally; no emojis, no stage directions,
+  no brackets or translations in brackets (it is read aloud as written; say a foreign name once in words).
   Scene 1 hooks in the first sentence (a question or a surprising fact). The last scene sums up in one line.
 - `template` + `params`: the visual for that beat, chosen from the templates below. `params` must follow the
   example's keys exactly (no other keys). On-screen text is short (a few words), not the narration itself.
