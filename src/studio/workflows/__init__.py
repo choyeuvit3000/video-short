@@ -59,7 +59,7 @@ def fill(template: str, values: dict[str, Any]) -> str:
 
 
 def get_stages() -> dict[str, StageFn]:
-    from . import ai_cinematic, knowledge, story_reader
+    from . import ai_cinematic, knowledge, newspaper, story_reader
     from .common import COMMON_STAGES
 
-    return {**COMMON_STAGES, **story_reader.STAGES, **ai_cinematic.STAGES, **knowledge.STAGES}
+    return {**COMMON_STAGES, **story_reader.STAGES, **ai_cinematic.STAGES, **knowledge.STAGES, **newspaper.STAGES}

@@ -40,7 +40,8 @@ Muốn render lại dù không đổi gì: `studio run DIR --from render --force
 
 | ID | Tên | Trạng thái | Hình ảnh | Chi phí |
 |---|---|---|---|---|
-| S1 | `story_reader` | **ready** | card bài viết + nền lặp | ~0 |
+| S1 | `story_reader` | **ready** | card bài viết + nền lặp (hoặc thẻ truyện audio, chia phần) | ~0 |
+| N1 | `newspaper` | **ready** | ảnh bài báo + thẻ tiêu đề / trích dẫn / con số | ~0 |
 | S2 | `text_quote` | planned | chữ động trên nền | ~0 |
 | M1 | `listicle_stock` | planned | stock Pexels/Pixabay | ~0 |
 | M2 | `ai_slideshow` | planned | ảnh AI + Ken Burns | credits / GPU nhà |

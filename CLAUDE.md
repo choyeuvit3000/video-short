@@ -40,7 +40,11 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
 - `src/studio/providers/` — `llm/` (claude/agy/codex CLIs + manual), `tts/` (edge, piper, mock, paid adapters
   disabled), `align.py` (provider words → faster-whisper → estimate), `source/` (text file, URL, Reddit OAuth,
   Threads API), `images.py` (Wikimedia Commons API, free licences only, credited; used by the knowledge `images`
-  stage for `photo` scenes). `renderers/card.py` draws the post card; `voices.py` loads the voice registry
+  stage for `photo` scenes). `renderers/card.py` draws the post / passage / hook / end cards (story_reader
+  `options.layout` post|passage, `options.part_max_sec` → sibling projects `<dir>_pN`); `core/textnorm.py`
+  cleans text for speech (emoji, URLs, vi chat shorthand) when scenes are built; `source/article.py` reads a news
+  article (OG/JSON-LD + <article>, bot-check pages are never worked around) for `workflows/newspaper.py`, whose
+  frames come from `renderers/news.py` (stills + static text overlays); `voices.py` loads the voice registry
   (`with_speed` applies `audio.speed` per provider).
 - `src/studio/workflows/` — stage functions per workflow (`story_reader.py`, `ai_cinematic.py`, `knowledge.py`,
   `common.py`); `topics.py` loads topic packs `workflows/_shared/topics/<id>.yaml` (science, history, finance, tech_news...; `options:` = project defaults);

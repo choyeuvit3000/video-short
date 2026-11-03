@@ -7,6 +7,7 @@ Mỗi workflow là một **recipe dữ liệu** đặt tại `workflows/<tên>/w
 | Mục tiêu | Workflow | Vì sao |
 |---|---|---|
 | Kênh đọc truyện Reddit/Threads, ra nhiều video, chi phí ~0 | **S1 story_reader** | Card bài viết + nền lặp + giọng free, AI chỉ viết lại/dịch |
+| Tin tức ngắn từ một bài báo | **N1 newspaper** | Ảnh bài báo + Ken Burns, thẻ tiêu đề / trích dẫn / con số, có ghi nguồn, chi phí ~0 |
 | Quote, fact ngắn | S2 text_quote *(planned)* | Chữ động, không cần hình |
 | Top-N, kiến thức, tin tức | M1 listicle_stock *(planned)* | Stock footage miễn phí (Pexels/Pixabay) |
 | Lịch sử, bí ẩn, kể chuyện có minh họa | M2 ai_slideshow *(planned)* | Ảnh AI (ComfyUI trên PC GPU hoặc ChatGPT) + Ken Burns |
@@ -51,6 +52,26 @@ Các stage **sinh nội dung** (`source`, `script`, `scenes`, `storyboard`) sẽ
   - mục tiêu 7 phút, kèm 4 bình luận hàng đầu nếu nguồn có.
 - Option thường đổi khi tạo project, ví dụ `studio new ... --set rewrite=none --set target_sec=45`:
   `rewrite`, `target_sec`, `include_comments`, `card_theme` (light|dark), `card_width_ratio`, `scene_max_chars`.
+- **Chuẩn hoá chữ trước khi đọc** (`speech_cleanup: true`, mặc định bật): bỏ URL, emoji, emoticon, dấu `@`/`#`, và với tiếng Việt thì đọc đúng viết tắt (`ko` → không, `dc` → được, `mn` → mọi người...). Chữ trên thẻ và phụ đề dùng cùng bản đã chuẩn hoá nên luôn khớp với lời đọc.
+
+### Layout truyện audio (`layout: passage`)
+
+```powershell
+studio new story_reader "tieng-go-cua" --lang vi --text-file .\truyen.md --set layout=passage --set part_max_sec=170
+```
+
+- `s000_hook`: chỉ có khi script có `hook` khác tiêu đề (thường do AI viết). Chữ lớn trên nền tối, câu cuối màu đỏ.
+- `s001_title`: card bài viết. Khi truyện được chia phần thì có nhãn `Phần k/N` và đọc thêm "Phần k.".
+- `sNNN`: **mỗi câu là một cảnh**. Overlay là thẻ đoạn văn 1–3 câu (tối đa `passage_max_chars`, mặc định 240), câu đang đọc màu đậm, các câu còn lại màu mờ.
+- `sNNN_end`: thẻ kết ghi "Còn tiếp ở phần k+1." nếu còn phần sau, còn phần cuối thì là CTA (hoặc "Hết truyện.").
+- Vì chữ đã nằm trên thẻ, phụ đề chuyển sang `subtitle_mode: sidecar` (vẫn có `output/captions.srt`). Muốn burn thêm phụ đề thì đặt `passage_captions: true`.
+
+### Chia truyện dài thành nhiều phần (`part_max_sec`)
+
+- `part_max_sec: 0` (mặc định) là không chia. Đặt `> 0` (ví dụ `170` cho Shorts 3 phút) thì stage `scenes` ước lượng thời lượng theo số từ và tốc độ giọng, rồi chia **đều** tại ranh giới đoạn (layout passage) hoặc cảnh (layout post). Không có phần cuối quá ngắn.
+- Project hiện tại là **Phần 1**. Các phần sau được tạo thành project anh em ngay cạnh: `<thư mục>_p2`, `<thư mục>_p3`... (đã có sẵn source, script và cảnh, cùng nền). Chạy từng phần bằng `studio run "<thư mục>_p2"`.
+- Chạy lại thì project phần sau đã có sẽ được giữ nguyên; `--force` trên Phần 1 thì tạo lại tất cả. Project phần sau có `options.part_of`, nên `--force` trên nó chỉ dựng lại chính phần đó.
+- Thời lượng là ước lượng: video thật có thể dài hơn hoặc ngắn hơn vài giây. Hãy đặt `part_max_sec` thấp hơn giới hạn nền tảng một chút.
 
 Tìm bài:
 
@@ -62,6 +83,51 @@ studio discover threads "chuyện công sở"                                   
 Bạn tự duyệt bài, rồi tạo project bằng `--url`. Tool không tự render hàng loạt các bài chưa duyệt.
 
 Với Threads, API chính thức không đọc được một bài theo URL. Vì vậy `discover threads` lưu bài tìm được vào `cache/threads/posts.json`, rồi `--url` lấy nội dung từ đó. Link Threads khác (chưa qua `discover`) thì phải dán text.
+
+## N1 · newspaper (ready)
+
+`article → news_script → news_media → news_scenes → validate → voice → render → qc → package`
+
+```powershell
+studio new newspaper "de-mau-dgnl" --url "https://..."                 # báo không chặn bot
+studio new newspaper "de-mau-dgnl" --text-file ".\bai-bao.html"        # trang đã lưu (Ctrl+S)
+studio new newspaper "de-mau-dgnl" --text-file ".\bai-bao.md"          # chữ dán tay
+```
+
+- **article**: đọc tiêu đề, sapo, nội dung, chuyên mục, ngày đăng, tác giả và ảnh kèm chú thích từ metadata của trang (Open Graph, JSON-LD `NewsArticle`) và thẻ `<article>`. Nguồn theo thứ tự:
+  1. `source/article.html`, hoặc file `.html` đưa vào bằng `--text-file`;
+  2. `source/source.md` (dán tay);
+  3. `source.url` (một request duy nhất).
+
+  Nhiều báo (ví dụ laodong.vn) trả về **trang kiểm tra bot** thay vì bài. Studio **không vượt** lớp này mà dừng ở manual gate và hướng dẫn: mở bài trong trình duyệt, nhấn **Ctrl+S**, chọn **Web page, HTML only**, lưu thành `source/article.html`.
+
+  Định dạng `source.md` khi dán tay:
+
+  ```
+  # Tiêu đề bài
+  url: https://...
+  publisher: Lao Động
+  section: Giáo dục
+  published: 2021-01-27
+  image: https://.../anh.jpg | Chú thích. Ảnh: Tên tác giả
+  image: images/anh-cua-ban.jpg | Chú thích
+
+  Sapo...
+
+  Nội dung...
+  ```
+- **news_script**: AI CLI tóm tắt bài thành `beats` (`work/script.json`), mỗi nhịp là một màn hình, gồm 5 loại:
+  - `headline`: ảnh đầu bài, nhãn chuyên mục, tiêu đề chữ lớn in hoa, chip "Nguồn: ảnh … · ngày".
+  - `photo`: ảnh full màn hình chuyển động Ken Burns.
+  - `quote`: ảnh trong khung trắng nghiêng, lower-third ghi tên và chức vụ.
+  - `stat`: con số lớn kèm nhãn, trên nền ảnh làm mờ, có chip tiêu đề bài.
+  - `card`: ảnh tài liệu hoặc poster hiển thị nguyên, không cắt.
+
+  AI chỉ dùng dữ kiện có trong bài. Khi không có CLI nào trả lời (`rewrite: auto`), studio tự dựng nhịp từ chữ bài: tiêu đề + sapo, các câu tiếp theo, và nhịp `quote` khi đoạn văn trích lời người có ảnh chân dung. Cách này không có nhịp con số và gần với đọc nguyên văn, nên dùng AI vẫn tốt hơn. Cũng có thể dán câu trả lời của AI web vào `work/llm/news_script.response.json`.
+- **news_media**: tải ảnh của bài vào `work/news/`. Studio thử bản gốc trước bằng cách bỏ `?w=…&h=…` trên CDN. Ảnh bạn đặt trong `images/` được dùng thêm. Ảnh nào hỏng thì nhịp đó dùng ảnh khác. `images: none` thì chỉ dùng ảnh của bạn.
+- **news_scenes**: mỗi nhịp gồm một ảnh tĩnh (Ken Burns) và một overlay chữ đứng yên. Phụ đề `news_pop` (chữ trắng, từ đang đọc màu cam).
+- Option: `target_sec` (50), `beats` (7), `brand` (tên kênh hiện ở góc phải, mặc định trống), `accent` (màu nhãn, `#FF5A1F`), `images`, `rewrite`, `speech_cleanup`.
+- **Bản quyền**: ảnh và bài thuộc về tòa soạn. Studio ghi nguồn trên từng cảnh và trong `metadata.md` (mục Images, Source/credit). Nên tóm tắt, bình luận thay vì đọc lại nguyên bài, và xin phép tòa soạn nếu đăng kênh kiếm tiền.
 
 ## L1 · ai_cinematic (ready)
 

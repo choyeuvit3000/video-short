@@ -1,0 +1,31 @@
+# N1 - turn one news article into a short news video: photo beats with Ken Burns, headline / quote / big-number
+# cards, word captions. Cost ~0.
+name: newspaper
+tier: N1
+status: ready
+description: News article (URL, saved page or pasted text) -> headline, photo, quote and big-number beats with captions.
+cost: "~0 (subscription CLI summarizes the article, or none)"
+formats: [short_9x16, long_16x9]
+stages: [article, news_script, news_media, news_scenes, validate, voice, render, qc, package]
+# AI only summarizes the article into beats; the first CLI that answers wins, "manual" = paste into a web chat.
+llm_chain: [claude_cli, agy_cli, codex_cli, manual]
+defaults:
+  timing_mode: audio_driven
+  ai_generated: true
+  platforms: [tiktok, youtube_shorts, reels]
+  video:
+    caption_style: news_pop
+  audio: {speed: 1.15}
+  options:
+    rewrite: auto               # auto (AI if a CLI answers, else beats from the article text) | llm | none
+    target_sec: 50
+    beats: 7                    # how many beats the AI aims for
+    images: article             # article (download the article's photos, credited) | none (your images/ only)
+    brand: ""                   # your channel name, shown top right (empty = none)
+    accent: "#FF5A1F"           # category tag, lower-third line, number label
+    speech_cleanup: true
+format_overrides:
+  long_16x9:
+    platforms: [youtube]
+    video: {caption_style: clean_box}
+    options: {target_sec: 150, beats: 14}
