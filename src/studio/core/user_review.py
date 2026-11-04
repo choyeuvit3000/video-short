@@ -52,10 +52,12 @@ def payload(folder, stage):
                 "posts": read(folder / "posts.json", []),
                 "plan": read(folder / "merged_plan.json", {}),
             }
+            if (folder / "source.json").is_file():
+                data["source"] = read(folder / "source.json")
         data["brief"] = {
             k: v
             for k, v in read(folder / "video_brief.json", {}).get("answers", {}).items()
-            if k not in ("voice", "pacing")
+            if k not in ("voice", "pacing", "speech_speed")
         }
         if not p:
             from ..social_video.util import load_config
@@ -139,8 +141,13 @@ def payload(folder, stage):
                 )
         if (folder / "voice_manifest.json").is_file():
             files.append(folder / "voice_manifest.json")
-        files += sorted((folder / "work/previews").rglob("*.png"))
+        files += sorted(
+            x for x in (folder / "work/previews").rglob("*") if x.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}
+        )
         files += sorted((folder / "work/speech_checks").glob("*.json"))
+        if (folder / "background_plan.json").is_file():
+            files.append(folder / "background_plan.json")
+            files += [Path(x["source"]) for x in read(folder / "background_plan.json", {}).get("slots", {}).values()]
         from .speech_checks import critical_numbers, file_sha, text_sha
 
         if p:

@@ -22,10 +22,11 @@ class Brief(BaseModel):
     source_policy: Literal["faithful", "summary"] = "faithful"
     narration: Literal["captions_only", "verbatim", "summary"] = "captions_only"
     voice: str = "omnivoice-vi-thaison"
-    background: Literal["keep", "blur", "minecraft"] = "keep"
+    background: Literal["keep", "blur", "minecraft", "random"] = "keep"
     subtitles: Literal["none", "sentence", "highlight"] = "none"
     memes: Literal["none", "approved_plan_only"] = "none"
     pacing: Literal["calm", "normal", "brisk"] = "normal"
+    speech_speed: float | None = Field(default=None, ge=0.5, le=2.0)
     must_include: str = ""
     must_avoid: str = ""
     reference: str = ""
@@ -45,6 +46,7 @@ LABELS = {
     "subtitles": "Phụ đề",
     "memes": "Meme theo plan đã duyệt hay không?",
     "pacing": "Nhịp dựng",
+    "speech_speed": "Tốc độ giọng chính xác (hệ số)",
     "must_include": "Thông tin bắt buộc giữ",
     "must_avoid": "Nội dung/hiệu ứng cần tránh",
     "reference": "Video mẫu/phong cách tham chiếu",
@@ -135,9 +137,11 @@ def recommendation(folder, mode):
     from ..voices import load_registry
     from .config import get_settings
 
-    b["voice"] = load_registry(get_settings()).default_for(
-        project.get("language", "vi"), mode, project.get("video", {}).get("format", "short_9x16")
-    ).id
+    b["voice"] = (
+        load_registry(get_settings())
+        .default_for(project.get("language", "vi"), mode, project.get("video", {}).get("format", "short_9x16"))
+        .id
+    )
     b.update(
         goal="Giữ đúng thông tin nguồn, trình bày rõ và dễ xem",
         audience="Người Việt xem video ngắn",
@@ -219,7 +223,11 @@ def apply_project_choices(folder):
         b = data["answers"]
         load_registry(ctx.settings).get(b["voice"])
         ctx.project.audio.voice_profile = b["voice"]
-        ctx.project.audio.speed = {"calm": 0.95, "normal": 1.0, "brisk": 1.12}[b["pacing"]]
+        ctx.project.audio.speed = (
+            b["speech_speed"]
+            if b["speech_speed"] is not None
+            else {"calm": 0.95, "normal": 1.0, "brisk": 1.12}[b["pacing"]]
+        )
         ctx.project.video.subtitle_mode = "none" if b["subtitles"] == "none" else "burn_in"
         if ctx.project.workflow == "story_reader":
             ctx.project.options["rewrite"] = "none" if b["source_policy"] == "faithful" else "llm"
@@ -316,15 +324,24 @@ def preflight(folder: Path):
 
     profile = load_registry(get_settings()).get(data["answers"]["voice"])
     rate = float(profile.estimated_space_tokens_per_second or profile.params.get("target_space_tokens_per_second", 3.2))
-    pace = {"calm": 0.95, "normal": 1.0, "brisk": 1.12}[data["answers"]["pacing"]]
+    pace = (
+        data["answers"]["speech_speed"]
+        if data["answers"]["speech_speed"] is not None
+        else {"calm": 0.95, "normal": 1.0, "brisk": 1.12}[data["answers"]["pacing"]]
+    )
     seconds = words / (rate * float(profile.params.get("speed", 1.0)) * pace)
     report = {
         "brief_status": data["status"],
         "scenes": len(texts),
         "spoken_words": words,
         "estimated_speech_seconds": round(seconds, 1),
-        "speech_rate_source": ("audition estimate" if profile.estimated_space_tokens_per_second else
-                               "profile" if "target_space_tokens_per_second" in profile.params else "rough default"),
+        "speech_rate_source": (
+            "audition estimate"
+            if profile.estimated_space_tokens_per_second
+            else "profile"
+            if "target_space_tokens_per_second" in profile.params
+            else "rough default"
+        ),
         "target_seconds": data["answers"]["target_seconds"],
         "preview_kind": "text storyboard, not pixel-accurate final layout",
         "pages": pages,
@@ -355,7 +372,13 @@ def apply_social(folder, cfg):
     options["profile"] = profile.id
     if engine == "vieneu":
         options["voice"] = profile.params["voice"]
-    options["speed"] = {"calm": 0.95, "normal": 1.0, "brisk": 1.15}[b["pacing"]]
+    options["speed"] = (
+        b["speech_speed"]
+        if b["speech_speed"] is not None
+        else {"calm": 0.95, "normal": 1.0, "brisk": 1.15}[b["pacing"]]
+    )
+    if b["speech_speed"] is not None:
+        cfg["reddit"]["narration_speed"] = 1.0  # apply the creator's exact total speed only once
     cfg["reddit"]["background_family"] = "minecraft" if b["background"] == "minecraft" else "any"
     cfg["reddit"]["jumpscares_enabled"] = b["memes"] != "none"
     if data["mode"] == "reddit" and b["narration"] != "verbatim":
@@ -408,8 +431,10 @@ def begin_social(folder, cfg):
             voice_acceptance["fingerprint"],
             signature(social_profile(cfg["tts"])[0]),
             {k: cfg.get(k) for k in ("tts", "video", "story", "reddit", "fonts", "bgm")},
-            {name: _sha(Path(__file__).parents[1] / "social_video" / name)
-             for name in ("post_renderer.py", "subs.py", "reddit.py", "reddit_full.py", "quality.py")},
+            {
+                name: _sha(Path(__file__).parents[1] / "social_video" / name)
+                for name in ("post_renderer.py", "subs.py", "reddit.py", "reddit_full.py", "quality.py")
+            },
         ]
     )
     cache = _read(folder / "native_render_cache.json", {})

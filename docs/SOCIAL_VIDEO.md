@@ -31,6 +31,10 @@ Chuẩn là video merged đã duyệt: ảnh chụp thật, nền mờ, clip/âm
 
 Giữ dữ liệu nguồn/bản dịch, chia phần, card đoạn văn/thoại, nền gameplay, nhạc ducking và sfx của mode cũ. `reddit-publish-plan` chỉ đọc kế hoạch, không tự đăng bài hoặc dời lịch. Mã hỗ trợ lịch cũ nằm ở `studio.social_video.schedule`. Cache audio mới dựa vào nội dung + giọng, tránh dùng lại tiếng từ engine cũ.
 
+Khi người dùng yêu cầu riêng truyện Threads theo phong cách Reddit, giữ `platform: threads`, tác giả và URL trong `source.json`; `vi.json` chứa bản kể đã biên tập để duyệt. Thẻ giữ nguồn Threads và output dùng `threads_story`/`threads_story_full`. Những trả lời không công khai không được tự điền nội dung. Chuẩn Threads merged thông thường vẫn giữ nguyên.
+
+Trong brief, `speech_speed: 1.25` đặt đúng tổng tốc độ một phẩy hai mươi lăm lần, không nhân thêm hệ số Reddit. `background: random` chọn một đoạn nền đủ rõ rồi lưu clip/điểm bắt đầu/crop/SHA256 vào `background_plan.json`; gói duyệt giọng ràng buộc cả nền đã xem. Render dùng lại lựa chọn đó. Nền hoặc bố cục đổi cần chuẩn bị lại preview trước khi duyệt; không đổi âm thầm sau duyệt.
+
 ## QC bắt buộc
 
 Mỗi video được mastering hai lượt về đích -14 LUFS/-1.5 dBTP, kiểm tra H.264/yuv420p/1080×1920/30fps, AAC stereo 48 kHz, thời lượng, âm lượng, true peak, silence/black/freeze và tạo contact sheet. Một số thẻ bài tĩnh/nền tối sẽ tạo cảnh báo; không tự cắt cảnh nguồn để làm detector hết báo. Kiểm tra trực quan và kiểm tra audio trong ngữ cảnh.

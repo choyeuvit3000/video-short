@@ -316,11 +316,12 @@ class Cards:
         r = 32 if big else 26
         _avatar(d, CARD_X + PAD, y, r)
         tx = CARD_X + PAD + 2 * r + 18
-        sub = f"r/{self.story['sub']}"
+        from .story_source import labels
+        sub, author = labels(self.story)
         d.text((tx, y - 2), sub, font=self.f_sub, fill=COLORS["text"])
         d.text((tx + d.textlength(sub, font=self.f_sub) + 12, y + 2), f"• {self.age}",
                font=self.f_meta, fill=COLORS["meta"])
-        d.text((tx, y + 38), f"u/{self.story['author']}", font=self.f_meta, fill=COLORS["meta"])
+        d.text((tx, y + 38), author, font=self.f_meta, fill=COLORS["meta"])
         if getattr(self,"part_label",""):
             d.text((CARD_X+CARD_W-PAD-210,y+38),self.part_label,font=self.f_meta,fill=COLORS["meta"])
         return y + 2 * r + 34
@@ -398,7 +399,8 @@ class Cards:
         fade = 220   # darken towards the seam so the caption reads on any photo
         for y in range(fade):
             sd.line([(0, SEAM - fade + y), (W, SEAM - fade + y)], fill=(0, 0, 0, int(170 * y / fade)))
-        sub = f"r/{self.story['sub']}"
+        from .story_source import labels
+        sub, _author = labels(self.story)
         tw = sd.textlength(sub, font=self.f_sub)
         sd.rounded_rectangle([36, 40, 36 + 76 + tw + 24, 40 + 64], radius=32, fill=(0, 0, 0, 170))
         im = Image.alpha_composite(im, shade)
@@ -721,7 +723,9 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
 
     day = date.today().isoformat()
     from studio.core.outputs import organized_output
-    outdir = organized_output(FINAL_OUTPUT, 'reddit', d/'output_location.json')
+    from .story_source import mode, credit
+    render_mode = mode(story)
+    outdir = organized_output(FINAL_OUTPUT, render_mode, d/'output_location.json')
     outdir.mkdir(parents=True, exist_ok=True)
     slug = _slug(title_text)
     made = []
@@ -790,7 +794,8 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
              "-i", audio_list.name, "-c:a", "pcm_s16le", narration.name], cwd=d)
         total = media_duration(narration)
 
-        out = outdir / (f"reddit__{story_id}__{slug}_p{p + 1}.mp4" if n_parts > 1 else f"reddit__{story_id}__{slug}.mp4")
+        out = outdir / (f"{render_mode}__{story_id}__{slug}_p{p + 1}.mp4" if n_parts > 1
+                        else f"{render_mode}__{story_id}__{slug}.mp4")
         # rendered in three runs (picture, sound, mux): one graph with both stalls ffmpeg
         if total>float(rc.get("part_max_sec",75))+.05:
             from ..core.errors import ManualGateRequired
@@ -800,7 +805,8 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
 
         # picture: 0 cards (jumpscare frames included), 1 one gameplay video from a random point
         v_in = ["-f", "concat", "-safe", "0", "-i", card_list.name]
-        bg = bgclips.pick(total, rng, W / (H - SEAM) if scenes else W / H, family=rc.get("background_family","any"))
+        bg = bgclips.planned(d, p + 1, total, rng, W / (H - SEAM) if scenes else W / H,
+                             family=rc.get("background_family", "any"))
         if bg:
             src, start, crop = bg
             v_in += ["-stream_loop", "-1", "-ss", f"{start:.2f}", "-an", "-i", str(src)]
@@ -869,16 +875,15 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
         full=export_full(story_id,story,vi,groups,voiced,cfg,d)
         made.append(full)
     from ..core.user_review import write
-    write(d/"youtube_handoff.json",{"channel":"@truyenlareddit","shorts":[str(x) for x in made if x.parent.name=="reddit"],
-        "full":[str(x) for x in made if x.parent.name=="reddit_full"],"related_video":"Sau khi đăng bản đầy đủ, chọn video đó trong mục Video liên quan của từng Short; cần tính năng nâng cao.",
+    write(d/"youtube_handoff.json",{"channel":"@truyenlareddit","shorts":[str(x) for x in made if x.parent.name==render_mode],
+        "full":[str(x) for x in made if x.parent.name==render_mode+"_full"],"related_video":"Sau khi đăng bản đầy đủ, chọn video đó trong mục Video liên quan của từng Short; cần tính năng nâng cao.",
         "upload_status":"NOT_UPLOADED","pinned_comment":"Người dùng tự duyệt nội dung/liên kết trước khi đăng hoặc ghim."})
     titles = outdir / "titles.txt"
     with titles.open("a", encoding="utf-8") as fh:
         for p, out in enumerate(made):
-            suffix = (" — Bản đầy đủ" if out.parent.name == "reddit_full" else
+            suffix = (" — Bản đầy đủ" if out.parent.name == render_mode + "_full" else
                       f" (Phần {p + 1}/{n_parts})" if n_parts > 1 else "")
-            fh.write(f"{title_text}{suffix}\t{out.name}\tTruyện gốc: u/{story['author']} – "
-                     f"r/{story['sub']} – {story['url']}\n")
+            fh.write(f"{title_text}{suffix}\t{out.name}\t{credit(story)}\n")
     done = read_json(DONE, {})
     done[story_id] = {"title": title_text, "files": [str(m.resolve()) for m in made]}
     write_json(DONE, done)

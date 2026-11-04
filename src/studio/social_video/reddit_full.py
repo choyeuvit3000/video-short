@@ -14,6 +14,7 @@ from .util import FINAL_OUTPUT, ffmpeg, media_duration, run
 def export_full(story_id, story, vi, groups, voiced, cfg, folder):
     from .quality import publish
     from .reddit import _join
+    from .story_source import labels, mode
 
     work = folder / "full"
     work.mkdir(exist_ok=True)
@@ -28,7 +29,7 @@ def export_full(story_id, story, vi, groups, voiced, cfg, folder):
             draw.rounded_rectangle((55, 55, 1060, 1025), radius=28, fill=(15, 22, 32, 250))
             draw.text(
                 (95, 100),
-                "r/" + story.get("sub", "nosleep") + " · u/" + story.get("author", ""),
+                " · ".join(labels(story)),
                 font=font,
                 fill="#B5BDC8",
             )
@@ -101,8 +102,9 @@ def export_full(story_id, story, vi, groups, voiced, cfg, folder):
         ],
         cwd=work,
     )
-    outdir = organized_output(FINAL_OUTPUT, "reddit_full", folder / "full_output_location.json")
-    out = outdir / f"reddit_full__{story_id}.mp4"
+    full_mode = mode(story) + "_full"
+    outdir = organized_output(FINAL_OUTPUT, full_mode, folder / "full_output_location.json")
+    out = outdir / f"{full_mode}__{story_id}.mp4"
     wide = copy.deepcopy(cfg)
     wide["video"].update(width=1920, height=1080)
     publish(draft, out, wide)

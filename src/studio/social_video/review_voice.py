@@ -15,7 +15,7 @@ def prepare_voice(folder: Path):
     apply_social(folder, cfg)
     assert_social_config(cfg["tts"])
     if (folder / "vi.json").is_file():
-        from .reddit import chunks, voice_story
+        from .reddit import SEAM, H, W, chunks, voice_story
         from .reddit_edit import plan
 
         vi = read_json(folder / "vi.json")
@@ -32,6 +32,20 @@ def prepare_voice(folder: Path):
         from .reddit_edit import hook_texts, partition
 
         parts = partition(chunks(vi["paragraphs"]), voiced, float(cfg["reddit"].get("part_max_sec", 75)))
+        import random
+
+        from . import bgclips
+
+        for i, part in enumerate(parts, 1):
+            seconds = sum(voiced[k + j][1] for group, k in part for j in range(len(group))) + 5.35
+            bgclips.planned(
+                folder,
+                i,
+                seconds,
+                random.Random(folder.name + str(i)),
+                aspect=W / (H - SEAM) if vi.get("scenes") else W / H,
+                family=cfg["reddit"].get("background_family", "any"),
+            )
         hooks = hook_texts(vi, parts)
         body = [{"path": str(p.resolve()), "seconds": t} for p, t in voiced]
         hook_assets = [

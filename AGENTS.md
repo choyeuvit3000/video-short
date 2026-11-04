@@ -6,6 +6,7 @@ Use `.venv/Scripts/python.exe -m studio threads-post URL_OR_CAPTURE_DIR`.
 Keep authentic screenshots, blurred background, complete source clip/audio, giọng local đã duyệt QC (ưu tiên nam trầm miền Nam),
 and persistent source credit. Do not turn a Threads post into a narrated fictional story.
 Reddit storytelling is separate: `studio reddit-story render --id ID`.
+If the user explicitly requests a Threads story in the Reddit storytelling style, use that renderer with the actual Threads author/URL and `platform: threads`; output mode is `threads_story`. Do not invent unavailable replies. Keep the exact requested `speech_speed` applied once and reuse the hash-bound `background_plan.json` from preview through rendering. This exception does not change the default merged Threads mode or the three creator checkpoints.
 Both modes must produce mastering, automatic QC, contact sheets, and SHA256-bound editorial review.
 Inspect visual readability, transitions, source fidelity, and audio before calling a video final.
 Do not equate successful FFmpeg exit or automatic QC PASS with completed editorial review.

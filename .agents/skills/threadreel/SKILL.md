@@ -29,6 +29,12 @@ Chuẩn đầu ra là video merged người dùng duyệt: thẻ bài chụp th�
 
 Bản dịch ở `projects/social_video/work/reddit/ID/vi.json`; giữ cấu trúc đoạn, thoại, chia phần, nền và lịch sử đăng cũ. Giọng local đã duyệt QC, ưu tiên nam trầm miền Nam; không âm thầm dùng lại cache giọng khác.
 
+### Truyện từ Threads theo yêu cầu riêng
+
+Khi người dùng yêu cầu rõ lấy truyện Threads và kể theo phong cách Reddit, dùng renderer kể chuyện chung; đây là ngoại lệ theo yêu cầu, không thay chuẩn Threads merged. Giữ `platform: threads`, tác giả và URL thật trong `source.json`; thẻ ghi Threads/@tác giả, output thuộc `threads_story` (bản ngang: `threads_story_full`). Nếu có đoạn không công khai, chỉ tóm lược phần truy cập được trong phạm vi người dùng chọn; không bịa đoạn nối hoặc kết cục.
+
+`video_brief.json.answers.speech_speed` là hệ số tốc độ chính xác người dùng chọn (ví dụ `1.25`), được áp dụng một lần; không nhân thêm hệ số Reddit cũ. `background: random` chọn từ kho nền, bỏ đoạn quá tối; `background_plan.json` giữ nguyên clip/điểm bắt đầu/crop cho preview và render, gắn hash vào gói duyệt giọng. Bố cục hoặc nguồn nền thay đổi phải chuẩn bị lại preview. Vẫn giữ đủ ba mốc duyệt trước TTS, trước render và sau QC.
+
 ## QC mọi video trước khi giao
 
 Lệnh dựng tự mastering hai lượt, kiểm tra 1080×1920/30fps/H.264/AAC stereo, âm lượng/peak, thời lượng, khoảng lặng, khung đen/đứng và tạo `*.sheet.jpg`, `*.qc.json`. Lỗi kỹ thuật không thay thế file tốt trước. `automatic: PASS` chưa đồng nghĩa đã duyệt nội dung.
