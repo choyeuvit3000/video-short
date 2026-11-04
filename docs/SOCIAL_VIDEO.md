@@ -1,5 +1,13 @@
 # Studio hợp nhất: Threads merged và Reddit
 
+Nghe toàn bộ giọng Việt VieNeu (loại Mai Anh, tên trùng/alias bị cấm):
+`python scripts/voice_gallery.py` trong venv Studio. Bộ mẫu nằm tại
+`output/YYYY-MM-DD/voice_samples/vieneu_all/`: trang nghe offline có lọc/lưu ứng viên,
+video có tên từng giọng và ZIP. Cùng một đoạn có “năm phẩy hai”, cùng âm lượng nghe,
+giữ tốc độ gốc; dùng lại audio đúng hash khi chạy lại. Đây là các ứng viên chờ người
+dùng chọn, không tự duyệt giọng hoặc đổi giọng video. Khi chọn, lấy đúng profile/signature
+và tệp nghe trong manifest; tên cũ được gộp vào giọng chuẩn, không tạo mẫu trùng.
+
 Nơi chạy chính: `D:\Video-maker\video-short`. Không còn cần Python/code/asset từ Downloads.
 
 ## Threads
