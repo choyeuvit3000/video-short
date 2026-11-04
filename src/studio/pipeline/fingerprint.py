@@ -21,7 +21,7 @@ from ..core.cache import cache_key
 from ..core.errors import StudioError
 from ..core.project import ProjectContext
 
-REV = 4
+REV = 6
 
 SKIPPABLE = ("render", "qc", "package")
 MACHINE_KEYS = {"encoder"}  # render.* keys that only change speed, not the picture
@@ -85,7 +85,7 @@ def _manim_inputs(ctx: ProjectContext) -> list[Any]:
 def outputs_for(ctx: ProjectContext, stage: str) -> list[str]:
     if stage == "render":
         outs = ["output/final.mp4"]
-        if (ctx.output / "captions.srt").exists():
+        if (ctx.result_path("captions.srt")).exists():
             outs.append("output/captions.srt")
         return outs
     if stage == "qc":
@@ -99,14 +99,13 @@ def compute(ctx: ProjectContext, stage: str, opts: dict) -> str | None:
     """Fingerprint of everything `stage` reads, or None for stages that always run."""
     if stage not in SKIPPABLE:
         return None
-    out = ctx.output
     if stage == "render":
         data: dict[str, Any] = _render_inputs(ctx)
         data["opts"] = {"burn_subs": opts.get("burn_subs"), "allow_sidecar": bool(opts.get("allow_sidecar"))}
     elif stage == "qc":
         data = {
-            "final": _sha(ctx, out / "final.mp4"),
-            "srt": _sha(ctx, out / "captions.srt"),
+            "final": _sha(ctx, ctx.result_path("final.mp4")),
+            "srt": _sha(ctx, ctx.result_path("captions.srt")),
             "timeline": _sha(ctx, ctx.timeline_path()),
             "qc": ctx.settings.get("qc") or {},
             "format": asdict(ctx.fmt),
@@ -117,14 +116,14 @@ def compute(ctx: ProjectContext, stage: str, opts: dict) -> str | None:
     else:  # package
         data = {
             "project": ctx.project.model_dump(mode="json"),
-            "final": _sha(ctx, out / "final.mp4"),
-            "qc": _sha(ctx, out / "qc_report.json"),
+            "final": _sha(ctx, ctx.result_path("final.mp4")),
+            "qc": _sha(ctx, ctx.result_path("qc_report.json")),
         }
     return cache_key(stage, REV, data)
 
 
 def output_shas(ctx: ProjectContext, stage: str) -> dict[str, str | None]:
-    return {rel: _sha(ctx, ctx.dir / rel) for rel in outputs_for(ctx, stage)}
+    return {rel: _sha(ctx, ctx.artifact_path(rel)) for rel in outputs_for(ctx, stage)}
 
 
 def up_to_date(ctx: ProjectContext, stage: str, fingerprint: str | None) -> bool:
@@ -136,4 +135,4 @@ def up_to_date(ctx: ProjectContext, stage: str, fingerprint: str | None) -> bool
     recorded = entry.get("outputs") or {}
     if not recorded:
         return False
-    return all(sha is not None and _sha(ctx, ctx.dir / rel) == sha for rel, sha in recorded.items())
+    return all(sha is not None and _sha(ctx, ctx.artifact_path(rel)) == sha for rel, sha in recorded.items())

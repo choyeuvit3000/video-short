@@ -320,7 +320,7 @@ def run(
             _run_remote(ctx, ro, node, wait=wait, timeout_min=timeout_min, fallback=fallback)
         else:
             run_pipeline(ctx, ro)
-        console.print(f"[green]DONE[/] {ctx.dir / 'output' / 'final.mp4'}")
+        console.print(f"[green]DONE[/] {ctx.final_video}")
         return EXIT_OK
 
     _guard(body)
@@ -457,7 +457,7 @@ def status(project: ProjectArg) -> None:
             e = st.get(name, {})
             t.add_row(name, e.get("status", "pending"), e.get("at", ""), e.get("message", ""))
         console.print(t)
-        final = ctx.dir / "output" / "final.mp4"
+        final = ctx.final_video
         if final.exists():
             console.print(f"output: {final} ({probe(final).duration:.2f}s)")
         return EXIT_OK
@@ -788,6 +788,10 @@ def version() -> None:
     """Print version."""
     console.print(f"studio {__version__} (python {platform.python_version()}, {os.name})")
 
+
+# Native social video commands (approved merged Threads + Reddit).
+from .social_video.commands import register as _register_social
+_register_social(app)
 
 if __name__ == "__main__":
     app()

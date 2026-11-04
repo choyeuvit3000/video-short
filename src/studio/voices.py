@@ -102,7 +102,9 @@ def load_registry(settings: Settings) -> VoiceRegistry:
                 if prof.id in profiles:
                     raise ValidationError(f"Duplicate voice id '{prof.id}' in {f}", code="config_error")
                 profiles[prof.id] = prof
-    return VoiceRegistry(root=root, profiles=profiles, defaults=dict(reg.get("defaults", {})),
+    # config/local.yaml `voice_defaults: {vi: vieneu-vi-maianh}` - this machine's default voice per language
+    defaults = {**dict(reg.get("defaults", {})), **dict(settings.get("voice_defaults", {}) or {})}
+    return VoiceRegistry(root=root, profiles=profiles, defaults=defaults,
                          offline_fallback=dict(reg.get("offline_fallback", {})))
 
 

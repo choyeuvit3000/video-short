@@ -48,6 +48,11 @@ def project_manifest(ctx: ProjectContext, hc: HashCache, *, include_output: bool
         if rel == "state.json":
             continue
         out.append(_entry(p, rel, hc))
+    if include_output and ctx.settings.get("paths.output"):
+        for name in ("final.mp4", "captions.srt", "qc_report.json", "metadata.md", "scene_plan.json"):
+            artifact = ctx.result_path(name)
+            if artifact.is_file():
+                out.append(_entry(artifact, "output/" + name, hc))
     return out
 
 
@@ -99,7 +104,7 @@ def apply_results(ctx: ProjectContext, results: list[dict[str, Any]], uploaded: 
             log.warning("[pull] ignoring result outside the allowed folders: %s", rel)
             stats["rejected"] += 1
             continue
-        dest = ctx.dir / rel
+        dest = ctx.artifact_path(rel)
         if dest.is_file():
             local = hc.sha(dest)
             if local == sha:
@@ -110,7 +115,8 @@ def apply_results(ctx: ProjectContext, results: list[dict[str, Any]], uploaded: 
                 log.warning("[pull] %s changed locally since submit - worker copy saved as %s", rel, dest.name)
                 stats["conflict"] += 1
             elif rel == "output/final.mp4":
-                archive_previous(ctx.output, keep)
+                from ..core.outputs import archive_project
+                archive_project(ctx)
         dest.parent.mkdir(parents=True, exist_ok=True)
         tmp = dest.with_name(dest.name + ".tmp")
         fetch(sha, tmp)

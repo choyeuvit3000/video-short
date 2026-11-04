@@ -40,3 +40,25 @@ def archive_previous(out_dir: Path, keep: int) -> Path | None:
     for d in old[:-keep]:
         shutil.rmtree(d, ignore_errors=True)
     return dest
+
+
+def archive_project(ctx) -> Path | None:
+    """Archive only this project's centrally named artifacts, never another mode's files."""
+    keep = int(ctx.settings.get("output.keep_history", 3))
+    if not ctx.settings.get("paths.output"):
+        return archive_previous(ctx.output, keep)
+    final = ctx.final_video
+    if keep <= 0 or not final.is_file():
+        return None
+    hist = final.parent / "_history" / ctx.result_stem
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    dest = hist / stamp
+    dest.mkdir(parents=True)
+    for name in (*ARCHIVED, "scene_plan.json"):
+        source = ctx.result_path(name)
+        if source.is_file():
+            source.replace(dest / source.name)
+    for old in sorted(hist.iterdir())[:-keep]:
+        if old.is_dir():
+            shutil.rmtree(old)
+    return dest

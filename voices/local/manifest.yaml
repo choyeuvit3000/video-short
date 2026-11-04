@@ -63,14 +63,67 @@ profiles:
     cost_per_1k_chars: 0
     fallback: edge-vi-hoaimy
 
-  - id: vieneu-vi
+  # VieNeu-TTS v3 Turbo preset voices (48 kHz). Model + presets are Apache-2.0 and the model card allows
+  # generated audio in commercial / monetized content. Runs in its own venv: scripts/install_vieneu.ps1.
+  # The model adds VieNeu's AI watermark to the audio; leave it on.
+  - id: vieneu-vi-maianh
     lang: vi
     tier: local
     provider: vieneu
-    status: planned
+    status: ready
     location: node:home-gpu
-    license: "check model card"
-    params: {}
+    license: "Apache-2.0 (VieNeu-TTS v3 Turbo, commercial use allowed)"
+    params: {voice: Mai Anh, temperature: 0.7}   # nữ, Bắc, tin tức
+    cost_per_1k_chars: 0
+    fallback: edge-vi-hoaimy
+  - id: vieneu-vi-minhduc
+    lang: vi
+    tier: local
+    provider: vieneu
+    status: ready
+    location: node:home-gpu
+    license: "Apache-2.0 (VieNeu-TTS v3 Turbo, commercial use allowed)"
+    params: {voice: Minh Đức, temperature: 0.7}  # nam, Bắc, tin tức
+    cost_per_1k_chars: 0
+    fallback: edge-vi-namminh
+  - id: vieneu-vi-thuydung
+    lang: vi
+    tier: local
+    provider: vieneu
+    status: ready
+    location: node:home-gpu
+    license: "Apache-2.0 (VieNeu-TTS v3 Turbo, commercial use allowed)"
+    params: {voice: Thùy Dung, temperature: 0.7} # nữ, Nam, tin tức
+    cost_per_1k_chars: 0
+    fallback: edge-vi-hoaimy
+  - id: vieneu-vi-thienminh
+    lang: vi
+    tier: local
+    provider: vieneu
+    status: ready
+    location: node:home-gpu
+    license: "Apache-2.0 (VieNeu-TTS v3 Turbo, commercial use allowed)"
+    params: {voice: Thiện Minh, temperature: 0.7} # nam, Bắc, kể chuyện
+    cost_per_1k_chars: 0
+    fallback: edge-vi-namminh
+  - id: vieneu-vi-ngochuyen
+    lang: vi
+    tier: local
+    provider: vieneu
+    status: ready
+    location: node:home-gpu
+    license: "Apache-2.0 (VieNeu-TTS v3 Turbo, commercial use allowed)"
+    params: {voice: Ngọc Huyền, temperature: 0.7} # nữ, Bắc, tự nhiên
+    cost_per_1k_chars: 0
+    fallback: edge-vi-hoaimy
+  - id: vieneu-vi-myduyen
+    lang: vi
+    tier: local
+    provider: vieneu
+    status: ready
+    location: node:home-gpu
+    license: "Apache-2.0 (VieNeu-TTS v3 Turbo, commercial use allowed)"
+    params: {voice: Mỹ Duyên, temperature: 0.7}  # nữ, Nam, đọc truyện
     cost_per_1k_chars: 0
     fallback: edge-vi-hoaimy
 

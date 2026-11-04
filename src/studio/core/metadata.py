@@ -63,7 +63,7 @@ def write_metadata(ctx: ProjectContext) -> str:
         total = json.loads(cost.read_text(encoding="utf-8")).get("total_usd", 0)
         lines += ["## Cost", "", f"- paid API spend: ${total:.4f}", ""]
     text = "\n".join(lines)
-    (ctx.output / "metadata.md").write_text(text, encoding="utf-8")
+    ctx.result_path("metadata.md").write_text(text, encoding="utf-8")
     return text
 
 

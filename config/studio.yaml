@@ -3,6 +3,7 @@
 version: 1
 
 paths:
+  output: output            # shared flat folder for all final videos and sidecars
   projects: projects
   assets: assets
   voices: voices

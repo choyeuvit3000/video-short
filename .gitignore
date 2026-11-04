@@ -55,3 +55,12 @@ projects/_demo/
 Thumbs.db
 .idea/
 .vscode/
+
+# Migrated local social-video data, models and private configuration
+projects/social_video/
+tools/ffmpeg/
+
+# Final deliverables and local migration evidence
+/output/
+/scripts/migration_20261104/
+/docs/SOCIAL_MIGRATION_REPORT.md

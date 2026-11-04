@@ -68,7 +68,7 @@ def run_pipeline_job(job: dict[str, Any], *, store: BlobStore, settings: Setting
         before = materialize(store, req["files"], project)
         materialize(store, req.get("assets", []), overlay)
         job_settings = Settings(root=settings.root, formats=settings.formats,
-                               data=deep_merge(settings.data, {"paths": {"asset_overlay": str(overlay)}}))
+                               data=deep_merge(settings.data, {"paths": {"asset_overlay": str(overlay), "output": None}}))
         attach_run_log(project, f"worker_{job['id']}")
         log.info("[worker] job %s: stages %s", job["id"], ", ".join(req["stages"]))
         ctx = ProjectContext(project, settings=job_settings)

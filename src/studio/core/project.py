@@ -76,8 +76,44 @@ class ProjectContext:
     @property
     def output(self) -> Path:
         p = self.dir / "output"
-        p.mkdir(exist_ok=True)
+        if not self.settings.get("paths.output"):
+            p.mkdir(exist_ok=True)
         return p
+
+    @property
+    def result_stem(self) -> str:
+        import hashlib
+        import re
+        try:
+            identity = self.dir.relative_to(self.settings.root).as_posix()
+        except ValueError:
+            identity = self.dir.as_posix()
+        tag = hashlib.sha256(identity.encode()).hexdigest()[:8]
+        label = f"{self.project.workflow}__{self.project.project_id}__{self.project.video.format}"
+        return re.sub(r"[^A-Za-z0-9_-]+", "-", label)[:150] + "__" + tag
+
+    def result_path(self, name: str) -> Path:
+        """Final artifacts share one flat output folder; workers may use local transport paths."""
+        folder = self.settings.get("paths.output")
+        if not folder:
+            return self.output / name
+        root = self.settings.root / folder
+        root.mkdir(parents=True, exist_ok=True)
+        suffix = {"final.mp4": ".mp4", "final.tmp.mp4": ".tmp.mp4",
+                  "qc_report.json": ".qc.json", "metadata.md": ".metadata.md",
+                  "captions.srt": ".captions.srt", "scene_plan.json": ".scene_plan.json"}.get(name)
+        if suffix is None:
+            raise ValueError(f"Unknown final artifact: {name}")
+        return root / (self.result_stem + suffix)
+
+    @property
+    def final_video(self) -> Path:
+        return self.result_path("final.mp4")
+
+    def artifact_path(self, relative: str) -> Path:
+        if relative.startswith("output/") and relative.count("/") == 1:
+            return self.result_path(relative.split("/", 1)[1])
+        return self.dir / relative
 
     def resolve(self, ref: str, *, what: str = "path") -> Path:
         """`asset:<path>` -> repo assets folder; otherwise project-relative. Never escapes either root."""

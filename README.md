@@ -4,7 +4,7 @@ Studio dựng video ngắn/dài chạy trên Windows, ưu tiên công cụ local
 
 - **Tool có sẵn chạy trước, AI chỉ dùng khi cần.** Ghép, cắt, caption, mix nhạc, QC đều do FFmpeg và Python đảm nhận. AI CLI (Claude / agy / Codex) chỉ viết kịch bản, dịch và làm storyboard.
 - **Bước AI trên web là bước thủ công có checklist** (ChatGPT ảnh, Google Flow video). Tool không scrape, không tự click và không lưu cookie.
-- **Giọng đọc quản lý tập trung** trong `voices/`, gồm ba loại: free (edge-tts), local (Piper CPU, sau này thêm GPU) và API trả phí (mặc định tắt, có trần ngân sách).
+- **Giọng đọc quản lý tập trung** trong `voices/`, gồm ba loại: free (edge-tts), local (Piper CPU; VieNeu-TTS v3 Turbo trên PC GPU, `scripts/install_vieneu.ps1`) và API trả phí (mặc định tắt, có trần ngân sách).
 - **Thiết kế cho nhiều máy.** Laptop là máy điều khiển; PC RTX 3080 ở nhà là GPU node chạy `studio worker` theo khung giờ rảnh. Laptop gửi project qua Tailscale và lấy kết quả về sau.
 
 ## Bắt đầu nhanh (laptop)
@@ -128,3 +128,13 @@ Kết quả kiểm thử thật: [TEST_REPORT.md](TEST_REPORT.md). Đối chiế
 - Chỉ dùng nền, nhạc và font bạn có quyền dùng. Ghi nguồn và license vào `assets/library.json`.
 - Không có tính năng xóa watermark. Video có phần do AI tạo được đánh dấu `ai_generated` trong metadata.
 - Key API chỉ để trong `.env` (gitignored), không bao giờ ghi vào repo hay log.
+
+
+## Threads merged và Reddit hợp nhất
+
+Hai mode native trong Studio: `studio threads-post URL_OR_CAPTURE_DIR` và `studio reddit-story render --id ID`. Threads dùng chuẩn merged đã duyệt, không kể lại thành truyện; Reddit là mode riêng. QC/mastering/contact sheet và review theo SHA256 bắt buộc. Giọng mặc định VieNeu Mai Anh.
+
+Hướng dẫn: [docs/SOCIAL_VIDEO.md](docs/SOCIAL_VIDEO.md). Báo cáo chuyển dữ liệu được giữ local tại `docs/SOCIAL_MIGRATION_REPORT.md`. Dữ liệu nằm ở `projects/social_video`; bộ cũ trong Downloads đã nghỉ dùng. Theo yêu cầu mới, video đầu ra cũ không được giữ; asset/source/bản dịch và bằng chứng QA vẫn còn để dựng mới.
+
+
+All modes publish final videos directly into `D:/Video-maker/video-short/output` (flat, mode/project-prefixed filenames). QC, captions and metadata share the video basename. Project work folders contain intermediates only; `_history` holds previous revisions. Threads and Reddit use this same output folder.

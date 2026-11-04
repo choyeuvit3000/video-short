@@ -18,7 +18,7 @@ log = get_logger()
 
 def _candidates(name: str) -> list[str]:
     exe = f"{name}.exe" if os.name == "nt" else name
-    out: list[str] = []
+    out: list[str] = [str(Path(__file__).resolve().parents[3] / 'tools' / 'ffmpeg' / 'bin' / exe)]
     env_dir = os.environ.get("STUDIO_FFMPEG_DIR")
     if env_dir:
         out.append(str(Path(env_dir) / exe))

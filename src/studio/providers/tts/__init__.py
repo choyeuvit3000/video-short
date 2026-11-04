@@ -6,9 +6,10 @@ from .edge import EdgeTTS
 from .mock import MockTTS
 from .paid import ElevenLabsTTS, OpenAITTS
 from .piper_tts import PiperTTS
+from .vieneu import VieneuTTS
 
 PROVIDERS: dict[str, type[TTSProvider]] = {
-    p.name: p for p in (EdgeTTS, PiperTTS, MockTTS, ElevenLabsTTS, OpenAITTS)
+    p.name: p for p in (EdgeTTS, PiperTTS, MockTTS, ElevenLabsTTS, OpenAITTS, VieneuTTS)
 }
 
 

@@ -369,8 +369,7 @@ def render_project(ctx: ProjectContext, *, burn_subs: bool | None = None, allow_
                 opt += f":fontsdir={escape_filter_path(frel)}"
             vf.insert(0, opt)
 
-    out_dir = ctx.output
-    tmp = out_dir / "final.tmp.mp4"
+    tmp = ctx.result_path("final.tmp.mp4")
     tmp.unlink(missing_ok=True)
     sr = str(ctx.settings.get("render.audio_sample_rate", 48000))
     af = [f"aresample={sr}"]
@@ -389,10 +388,11 @@ def render_project(ctx: ProjectContext, *, burn_subs: bool | None = None, allow_
         tmp.unlink(missing_ok=True)
         raise StudioError(f"final render looks broken (duration {info.duration:.2f}s, video={info.has_video}, "
                           f"audio={info.has_audio}) - not published", code="render_broken")
-    final = out_dir / "final.mp4"
-    archive_previous(out_dir, int(ctx.settings.get("output.keep_history", 3)))
+    final = ctx.final_video
+    from ..core.outputs import archive_project
+    archive_project(ctx)
     atomic_replace(tmp, final)
     if srt:
-        atomic_replace(srt, out_dir / "captions.srt")
+        atomic_replace(srt, ctx.result_path("captions.srt"))
     log.info("[render] wrote %s (%.2fs)", final, info.duration)
     return final

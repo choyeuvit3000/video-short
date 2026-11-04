@@ -33,7 +33,7 @@ def stage_voice(ctx: ProjectContext, opts: dict) -> str:
 
 def stage_render(ctx: ProjectContext, opts: dict) -> str:
     out = render_project(ctx, burn_subs=opts.get("burn_subs"), allow_sidecar=bool(opts.get("allow_sidecar")))
-    return out.relative_to(ctx.dir).as_posix()
+    return str(out)
 
 
 def stage_qc(ctx: ProjectContext, opts: dict) -> str:
@@ -47,7 +47,7 @@ def stage_qc(ctx: ProjectContext, opts: dict) -> str:
 
 def stage_package(ctx: ProjectContext, opts: dict) -> str:
     write_metadata(ctx)
-    return "output/metadata.md"
+    return str(ctx.result_path("metadata.md"))
 
 
 COMMON_STAGES = {

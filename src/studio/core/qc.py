@@ -113,8 +113,7 @@ def _content_checks(ctx: ProjectContext, final: Path, summary: dict, tl: dict | 
 def run_qc(ctx: ProjectContext) -> dict[str, Any]:
     p = ctx.project
     fmt = ctx.fmt
-    out = ctx.output
-    final = out / "final.mp4"
+    final = ctx.final_video
     tol = float(ctx.settings.get("qc.duration_tolerance_sec", 0.3))
     max_chars = int(ctx.settings.get("qc.max_caption_chars_per_line", 42))
     warnings: list[str] = []
@@ -137,7 +136,7 @@ def run_qc(ctx: ProjectContext) -> dict[str, Any]:
     errors += errs
     warnings += warns
 
-    srt = out / "captions.srt"
+    srt = ctx.result_path("captions.srt")
     has_narration = any(s.narration.strip() for s in p.scenes)
     if p.video.subtitle_mode != "none" and has_narration:
         if not srt.exists():
@@ -175,7 +174,7 @@ def run_qc(ctx: ProjectContext) -> dict[str, Any]:
         "format": fmt.name,
         "status": "PASS" if not errors else "FAIL",
         "checked_at": datetime.now(UTC).isoformat(timespec="seconds"),
-        "output_path": "output/final.mp4",
+        "output_path": str(final),
         "expected_duration_sec": expected,
         "actual_duration_sec": summary.get("duration_sec"),
         "video": summary.get("video"),
@@ -185,5 +184,5 @@ def run_qc(ctx: ProjectContext) -> dict[str, Any]:
         "warnings": warnings,
         "errors": errors,
     }
-    (out / "qc_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    ctx.result_path("qc_report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     return report
