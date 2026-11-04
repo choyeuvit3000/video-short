@@ -46,7 +46,7 @@ Asset: `studio social-assets scan|fetch`; ảnh/video meme, sound, sfx và các 
 
 ## Output chung
 
-Video cuối của mọi mode nằm trực tiếp tại `D:/Video-maker/video-short/output`, không chia theo mode/project. Tên file có prefix mode và ID để không ghi đè; QC/phụ đề/metadata cùng basename. Dùng đường dẫn CLI trả về để review. Các bản cũ nằm trong `_history`; intermediates ở work.
+Video cuối dùng chung root `D:/Video-maker/video-short/output`, chia thư mục `YYYY-MM-DD/MODE/` theo ngày và mode; không rải trong project. Tên file có prefix mode và ID để không ghi đè; QC/phụ đề/metadata cùng basename. Dùng đường dẫn CLI trả về để review. Các bản cũ nằm trong `_history`; intermediates ở work.
 
 
 Thêm nền riêng: `studio social-assets import-background --source VIDEO --seconds 60`. Lệnh giữ file nguồn, tạo các clip silent theo keyframe, giữ manifest cũ, đăng ký shared asset bằng hardlink khi có thể. Media chỉ local; code và asset metadata được commit.

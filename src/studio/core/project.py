@@ -93,12 +93,13 @@ class ProjectContext:
         return re.sub(r"[^A-Za-z0-9_-]+", "-", label)[:150] + "__" + tag
 
     def result_path(self, name: str) -> Path:
-        """Final artifacts share one flat output folder; workers may use local transport paths."""
+        """Final artifacts share a date/mode-organized root; workers use local transport paths."""
         folder = self.settings.get("paths.output")
         if not folder:
             return self.output / name
-        root = self.settings.root / folder
-        root.mkdir(parents=True, exist_ok=True)
+        from .outputs import organized_output
+        root = organized_output(self.settings.root / folder, self.project.workflow,
+                                self.work / "output_location.json")
         suffix = {"final.mp4": ".mp4", "final.tmp.mp4": ".tmp.mp4",
                   "qc_report.json": ".qc.json", "metadata.md": ".metadata.md",
                   "captions.srt": ".captions.srt", "scene_plan.json": ".scene_plan.json"}.get(name)

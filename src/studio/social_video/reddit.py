@@ -737,7 +737,8 @@ def render(story_id: str, cfg: dict) -> list[Path]:
         return images.find(queries[-1], d / "img")
 
     day = date.today().isoformat()
-    outdir = FINAL_OUTPUT
+    from studio.core.outputs import organized_output
+    outdir = organized_output(FINAL_OUTPUT, 'reddit', d/'output_location.json')
     outdir.mkdir(parents=True, exist_ok=True)
     slug = _slug(title_text)
     made = []

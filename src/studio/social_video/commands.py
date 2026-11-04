@@ -88,7 +88,9 @@ def threads_post(source: str, narration_file: Path | None = None, plan_file: Pat
               font=ImageFont.truetype(cfg['fonts']['body'],40))
     credit.save(wd/'credit.png')
     tag=post['url'].rstrip('/').rsplit('/',1)[-1]
-    out=FINAL_OUTPUT/f'threads__{tag}.mp4'
+    from studio.core.outputs import organized_output
+    folder = organized_output(FINAL_OUTPUT, 'threads', wd/'output_location.json')
+    out=folder/f'threads__{tag}.mp4'
     out.parent.mkdir(parents=True,exist_ok=True)
     publish(draft,out,cfg,wd/'credit.png')
     write_json(out.with_suffix('.source.json'),{'url':post['url'],'author':post['author'],

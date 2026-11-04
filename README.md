@@ -137,4 +137,4 @@ Hai mode native trong Studio: `studio threads-post URL_OR_CAPTURE_DIR` và `stud
 Hướng dẫn: [docs/SOCIAL_VIDEO.md](docs/SOCIAL_VIDEO.md). Báo cáo chuyển dữ liệu được giữ local tại `docs/SOCIAL_MIGRATION_REPORT.md`. Dữ liệu nằm ở `projects/social_video`; bộ cũ trong Downloads đã nghỉ dùng. Theo yêu cầu mới, video đầu ra cũ không được giữ; asset/source/bản dịch và bằng chứng QA vẫn còn để dựng mới.
 
 
-All modes publish final videos directly into `D:/Video-maker/video-short/output` (flat, mode/project-prefixed filenames). QC, captions and metadata share the video basename. Project work folders contain intermediates only; `_history` holds previous revisions. Threads and Reddit use this same output folder.
+All modes share `D:/Video-maker/video-short/output/YYYY-MM-DD/MODE/`. Date uses Asia/Bangkok and stays fixed for resume/QC. QC, captions and metadata sit beside the video with the same basename; `_history` holds older revisions. Project work folders contain intermediates only.

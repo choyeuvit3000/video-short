@@ -13,7 +13,9 @@ def test_modes_and_same_id_projects_do_not_collide(settings,tmp_path):
     s=central(settings,tmp_path)
     a=make_project(tmp_path/"a",s,project_id="same",workflow="story_reader")
     b=make_project(tmp_path/"b",s,project_id="same",workflow="story_reader")
-    assert a.final_video.parent==b.final_video.parent==tmp_path/"shared"
+    assert a.final_video.parent==b.final_video.parent
+    assert a.final_video.parent.parent.parent==tmp_path/"shared"
+    assert a.final_video.parent.name=="story_reader"
     assert a.final_video!=b.final_video
     assert a.result_path("qc_report.json").name==a.result_stem+".qc.json"
 
@@ -60,3 +62,20 @@ def test_shared_render_qc_package_and_cache(settings,tmp_path):
     original=ctx.final_video.stat().st_mtime_ns
     run_pipeline(ctx,RunOptions(only=["render","qc","package"]))
     assert ctx.final_video.stat().st_mtime_ns==original
+
+
+def test_output_date_is_persistent_and_siblings_stay_together(tmp_path):
+    import json
+    from studio.core.outputs import organized_output
+    state=tmp_path/"work/location.json"
+    state.parent.mkdir()
+    state.write_text(json.dumps({"date":"2026-10-31"}))
+    root=tmp_path/"output"
+    assert organized_output(root,"threads",state)==root/"2026-10-31/threads"
+    assert organized_output(root,"threads",state)==root/"2026-10-31/threads"
+
+def test_organized_output_cannot_escape_root_with_mode(tmp_path):
+    from studio.core.outputs import organized_output
+    root=tmp_path/"output"
+    path=organized_output(root,"../../bad/mode",tmp_path/"state.json")
+    assert path.is_relative_to(root)

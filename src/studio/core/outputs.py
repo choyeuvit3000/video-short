@@ -62,3 +62,24 @@ def archive_project(ctx) -> Path | None:
         if old.is_dir():
             shutil.rmtree(old)
     return dest
+
+
+def organized_output(root: Path, mode: str, state_file: Path) -> Path:
+    """Group deliverables by Bangkok date/mode; persist the date for resume and QC."""
+    import json
+    import re
+    from datetime import date
+    from zoneinfo import ZoneInfo
+    mode = re.sub(r"[^A-Za-z0-9_-]+", "-", mode).strip("-") or "video"
+    if state_file.is_file():
+        data = json.loads(state_file.read_text(encoding="utf-8"))
+        day = date.fromisoformat(data["date"]).isoformat()
+    else:
+        day = datetime.now(ZoneInfo("Asia/Bangkok")).date().isoformat()
+        state_file.parent.mkdir(parents=True, exist_ok=True)
+        temp = state_file.with_suffix(".tmp")
+        temp.write_text(json.dumps({"date": day, "mode": mode}), encoding="utf-8")
+        temp.replace(state_file)
+    folder = root / day / mode
+    folder.mkdir(parents=True, exist_ok=True)
+    return folder

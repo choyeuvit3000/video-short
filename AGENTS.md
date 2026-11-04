@@ -14,4 +14,4 @@ See `.agents/skills/threadreel/SKILL.md` and `docs/SOCIAL_VIDEO.md`.
 All data is under `projects/social_video`; the old Downloads folder is retired.
 
 
-All modes publish final videos directly into `D:/Video-maker/video-short/output` (flat, mode/project-prefixed filenames). QC, captions and metadata share the video basename. Project work folders contain intermediates only; `_history` holds previous revisions. Threads and Reddit use this same output folder.
+All modes share `D:/Video-maker/video-short/output/YYYY-MM-DD/MODE/`. Date uses Asia/Bangkok and stays fixed for resume/QC. QC, captions and metadata sit beside the video with the same basename; `_history` holds older revisions. Project work folders contain intermediates only.
