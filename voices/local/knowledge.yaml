@@ -3,7 +3,7 @@ profiles:
   lang: vi
   tier: local
   provider: omnivoice
-  status: experimental
+  status: ready
   location: node:home-gpu
   license: Code Apache-2.0; pretrained model CC-BY-NC; user-provided reference for
     private videos

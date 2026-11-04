@@ -63,3 +63,6 @@ OmniVoice test support: `studio voices audition omnivoice-vi-thaison` creates/re
 
 
 Vietnamese knowledge videos use `omnivoice-vi-knowledge-under30` by default (`knowledge_explainer` and `longform_explainer`). This follows the newer user-provided Under30 audio reference and its brisk conversational cadence, rather than forcing the older generic voice preference. Reference is copied into local voices assets; no training was run. Target is 5.4 whitespace-separated speech units/second, measured source 5.44; the test generated 5.35. The knowledge workflow uses audio.speed=1.0 because its voice profile already controls cadence. Explicit project voices override workflow defaults; English keeps its own voice. SHA-bound generated-sample listening review still applies; do not mark naturalness or similarity approved from ASR alone.
+
+
+The user approved the presented Under30 knowledge audition ("qúa oke"). `omnivoice-vi-knowledge-under30` is now ready and admitted locally for Vietnamese knowledge videos at the approved cadence. Keep its SHA-bound review; do not ask to approve that same unchanged sample again. New reference/model/profile or changed audition still requires a new review.
