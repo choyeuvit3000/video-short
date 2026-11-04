@@ -1,7 +1,15 @@
 # N1 · newspaper
 
-News article → short news video: headline card over the lead photo, photo beats with Ken Burns, quote lower-third,
-big-number card, word captions (`news_pop`), source chip on every photo.
+News article → short news video: plan one spoken idea per beat, then pick its layout and sourced image.
+Shared rules: `assets/shared/layouts/news.yaml`. Layouts: headline, portrait_quote, editorial_photo, document
+(text guide card when the source has no verified cover), stat_card, timeline, closing. Two-line phrase captions
+(`news_card`), local dark box, word highlight only with real word timings. Content determines the length: no
+default duration, word or scene-count cap. Default voice pace is 1.25x (+25%); VieNeu keeps pitch with FFmpeg
+atempo, then Whisper aligns captions to the processed audio. Cards still get enough reading time.
+More images: all article figures, your images/, plus credited Wikimedia Commons
+illustrations per beat's image_query. No API key or paid API required.
+
+`output/scene_plan.json` records actual start/end, narration, layout, asset/source or fallback, text and crop focus.
 
 ```powershell
 # a site without a bot check

@@ -126,7 +126,7 @@ def test_newspaper_offline_stages(tmp_path, settings):
     assert [m["path"] for m in media] == ["images/a.png", "images/b.png"]  # not listed twice as own files
     p = ctx.project
     kinds = [s.scene_id.split("_", 1)[1] for s in p.scenes]
-    assert kinds[0] == "headline" and "quote" in kinds  # the portrait caption names the quoted person
+    assert kinds[0] == "headline" and "portrait_quote" in kinds
     for s in p.scenes:
         assert s.visual.type == "still" and (ctx.dir / s.visual.path).is_file()
         assert Image.open(ctx.dir / s.visual.overlay).size == (ctx.fmt.width, ctx.fmt.height)
@@ -153,7 +153,7 @@ def test_newspaper_ai_beats(tmp_path, settings):
                                                                   encoding="utf-8")
     run_pipeline(ctx, RunOptions(only=["news_script", "news_media", "news_scenes"]))
     ids = [s.scene_id for s in ctx.project.scenes]
-    assert ids == ["n01_headline", "n02_stat", "n03_quote", "n04_card", "n05_photo"]
+    assert ids == ["n01_headline", "n02_stat_card", "n03_portrait_quote", "n04_editorial_photo", "n05_editorial_photo"]
     assert ctx.project.hashtags == ["#dgnl", "#tuyensinh"]
 
 
@@ -185,5 +185,41 @@ def test_newspaper_end_to_end(tmp_path, settings, fmt):
     run_pipeline(ctx, RunOptions())
     rep = json.loads((ctx.output / "qc_report.json").read_text(encoding="utf-8"))
     assert rep["status"] == "PASS", rep
+    plan = json.loads((ctx.output / "scene_plan.json").read_text(encoding="utf-8"))
+    assert plan[0]["start_sec"] == 0
+    assert all(s["end_sec"] > s["start_sec"] for s in plan)
+    assert all("layout" in s and "asset" in s and "narration" in s for s in plan)
     meta = (ctx.output / "metadata.md").read_text(encoding="utf-8")
     assert "Thanh Chân" in meta and "Nguồn: Lao Động" in meta
+
+
+@needs_ffmpeg
+@pytest.mark.ffmpeg
+def test_news_rules_all_layouts_other_topic(tmp_path, settings):
+    """A synthetic library bulletin exercises every layout through voice, captions, encode and packaging."""
+    from studio.providers.source.article import ArticleImage
+
+    ctx = _news_project(tmp_path, settings, name="Library bulletin")
+    art = Article(title="Thư viện mở cửa", lead="Nguyễn Thu Lan giới thiệu thư viện có 2.000 cuốn sách.",
+                  paragraphs=["Mở cửa từ 1.6.2026. Đăng ký miễn phí. Đổi thẻ từ 2.6.2026."],
+                  publisher="Bản tin thử", images=[
+                      ArticleImage(src="images/a.png", caption="Phòng đọc", credit="Test"),
+                      ArticleImage(src="images/b.png", caption="Nguyễn Thu Lan - Đại diện thư viện", credit="Test")])
+    art.save(ctx.dir / "source/article.json")
+    beats = [
+        {"role": "hook", "narration": "Thư viện mở cửa.", "headline": "THƯ VIỆN MỞ CỬA", "highlight": "MỞ CỬA"},
+        {"role": "quote", "narration": "Nguyễn Thu Lan giới thiệu.", "name": "Nguyễn Thu Lan", "image": 1},
+        {"role": "fact", "narration": "Phòng đọc mở cửa."},
+        {"role": "number", "narration": "Có 2.000 cuốn sách.", "value": "2.000", "unit": "cuốn sách",
+         "explain": "Tại thư viện"},
+        {"role": "document", "narration": "Đăng ký miễn phí.", "points": ["Đăng ký miễn phí"]},
+        {"role": "timeline", "narration": "Mở cửa từ tháng sáu.", "dates": [
+            {"date": "1.6.2026", "text": "Mở cửa"}, {"date": "2.6.2026", "text": "Đổi thẻ"}]},
+        {"role": "closing", "narration": "Mời bạn đọc.", "headline": "Mời bạn đọc"},
+    ]
+    (ctx.work / "script.json").write_text(json.dumps({"beats": beats}), encoding="utf-8")
+    run_pipeline(ctx, RunOptions(from_stage="news_media"))
+    plan = json.loads((ctx.output / "scene_plan.json").read_text(encoding="utf-8"))
+    assert [r["layout"] for r in plan] == ["headline", "portrait_quote", "editorial_photo", "stat_card",
+                                          "text_card", "timeline", "closing"]
+    assert plan[4]["fallback"] and plan[-1]["end_sec"] > 15

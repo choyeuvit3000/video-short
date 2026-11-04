@@ -1,0 +1,241 @@
+{
+  "schema_version": "2.0",
+  "project_id": "20261104_de-mau-dgnl-2021",
+  "workflow": "newspaper",
+  "title": "Đề mẫu Đánh giá năng lực ĐHQG Hà Nội có trước 15.3 | Tuyển sinh 2021",
+  "language": "vi",
+  "platforms": [
+    "tiktok",
+    "youtube_shorts",
+    "reels"
+  ],
+  "description": "ĐHQG Hà Nội công bố bài thi mẫu Đánh giá năng lực trước ngày 15.3.2021. Thí sinh được chọn ngày thi, đổi lịch trước 14 ngày, đăng ký trực tuyến từ 1.4.2021. Nguồn: báo Lao Động.\n\nNguồn: Lao Động · Hà Phương · 27/01/2021 — https://laodong.vn/giao-duc/thoi-gian-cong-bo-de-mau-va-cach-on-bai-danh-gia-nang-luc-cua-dh-quoc-gia-874587.ldo",
+  "hashtags": [
+    "#danhgianangluc",
+    "#DHQGHN",
+    "#tuyensinh2021",
+    "#giaoduc",
+    "#tintuc"
+  ],
+  "ai_generated": true,
+  "timing_mode": "audio_driven",
+  "video": {
+    "format": "short_9x16",
+    "subtitle_mode": "burn_in",
+    "caption_style": "news_pop",
+    "background": "gradient",
+    "transition": "cut"
+  },
+  "audio": {
+    "voice_profile": null,
+    "source": "tts",
+    "volume": 1.0,
+    "speed": 1.25,
+    "trim_silence": true,
+    "background_music": null,
+    "music_volume_db": -22.0,
+    "ducking": true
+  },
+  "source": {
+    "type": "manual",
+    "url": "https://laodong.vn/giao-duc/thoi-gian-cong-bo-de-mau-va-cach-on-bai-danh-gia-nang-luc-cua-dh-quoc-gia-874587.ldo",
+    "platform": "Lao Động",
+    "community": "Giáo dục",
+    "author": "Hà Phương",
+    "title": "Thời gian công bố đề mẫu và cách ôn bài Đánh giá năng lực của ĐH Quốc gia",
+    "score": null,
+    "fetched_at": null,
+    "credit_text": "Nguồn: Lao Động · Hà Phương · 27/01/2021 — https://laodong.vn/giao-duc/thoi-gian-cong-bo-de-mau-va-cach-on-bai-danh-gia-nang-luc-cua-dh-quoc-gia-874587.ldo"
+  },
+  "budget": {
+    "max_cost_usd": 0.0
+  },
+  "options": {
+    "rewrite": "auto",
+    "target_sec": 50,
+    "beats": 7,
+    "images": "article",
+    "brand": "",
+    "accent": "#FF5A1F",
+    "speech_cleanup": true,
+    "image_credits": [
+      {
+        "scene_id": "n01_headline",
+        "title": "Bài thi mẫu sẽ được công bố trước ngày 15.3.2021.",
+        "author": "Thanh Chân",
+        "license": "© Lao Động - used with credit",
+        "page": "https://laodong.vn/giao-duc/thoi-gian-cong-bo-de-mau-va-cach-on-bai-danh-gia-nang-luc-cua-dh-quoc-gia-874587.ldo"
+      },
+      {
+        "scene_id": "n02_quote",
+        "title": "PGS. TS Nguyễn Hoàng Hải - Phó Giám đốc Thường trực Đại học Quốc gia Hà Nội.",
+        "author": "NTCC",
+        "license": "© Lao Động - used with credit",
+        "page": "https://laodong.vn/giao-duc/thoi-gian-cong-bo-de-mau-va-cach-on-bai-danh-gia-nang-luc-cua-dh-quoc-gia-874587.ldo"
+      }
+    ]
+  },
+  "scenes": [
+    {
+      "scene_id": "n01_headline",
+      "narration": "Đại học Quốc gia Hà Nội sẽ công bố bài thi mẫu Đánh giá năng lực trước ngày 15 tháng 3.",
+      "duration_sec": null,
+      "visual": {
+        "type": "still",
+        "path": "work/news/frames/n01_headline.jpg",
+        "fit_mode": "crop",
+        "ken_burns": "zoom_in",
+        "color": null,
+        "overlay": "work/news/frames/n01_headline_text.png",
+        "overlay_until_sec": null,
+        "template": null,
+        "params": null,
+        "file": null,
+        "scene_class": null
+      },
+      "audio_path": "audio/n01_headline.wav",
+      "subtitle_path": null,
+      "image_prompt": null,
+      "video_prompt": null,
+      "source_note": "Bài thi mẫu sẽ được công bố trước ngày 15.3.2021. (Thanh Chân)"
+    },
+    {
+      "scene_id": "n02_quote",
+      "narration": "Phó Giáo sư, Tiến sĩ Nguyễn Hoàng Hải cho biết, bài thi dùng cho cả tuyển sinh và hướng nghiệp, còn khâu thi và khâu tuyển sinh hoàn toàn tách biệt.",
+      "duration_sec": null,
+      "visual": {
+        "type": "still",
+        "path": "work/news/frames/n02_quote.jpg",
+        "fit_mode": "crop",
+        "ken_burns": "zoom_in",
+        "color": null,
+        "overlay": "work/news/frames/n02_quote_text.png",
+        "overlay_until_sec": null,
+        "template": null,
+        "params": null,
+        "file": null,
+        "scene_class": null
+      },
+      "audio_path": "audio/n02_quote.wav",
+      "subtitle_path": null,
+      "image_prompt": null,
+      "video_prompt": null,
+      "source_note": "PGS. TS Nguyễn Hoàng Hải - Phó Giám đốc Thường trực Đại học Quốc gia Hà Nội. (NTCC)"
+    },
+    {
+      "scene_id": "n03_stat",
+      "narration": "Đề thi được chọn lọc từ hơn 12.000 câu hỏi của ngân hàng đề năm 2016, cùng hơn 3.500 câu hỏi mới.",
+      "duration_sec": null,
+      "visual": {
+        "type": "still",
+        "path": "work/news/frames/n03_stat.jpg",
+        "fit_mode": "crop",
+        "ken_burns": "zoom_in",
+        "color": null,
+        "overlay": "work/news/frames/n03_stat_text.png",
+        "overlay_until_sec": null,
+        "template": null,
+        "params": null,
+        "file": null,
+        "scene_class": null
+      },
+      "audio_path": "audio/n03_stat.wav",
+      "subtitle_path": null,
+      "image_prompt": null,
+      "video_prompt": null,
+      "source_note": "Bài thi mẫu sẽ được công bố trước ngày 15.3.2021. (Thanh Chân)"
+    },
+    {
+      "scene_id": "n04_photo",
+      "narration": "Năm nay có nhiều đợt thi, từ tháng 5 đến tháng 11, dự kiến khoảng 10.000 thí sinh, chủ yếu ở Hà Nội.",
+      "duration_sec": null,
+      "visual": {
+        "type": "still",
+        "path": "work/news/frames/n04_photo.jpg",
+        "fit_mode": "crop",
+        "ken_burns": "zoom_out",
+        "color": null,
+        "overlay": "work/news/frames/n04_photo_text.png",
+        "overlay_until_sec": null,
+        "template": null,
+        "params": null,
+        "file": null,
+        "scene_class": null
+      },
+      "audio_path": "audio/n04_photo.wav",
+      "subtitle_path": null,
+      "image_prompt": null,
+      "video_prompt": null,
+      "source_note": "Bài thi mẫu sẽ được công bố trước ngày 15.3.2021. (Thanh Chân)"
+    },
+    {
+      "scene_id": "n05_stat",
+      "narration": "Thí sinh được tự chọn ngày thi, ca thi, và được đổi lịch trước 14 ngày dự thi.",
+      "duration_sec": null,
+      "visual": {
+        "type": "still",
+        "path": "work/news/frames/n05_stat.jpg",
+        "fit_mode": "crop",
+        "ken_burns": "zoom_in",
+        "color": null,
+        "overlay": "work/news/frames/n05_stat_text.png",
+        "overlay_until_sec": null,
+        "template": null,
+        "params": null,
+        "file": null,
+        "scene_class": null
+      },
+      "audio_path": "audio/n05_stat.wav",
+      "subtitle_path": null,
+      "image_prompt": null,
+      "video_prompt": null,
+      "source_note": "PGS. TS Nguyễn Hoàng Hải - Phó Giám đốc Thường trực Đại học Quốc gia Hà Nội. (NTCC)"
+    },
+    {
+      "scene_id": "n06_quote",
+      "narration": "Lời khuyên của ông Hải: đừng học tủ, học lệch. Hãy ôn lại kiến thức và rèn kỹ năng trước khi thi.",
+      "duration_sec": null,
+      "visual": {
+        "type": "still",
+        "path": "work/news/frames/n06_quote.jpg",
+        "fit_mode": "crop",
+        "ken_burns": "zoom_in",
+        "color": null,
+        "overlay": "work/news/frames/n06_quote_text.png",
+        "overlay_until_sec": null,
+        "template": null,
+        "params": null,
+        "file": null,
+        "scene_class": null
+      },
+      "audio_path": "audio/n06_quote.wav",
+      "subtitle_path": null,
+      "image_prompt": null,
+      "video_prompt": null,
+      "source_note": "PGS. TS Nguyễn Hoàng Hải - Phó Giám đốc Thường trực Đại học Quốc gia Hà Nội. (NTCC)"
+    },
+    {
+      "scene_id": "n07_photo",
+      "narration": "Cổng đăng ký trực tuyến mở từ ngày 1 tháng 4. Bạn dự định thi đợt nào? Bình luận cho mình biết nhé.",
+      "duration_sec": null,
+      "visual": {
+        "type": "still",
+        "path": "work/news/frames/n07_photo.jpg",
+        "fit_mode": "crop",
+        "ken_burns": "pan_right",
+        "color": null,
+        "overlay": "work/news/frames/n07_photo_text.png",
+        "overlay_until_sec": null,
+        "template": null,
+        "params": null,
+        "file": null,
+        "scene_class": null
+      },
+      "audio_path": "audio/n07_photo.wav",
+      "subtitle_path": null,
+      "image_prompt": null,
+      "video_prompt": null,
+      "source_note": "Bài thi mẫu sẽ được công bố trước ngày 15.3.2021. (Thanh Chân)"
+    }
+  ]
+}

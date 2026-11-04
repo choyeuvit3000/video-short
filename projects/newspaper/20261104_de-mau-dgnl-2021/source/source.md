@@ -1,0 +1,30 @@
+# Thời gian công bố đề mẫu và cách ôn bài Đánh giá năng lực của ĐH Quốc gia
+url: https://laodong.vn/giao-duc/thoi-gian-cong-bo-de-mau-va-cach-on-bai-danh-gia-nang-luc-cua-dh-quoc-gia-874587.ldo
+publisher: Lao Động
+section: Giáo dục
+published: 2021-01-27
+author: Hà Phương
+image: https://media-cdn-v2.laodong.vn/storage/newsportal/2021/1/27/874587/Dai-Hoc-11.jpg | Bài thi mẫu sẽ được công bố trước ngày 15.3.2021. Ảnh minh hoạ: Thanh Chân.
+image: https://media-cdn-v2.laodong.vn/Storage/NewsPortal/2021/1/27/874587/Dai-Hoc.JPG | PGS. TS Nguyễn Hoàng Hải - Phó Giám đốc Thường trực Đại học Quốc gia Hà Nội. Ảnh: NTCC.
+
+PGS.TS Nguyễn Hoàng Hải - Phó Giám đốc Thường trực Đại học Quốc gia Hà Nội cho hay, bài thi mẫu của kỳ thi đánh giá năng lực sẽ được nhà trường công bố trước ngày 15.3.2021.
+
+Đối với kỳ thi Đánh giá năng lực, Đại học Quốc gia Hà Nội khẳng định, bài thi phục vụ nhiều mục đích. Trong đó, có sử dụng để tuyển sinh đại học và hướng nghiệp cho học sinh. Công tác thi và tuyển sinh là hoàn toàn tách biệt.
+
+PGS.TS Nguyễn Hoàng Hải cho hay: "Đại học Quốc gia Hà Nội đã xây dựng kịch bản chi tiết cho các đợt thi năm 2021. Đề thi được rà soát từ hơn 12.000 câu hỏi của ngân hàng đề thi đánh giá năng lực năm 2016 để lựa chọn những nhóm câu hỏi phù hợp với 3 nhóm năng lực xác định, kết hợp với hơn 3.500 câu hỏi được xây dựng trong giai đoạn 2017-2020.
+
+Đối với câu hỏi trong đề thi, số lượng được xây dựng phong phú, đảm bảo tính toàn diện của kỳ thi. Bên cạnh đó, đề thi sẽ đáp ứng sự cân bằng độ khó của từng đề thi cho mỗi học sinh tham dự nhiều đợt trong năm. Bài thi mẫu sẽ được công bố trước ngày 15.3.2021".
+
+Theo đó, kỳ thi 2021, Trung tâm Khảo thí Đại học Quốc gia Hà Nội sẽ tổ chức nhiều đợt thi, kéo dài từ tháng năm đến tháng 11. Thí sinh đăng ký trực tuyến đợt thi đầu tiên từ ngày 1.4.2021, tại địa chỉ www.khaothi.vnu.edu.vn.
+
+Thí sinh được lựa chọn ngày thi, ca thi, đợt thi phù hợp với kế hoạch cá nhân; được thay đổi thời gian thi trước 14 ngày dự thi. Đại học Quốc gia Hà Nội ứng dụng tối đa công nghệ thông tin để tăng tính chủ động cho thí sinh và tiết kiệm chi phí xã hội.
+
+Căn cứ vào tình hình thực tế, đơn vị tổ chức thi sẽ xác định quy mô phù hợp cho từng đợt thi, điểm thi. Theo báo cáo của Trung tâm Khảo thí, năm 2021, quy mô dự kiến khoảng 10.000 thí sinh đăng ký dự thi, chủ yếu ở địa bàn Hà Nội, PGS.TS Nguyễn Hoàng Hải thông tin thêm.
+
+Đối với việc tuyển sinh, ông Hoàng Hải nhấn mạnh: "Hiện nay, các trường đại học trong và ngoài Đại học Quốc gia Hà Nội đều có nhiều phương thức xét tuyển khác nhau. Đại học Quốc gia Hà Nội sẵn sàng chia sẻ nguồn lực, kết quả bài thi đánh giá năng lực học sinh THPT với các cơ sở giáo dục đào tạo để đạt mục tiêu đề ra. Riêng đối với hoạt động tuyển sinh đại học, việc giảm tỷ lệ ảo là điều luôn được quan tâm".
+
+Nếu các trường đại học cùng phối hợp tuyển sinh sẽ hạn chế được lượng thí sinh ảo từ nhiều nguồn xét tuyển khác nhau. Đại học Quốc gia Hà Nội luôn tạo mọi điều kiện để công tác xét tuyển và lọc ảo diễn ra thuận lợi, ông Hải khẳng định.
+
+Với các thí sinh đăng ký tham dự kỳ thi đánh giá năng lực của Đại học Quốc gia Hà Nội năm 2021, Phó Giáo sư, Tiến sỹ Nguyễn Hoàng Hải đưa ra lời khuyên: "Các em học sinh tránh học tủ, học lệch hay ôn luyện tại bất kỳ nơi nào và dành thời gian ôn tập lại kiến thức, rèn luyện kỹ năng, tác phong, thái độ trước khi thi".
+
+Trường hợp thí sinh sử dụng kết quả bài thi để xét tuyển đại học cần tìm hiểu thông tin trong Đề án tuyển sinh của các cơ sở giáo dục đại học, tham khảo bài thi mẫu trước khi đăng ký dự thi. Cổng thông tin đăng ký dự thi trực tuyến bắt đầu mở từ ngày 1.4.2021.

@@ -91,7 +91,8 @@ def outputs_for(ctx: ProjectContext, stage: str) -> list[str]:
     if stage == "qc":
         return ["output/qc_report.json"]
     if stage == "package":
-        return ["output/metadata.md"]
+        return ["output/metadata.md", "output/scene_plan.json"] if any(
+            getattr(s, "plan", None) for s in ctx.project.scenes) else ["output/metadata.md"]
     return []
 
 

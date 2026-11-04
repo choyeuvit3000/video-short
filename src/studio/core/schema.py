@@ -32,9 +32,12 @@ class VisualSpec(_Model):
     path: str | None = None
     fit_mode: Literal["crop", "pad"] | None = None
     ken_burns: Literal["zoom_in", "zoom_out", "pan_left", "pan_right", "none"] = "zoom_in"
+    ken_burns_amount: float = Field(default=0.12, ge=0, le=0.3)
     color: str | None = None
     overlay: str | None = None
     overlay_until_sec: float | None = None  # show overlay only for the first N seconds of the scene
+    overlay_in: float | None = Field(default=None, ge=0, le=3)  # overlay fades in (and rises) over N seconds
+    overlay_rise_px: int | None = Field(default=None, ge=0, le=200)
     template: str | None = None  # manim
     params: dict[str, Any] | None = None  # manim template params
     file: str | None = None  # manim custom scene file

@@ -7,11 +7,12 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import shutil
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
-from .util import ASSETS, MEMES, ffmpeg, media_duration, read_json, run, write_json
+from .util import ASSETS, MEMES, STUDIO_ROOT, ffmpeg, ffprobe, media_duration, read_json, run, write_json
 
 REACTIONS = [
     ('ua-gi-vay', 'ỦA, GÌ VẬY?', 'huh-37baoro', 'bất ngờ, khó hiểu'),
@@ -81,11 +82,17 @@ def reactions():
             'name': audio.stem.replace('-', ' '), 'source': 'local-sfx', 'tag': 'vn-curated'}
     write_json(MEMES / 'meta.json', meta)
 
-def backgrounds(seconds=60):
+def backgrounds(seconds=60, sources=None):
+    seconds = float(seconds)
+    if not math.isfinite(seconds) or seconds < 10:
+        raise ValueError("Clip duration must be finite and at least ten seconds")
     folder = ASSETS / 'bgclips' / 'prepared'
     folder.mkdir(parents=True, exist_ok=True)
-    entries = []
-    for source in sorted((ASSETS / 'backgrounds').glob('*')):
+    pool = list(sources) if sources is not None else list((ASSETS / 'backgrounds').glob('*'))
+    selected = {p.name for p in pool}
+    entries = [c for c in read_json(folder / 'manifest.json', {'clips': []})['clips']
+               if sources is not None and c.get('source') not in selected]
+    for source in sorted(pool):
         if source.suffix.lower() not in {'.mp4', '.webm', '.mov', '.mkv'}:
             continue
         total = media_duration(source)
@@ -108,6 +115,63 @@ def backgrounds(seconds=60):
             print(f'Background: {source.name[:32]} @ {start:.0f}s', flush=True)
             start += seconds; index += 1
     write_json(folder / 'manifest.json', {'clips': entries})
+    return [c for c in entries if c.get('source') in selected]
+
+def import_background(source: Path, seconds: float = 60) -> dict:
+    """Copy user footage without modifying it, then index reusable silent segments."""
+    source = source.resolve(strict=True)
+    if source.suffix.lower() not in {'.mp4', '.webm', '.mov', '.mkv'}:
+        raise ValueError('Expected a video file')
+    if not math.isfinite(seconds) or seconds < 10:
+        raise ValueError('Clip duration must be finite and at least ten seconds')
+    probe = run([ffprobe(),
+        '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height',
+        '-of', 'json', str(source)])
+    streams = json.loads(probe.stdout).get('streams', [])
+    if not streams or media_duration(source) <= 14:
+        raise ValueError('Background must contain video and exceed fourteen seconds')
+    checksum = hashlib.sha256()
+    with source.open('rb') as f:
+        for block in iter(lambda: f.read(4 * 1024 * 1024), b''):
+            checksum.update(block)
+    digest = checksum.hexdigest()
+    category = 'minecraft_parkour' if 'minecraft' in source.name.lower() else 'gameplay'
+    destination = ASSETS / 'backgrounds' / f'{category}_{digest[:12]}{source.suffix.lower()}'
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if not destination.exists():
+        partial = destination.with_suffix(destination.suffix + '.copying')
+        shutil.copy2(source, partial)
+        partial.replace(destination)
+    if destination.stat().st_size != source.stat().st_size:
+        raise RuntimeError('Imported footage size does not match source')
+    clips = backgrounds(seconds, sources=[destination])
+    result = {'source_file': source.name, 'asset': destination.relative_to(ASSETS).as_posix(),
+              'sha256': digest, 'category': category, 'clip_seconds': seconds,
+              'clip_count': len(clips), 'video': streams[0],
+              'license': 'user-supplied; filename claim is not independently verified', 'clips': clips}
+    # Shared asset aliases use hardlinks on the same drive, so media is stored once.
+    shared = STUDIO_ROOT / 'assets' / 'shared' / 'backgrounds'
+    shared.mkdir(parents=True, exist_ok=True)
+    catalog_path = STUDIO_ROOT / 'assets' / 'library.json'
+    catalog = read_json(catalog_path, {'assets': []})
+    existing = {a['path']: a for a in catalog.get('assets', [])}
+    for clip in clips:
+        src = ASSETS / clip['file']
+        alias = shared / src.name
+        if not alias.exists():
+            try:
+                os.link(src, alias)
+            except OSError:
+                shutil.copy2(src, alias)
+        relative = alias.relative_to(STUDIO_ROOT / 'assets').as_posix()
+        existing[relative] = {'path': relative, 'kind': 'background_video',
+            'tags': [category, 'vertical', 'silent'], 'duration': clip['duration'],
+            'source_sha256': digest, 'license': result['license'], 'source_url': None}
+    catalog['assets'] = list(existing.values())
+    write_json(catalog_path, catalog)
+    result['shared_asset_folder'] = str(shared)
+    write_json(destination.with_suffix('.json'), result)
+    return result
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

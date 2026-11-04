@@ -34,7 +34,7 @@ from ..core.subtitles import build_ass, load_words, write_srt
 log = get_logger()
 
 GRADIENT_COLORS = ["0x0f0c29", "0x302b63", "0x24243e", "0x16213e"]
-SEGMENT_REV = 2  # bump when background/segment rendering changes, so cached segments are rebuilt
+SEGMENT_REV = 3  # bump when background/segment rendering changes, so cached segments are rebuilt
 
 
 def _file_sha(ctx: ProjectContext, path: Path) -> str | None:
@@ -130,16 +130,16 @@ def _prepare_still(src: Path, out: Path, w: int, h: int, mode: str, scale: float
     return out
 
 
-def _ken_burns(effect: str, n: int) -> str:
-    z_max = 0.12
+def _ken_burns(effect: str, n: int, amount: float = 0.12) -> str:
+    z_max = amount
     if effect == "zoom_out":
         z = f"{1 + z_max}-{z_max}*on/{n}"
         x, y = "iw/2-(iw/zoom/2)", "ih/2-(ih/zoom/2)"
     elif effect == "pan_left":
-        z = "1.15"
+        z = str(1 + amount)
         x, y = f"(iw-iw/zoom)*(1-on/{n})", "ih/2-(ih/zoom/2)"
     elif effect == "pan_right":
-        z = "1.15"
+        z = str(1 + amount)
         x, y = f"(iw-iw/zoom)*on/{n}", "ih/2-(ih/zoom/2)"
     elif effect == "none":
         z, x, y = "1", "0", "0"
@@ -178,7 +178,7 @@ def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, backgro
         shas.append(_file_sha(ctx, path))
         prepared = ctx.work / f"still_{scene.scene_id}.jpg"
         inputs = ["-loop", "1", "-framerate", str(fps), "-i", str(prepared)]
-        chain = f"{_ken_burns(v.ken_burns, n)}:s={w}x{h}:fps={fps}"
+        chain = f"{_ken_burns(v.ken_burns, n, v.ken_burns_amount)}:s={w}x{h}:fps={fps}"
     elif v.type == "manim":
         from .manim_render import render_manim
 
@@ -204,7 +204,15 @@ def render_scene(ctx: ProjectContext, scene, start_ms: int, dur_ms: int, backgro
         inputs += ["-loop", "1", "-framerate", str(fps), "-i", str(ov)]
         until = v.overlay_until_sec
         enable = f":enable='lte(t,{until:.3f})'" if until else ""
-        graph = f"[0:v]{chain}[base];[base][1:v]overlay=(W-w)/2:(H-h)/2:shortest=0{enable},format=yuv420p[v]"
+        appear = v.overlay_in or 0
+        if appear > 0:  # the text layer fades in while rising a little (eased), then stays still
+            rise = int(v.overlay_rise_px or 0)
+            ov_chain = f"[1:v]format=rgba,fade=t=in:st=0:d={appear:.3f}:alpha=1[ov]"
+            y = f"(H-h)/2+{rise}*pow(max(0,1-t/{appear:.3f}),2)" if rise else "(H-h)/2"
+            graph = (f"[0:v]{chain}[base];{ov_chain};[base][ov]overlay=x=(W-w)/2:y='{y}':shortest=0{enable},"
+                     f"format=yuv420p[v]")
+        else:
+            graph = f"[0:v]{chain}[base];[base][1:v]overlay=(W-w)/2:(H-h)/2:shortest=0{enable},format=yuv420p[v]"
         maps = ["-filter_complex", graph, "-map", "[v]"]
     else:
         maps = ["-vf", chain]
@@ -284,18 +292,43 @@ def caption_style(ctx: ProjectContext) -> dict:
     path = ctx.resolve(f"asset:shared/caption_styles/{name}.yaml", what="caption style")
     if not path.is_file():
         raise ValidationError(f"caption style '{name}' not found in {path.parent}", code="missing_style")
-    return load_yaml(path)
+    style = load_yaml(path)
+    if ctx.project.workflow == "newspaper":
+        from ..workflows.news_planner import load_layout_config
+
+        cfg = load_layout_config(ctx)
+        style["font"] = cfg.get("theme", {}).get("font", style.get("font", "Arial"))
+        if ctx.fmt.height > ctx.fmt.width:
+            scale = ctx.fmt.width / 1080
+            style["safe_zone"] = {k: int(v * scale) for k, v in cfg.get("safe_zone", {}).items()}
+    return style
 
 
-def caption_box(fmt) -> dict:
-    """Caption settings with margins pushed inside the safe zone (platform buttons / title bars)."""
+def caption_box(fmt, style: dict | None = None) -> dict:
+    """Caption settings with margins pushed inside the safe zone (platform buttons / title bars). A caption style
+    may lower or raise the band (`margin_v`), never into the bottom safe zone."""
     cap = dict(fmt.caption)
-    safe = fmt.safe_zone or {}
+    if style and style.get("margin_v"):
+        cap["margin_v"] = (int(style["margin_v"] * fmt.height / 1920) if fmt.height > fmt.width
+                           else int(fmt.height * 0.16))
+    safe = {**(fmt.safe_zone or {}), **((style or {}).get("safe_zone") or {})}
     # one margin for both sides: centred captions (the larger safe side wins)
     side = max(int(cap.get("margin_h", 60)), int(safe.get("left", 0)), int(safe.get("right", 0)))
     cap["margin_l"] = cap["margin_r"] = side
     cap["margin_v"] = max(int(cap.get("margin_v", 200)), int(safe.get("bottom", 0)))
     return cap
+
+
+RELIABLE_TIMING = ("provider", "faster_whisper")
+
+
+def caption_band_top(fmt, style: dict) -> int:
+    """y of the top of the caption box when it shows its maximum number of lines - layouts stay above it."""
+    cap = caption_box(fmt, style)
+    size = int(cap.get("font_size", 72) * float(style.get("size_scale", 1.0)))
+    lines = int(style.get("lines", 1))
+    pad = float(style.get("outline", 0)) if style.get("box") else float(style.get("outline", 0)) / 2
+    return int(fmt.height - cap["margin_v"] - lines * size * 1.2 - pad)
 
 
 def build_captions(ctx: ProjectContext, tl: dict) -> tuple[Path | None, Path | None]:
@@ -306,8 +339,11 @@ def build_captions(ctx: ProjectContext, tl: dict) -> tuple[Path | None, Path | N
     if not words:
         return None, None
     fmt = ctx.fmt
-    ass_text, cues = build_ass(words, width=fmt.width, height=fmt.height, style=caption_style(ctx),
-                               caption=caption_box(fmt))
+    style = caption_style(ctx)
+    # word highlight only when every spoken scene has real word timings (not an estimate)
+    reliable = all(sc.get("timing_source") in RELIABLE_TIMING for sc in tl["scenes"] if sc.get("audio"))
+    ass_text, cues = build_ass(words, width=fmt.width, height=fmt.height, style=style,
+                               caption=caption_box(fmt, style), reliable_words=reliable)
     # never let a caption run past the end
     total = tl["total_ms"]
     cues = [c for c in cues if c.start_ms < total]

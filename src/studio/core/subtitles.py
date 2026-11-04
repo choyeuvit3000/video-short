@@ -92,6 +92,73 @@ def group_words(words: list[Word], *, max_words: int, max_chars: int, max_gap_ms
     return chunks
 
 
+# words a phrase may start with: break captions before them rather than after (vi + en)
+BREAK_BEFORE = frozenset(
+    "và nhưng còn hoặc hay để khi nếu vì nên từ đến với cho trước sau trong là thì mà cùng tại theo do bởi "
+    "and but or so to for with when if because from in of that which while".split())
+_NUMBER_RE = re.compile(r"^\d[\d.,:/%]*$")
+_QUOTES = "\"'“”‘’()"
+
+
+def _good_break(words: list[Word], i: int) -> int:
+    """How good a break between words[i-1] and words[i] is: 3 after a full stop, 2 after , ; :, 1 before a
+    conjunction, 0 elsewhere, -1 between a number and its unit (12.000 | câu)."""
+    prev, nxt = words[i - 1].text.rstrip(_QUOTES), words[i].text
+    if prev[-1:] in ".!?…":
+        return 3
+    if prev[-1:] in ",;:–—":
+        return 2
+    if _NUMBER_RE.match(prev.strip(_QUOTES)):
+        return -1
+    if nxt.lower().strip(_QUOTES) in BREAK_BEFORE:
+        return 1
+    return 0
+
+
+def group_phrases(words: list[Word], *, max_words: int, max_chars: int, max_gap_ms: int = 600) -> list[list[Word]]:
+    """Caption chunks that follow meaning units: a sentence end always closes a chunk; a chunk that would grow
+    past max_words / max_chars is cut at its best break (comma > conjunction) instead of at the last word."""
+    chunks: list[list[Word]] = []
+    cur: list[Word] = []
+    for w in words:
+        if cur:
+            text_len = len(" ".join(x.text for x in cur)) + 1 + len(w.text)
+            gap = w.start_ms - cur[-1].end_ms
+            if cur[-1].text.rstrip(_QUOTES)[-1:] in ".!?…" or gap > max_gap_ms:
+                chunks.append(cur)
+                cur = []
+            elif len(cur) >= max_words or text_len > max_chars:
+                seq = cur + [w]
+                # the best break inside the chunk, not too close to its start; later wins a tie
+                lo = min(len(cur), max(2, len(cur) // 3))
+                i, score = max(((i, _good_break(seq, i)) for i in range(lo, len(cur) + 1)),
+                               key=lambda c: (c[1], c[0]))
+                if score <= 0:  # no natural break: cut before the new word, unless that splits "12.000 | câu"
+                    i = len(cur) if _good_break(seq, len(cur)) >= 0 or len(cur) < 3 else len(cur) - 1
+                chunks.append(cur[:i])
+                cur = cur[i:]
+        cur.append(w)
+    if cur:
+        chunks.append(cur)
+    return chunks
+
+
+def split_lines(texts: list[str], line_chars: int) -> int:
+    """Where to break a chunk into 2 lines: the index of the first word of line 2 (0 = one line). Balanced
+    lengths, preferring a break after a comma or before a conjunction, never between a number and its unit."""
+    if len(texts) < 3 or len(" ".join(texts)) <= line_chars:
+        return 0
+    words = [Word(t, 0, 0) for t in texts]
+    best, best_cost = 0, None
+    for i in range(1, len(texts)):
+        a, b = len(" ".join(texts[:i])), len(" ".join(texts[i:]))
+        cost = abs(a - b) - 6 * _good_break(words, i)
+        cost += (40 if max(a, b) > line_chars else 0) + (30 if min(i, len(texts) - i) < 2 else 0)
+        if best_cost is None or cost < best_cost:
+            best, best_cost = i, cost
+    return best
+
+
 def chunks_to_cues(chunks: list[list[Word]]) -> list[Cue]:
     cues = []
     for i, ch in enumerate(chunks):
@@ -223,12 +290,16 @@ def build_ass(
     height: int,
     style: dict[str, Any],
     caption: dict[str, Any],
+    reliable_words: bool = True,
 ) -> tuple[str, list[Cue]]:
-    """Create ASS text (word-highlight captions) and the matching chunk-level cues for the SRT sidecar."""
+    """Create ASS text (word-highlight captions) and the matching chunk-level cues for the SRT sidecar.
+
+    A style with `lines: 2` gets phrase captions (meaning units, up to 2 lines). `reliable_words=False`
+    (estimated timings) turns the word highlight off: a highlight running ahead of the voice is worse than none."""
     font = style.get("font", "Arial")
     size = int(caption.get("font_size", 72) * float(style.get("size_scale", 1.0)))
     primary = hex_to_ass(style.get("color", "#FFFFFF"))
-    outline = hex_to_ass(style.get("outline_color", "#000000"))
+    outline = hex_to_ass(style.get("outline_color", "#000000"), alpha=int(style.get("outline_alpha", 0)))
     back = hex_to_ass(style.get("shadow_color", "#000000"), alpha=int(style.get("shadow_alpha", 96)))
     highlight = hex_to_ass(style.get("highlight_color", "#FFE14D"))
     bold = -1 if style.get("bold", True) else 0
@@ -246,12 +317,23 @@ def build_ass(
     )
     lines = [ASS_HEADER.format(w=width, h=height, styles=styles)]
     # a style may ask for longer chunks than the format's default (news captions read 4-5 words at a time)
-    chunks = group_words(words, max_words=int(style.get("max_words") or caption.get("max_words", 3)),
-                         max_chars=int(style.get("max_chars") or caption.get("max_chars", 18)))
+    max_words = int(style.get("max_words") or caption.get("max_words", 3))
+    max_chars = int(style.get("max_chars") or caption.get("max_chars", 18))
+    two_lines = int(style.get("lines", 1)) >= 2
+    group = group_phrases if two_lines else group_words
+    chunks = group(words, max_words=max_words, max_chars=max_chars)
     cues = chunks_to_cues(chunks)
-    mode = style.get("mode", "highlight")
+    mode = style.get("mode", "highlight") if reliable_words else "plain"
+    line_chars = int(style.get("line_chars") or max(8, max_chars // 2 + 2))
+
+    def joined(parts: list[str], brk: int) -> str:
+        return " ".join(parts[:brk]) + "\\N" + " ".join(parts[brk:]) if brk else " ".join(parts)
+
     for ch, cue in zip(chunks, cues, strict=True):
         texts = [_ass_escape(w.text.upper() if upper else w.text) for w in ch]
+        brk = split_lines([w.text for w in ch], line_chars) if two_lines else 0
+        if brk:
+            cue.text = joined([w.text for w in ch], brk).replace("\\N", "\n")
         if mode == "highlight" and len(ch) > 1:
             for i, w in enumerate(ch):
                 start = cue.start_ms if i == 0 else w.start_ms
@@ -261,7 +343,8 @@ def build_ass(
                 parts = [
                     f"{{\\c{highlight}}}{t}{{\\c{primary}}}" if j == i else t for j, t in enumerate(texts)
                 ]
-                lines.append(f"Dialogue: 0,{_ass_ts(start)},{_ass_ts(end)},Caption,,0,0,0,,{' '.join(parts)}")
+                lines.append(f"Dialogue: 0,{_ass_ts(start)},{_ass_ts(end)},Caption,,0,0,0,,{joined(parts, brk)}")
         else:
-            lines.append(f"Dialogue: 0,{_ass_ts(cue.start_ms)},{_ass_ts(cue.end_ms)},Caption,,0,0,0,,{' '.join(texts)}")
+            lines.append(f"Dialogue: 0,{_ass_ts(cue.start_ms)},{_ass_ts(cue.end_ms)},Caption,,0,0,0,,"
+                         f"{joined(texts, brk)}")
     return "\n".join(lines) + "\n", cues

@@ -274,6 +274,9 @@ def _pick_background(ctx: ProjectContext) -> str:
     folder = ctx.settings.path("assets") / "workflows" / "story_reader" / "backgrounds"
     files = sorted(f for f in folder.glob("*") if f.suffix.lower() in MEDIA_EXT) if folder.is_dir() else []
     if not files:
+        shared = ctx.settings.path("assets") / "shared" / "backgrounds"
+        files = sorted(p for p in shared.glob("*") if p.suffix.lower() in MEDIA_EXT)
+    if not files:
         return "gradient"
     idx = int(hashlib.sha1(ctx.project.project_id.encode()).hexdigest(), 16) % len(files)
     return "asset:" + files[idx].relative_to(ctx.settings.path("assets")).as_posix()

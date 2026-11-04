@@ -64,3 +64,7 @@ tools/ffmpeg/
 /output/
 /scripts/migration_20261104/
 /docs/SOCIAL_MIGRATION_REPORT.md
+
+# Per-run project state is local, project/source specifications may be versioned
+projects/**/state.json
+projects/**/cost.json

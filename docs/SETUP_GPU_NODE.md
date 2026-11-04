@@ -97,7 +97,20 @@ powershell -ExecutionPolicy Bypass -File .\scripts\smoke_test_windows.ps1 -Keep
 
 - [ ] `studio voices install piper-vi-vais1000` và `studio voices install piper-en-lessac`
 - [ ] `studio voices test piper-vi-vais1000`
-- Các giọng GPU (`f5tts-vi`, `vieneu-vi`, `xtts-v2-clone`) đang ở trạng thái `planned` trong `voices/local/manifest.yaml`, **chưa cài**. Chúng sẽ được tích hợp vào worker ở milestone sau. Mỗi giọng sẽ có venv riêng trong `$NODE\tts\<tên>` để không xung đột torch với studio.
+- [ ] **VieNeu-TTS v3 Turbo** (giọng GPU tự nhiên, 48 kHz, Apache-2.0, được dùng thương mại):
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File .\scripts\install_vieneu.ps1    # venv riêng D:\studio-node\tts\vieneu, ~3 GB
+  ```
+  Thêm vào `config/local.yaml`:
+  ```yaml
+  tts:
+    vieneu: {python: D:\studio-node\tts\vieneu\.venv\Scripts\python.exe, hf_home: D:\studio-node\hf}
+  voice_defaults: {vi: vieneu-vi-maianh}   # giọng mặc định tiếng Việt của máy này
+  align: {faster_whisper_model: large-v3-turbo, device: cuda, compute_type: float16}
+  ```
+  Rồi chạy `studio voices test vieneu-vi-maianh`. Lần đầu mất vài phút vì phải tải model (~1 GB). Các giọng có sẵn: `vieneu-vi-maianh`, `-minhduc`, `-thuydung` (phong cách tin tức), `-ngochuyen`, `-thienminh`, `-myduyen` (tự nhiên / kể chuyện). Model không trả mốc thời gian từng từ, nên phụ đề được căn bằng faster-whisper trên GPU. Model nạp một lần mỗi lần `studio run` (~15–45 s), sau đó mỗi câu mất khoảng 1 giây. Audio có gắn watermark AI của VieNeu, đừng tắt.
+- Các giọng `location: node:home-gpu` chỉ chạy trên PC này. Laptop gửi project bằng `studio run --node home-gpu`; nếu chạy trên laptop, cả project tự chuyển sang giọng dự phòng (edge).
+- `f5tts-vi` và `xtts-v2-clone` vẫn ở trạng thái `planned`: các model F5-TTS tiếng Việt tốt nhất (`hynt/F5-TTS-Vietnamese-ViVoice`) dùng giấy phép CC-BY-NC-SA (cấm thương mại), XTTS-v2 cũng non-commercial.
 
 ## Bước 7 — ComfyUI (ảnh và video local)
 

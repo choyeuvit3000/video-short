@@ -1,0 +1,22 @@
+# News captions: up to 2 lines per phrase, broken at meaning units, light text on a local dark box.
+# The spoken word is coloured only when word timings are reliable (TTS word events or faster-whisper
+# alignment); estimated timings fall back to plain phrase captions.
+font: Arial
+bold: true
+uppercase: false
+color: "#FFFFFF"
+highlight_color: "#FF8A57"
+outline_color: "#101014"   # box colour (BorderStyle 3)
+outline_alpha: 64          # 0 = opaque, 255 = invisible
+outline: 14                # box padding
+shadow: 0
+shadow_color: "#000000"
+shadow_alpha: 255
+box: true
+mode: highlight            # highlight | plain (highlight needs reliable word timings)
+size_scale: 0.78
+lines: 2                   # phrase captions: up to 2 lines, broken at punctuation / conjunctions
+max_words: 12
+max_chars: 40              # per caption (both lines)
+line_chars: 22             # per line (fits the 800 px caption box at this size)
+margin_v: 500              # bottom of the caption box, px from the bottom (never inside safe_zone.bottom)

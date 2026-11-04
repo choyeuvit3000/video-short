@@ -1,0 +1,96 @@
+# Shared layout rules for news videos (workflow newspaper). Every video reads the same file; what changes per
+# video (topic, number of scenes, numbers, length) comes from its script. Override per project with
+# `options.layout_config: asset:shared/layouts/<name>.yaml`, or single values with `options.accent` / `options.brand`.
+#
+# Positions are fractions of the frame height (vertical) and are pushed above the caption band, which is computed
+# from the caption style below and the format's safe_zone: no layout element ever sits under a caption.
+
+theme:
+  font: Arial
+  accent: "#FF5A1F"         # brand colour: category tag, highlighted phrase, numbers' unit, timeline dates
+  text: "#FFFFFF"
+  muted: "#C9C9D0"          # titles under names, explain lines
+  panel: "#101014"          # dark bars / cards behind text
+  panel_alpha: 225
+  paper: "#F3F0E8"          # text guide card (document fallback)
+  ink: "#17171B"
+  border: "#F2F2F2"         # thin light frame around portraits and documents
+
+caption:
+  style: news_card          # assets/shared/caption_styles/news_card.yaml (2 lines, local dark box)
+  gap: 40                   # px kept free between the lowest layout element and the caption box
+
+# Reference pixels at 1080 x 1920; scaled for other vertical resolutions.
+safe_zone: {top: 220, bottom: 480, left: 60, right: 140}
+
+motion:
+  reading_chars_per_sec: 18 # reading time for text cards, numbers and dates, in addition to the voice duration
+  ken_burns_amount: 0.045
+  appear_sec: 0.35          # headline / number / card text fades in and rises this long
+  rise_px: 36
+  min_hold_sec: {stat_card: 3.0, timeline: 3.5, document: 3.0, headline: 2.5}  # numbers stay long enough to read
+
+# The scene planner picks a layout from the role of each spoken line (the script's beats).
+roles:
+  hook: headline
+  quote: portrait_quote
+  fact: editorial_photo
+  number: stat_card
+  document: document
+  timeline: timeline
+  closing: closing
+
+layouts:
+  headline:
+    asset: editorial        # which photo class it wants: editorial | portrait | document | none
+    band: 0.62              # photo fills the top 62% of the frame, then fades into a dark backdrop
+    focus: [0.5, 0.42]      # default subject point (x, y of the source photo) when media.json has none
+    font_size: 92
+    max_lines: 2
+    ken_burns: zoom_in
+  portrait_quote:
+    asset: portrait
+    width: 0.70             # portrait width as a fraction of the frame width
+    aspect: 0.8             # w / h of the portrait crop (4:5)
+    top: 0.11
+    border: 6
+    focus: [0.5, 0.3]
+    name_size: 52
+    title_size: 32
+    ken_burns: none
+  editorial_photo:
+    asset: editorial
+    band: 0.64
+    focus: [0.5, 0.45]
+    ken_burns: [pan_left, zoom_out, pan_right, zoom_in]
+  document:
+    asset: document
+    fallback: text_card     # no verified cover/poster -> a guide card with the sourced points
+    width: 0.80
+    title_size: 56
+    point_size: 40
+    max_points: 4
+    ken_burns: zoom_in
+  stat_card:
+    asset: backdrop         # the scene's photo blurred and darkened (or a gradient)
+    value_size: 250
+    unit_size: 64
+    explain_size: 40
+    ken_burns: zoom_in
+  timeline:
+    asset: backdrop
+    title_size: 50
+    date_size: 46
+    text_size: 36
+    max_items: 4
+    ken_burns: none
+  closing:
+    asset: backdrop
+    font_size: 74
+    max_lines: 3
+    ken_burns: zoom_out
+
+# Which photo class a caption suggests (portrait captions "Name - Title" are detected separately). Keep the words
+# strict: "thí sinh xem tài liệu" is a photo of people, not a document.
+classify:
+  document: [bìa, poster, infographic, công văn, văn bản, ảnh chụp màn hình, screenshot, cover, document]

@@ -4,15 +4,801 @@
     {
       "path": "shared/caption_styles/bold_pop.yaml",
       "kind": "caption_style",
-      "tags": ["short", "highlight"],
+      "tags": [
+        "short",
+        "highlight"
+      ],
       "license": "own",
       "source_url": null
     },
     {
       "path": "shared/caption_styles/clean_box.yaml",
       "kind": "caption_style",
-      "tags": ["long", "explainer"],
+      "tags": [
+        "long",
+        "explainer"
+      ],
       "license": "own",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_000.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_001.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_002.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_003.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_004.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_005.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_006.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_007.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_008.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_009.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_010.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_011.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_012.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_013.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_014.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_015.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_016.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_017.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_018.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_019.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_020.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_021.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_022.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_023.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_024.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_025.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_026.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_027.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_028.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_029.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_030.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_031.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_032.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_033.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_034.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_035.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_036.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_037.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_038.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_039.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_040.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_041.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_042.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_043.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_044.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_045.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_046.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_047.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_048.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_049.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_050.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_051.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_052.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_053.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_054.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_055.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_056.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_057.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_058.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 63.016667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
+      "source_url": null
+    },
+    {
+      "path": "shared/backgrounds/29503c8f6bf4_059.mp4",
+      "kind": "background_video",
+      "tags": [
+        "minecraft_parkour",
+        "vertical",
+        "silent"
+      ],
+      "duration": 61.466667,
+      "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
+      "license": "user-supplied; filename claim is not independently verified",
       "source_url": null
     }
   ]

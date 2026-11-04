@@ -38,7 +38,8 @@ Set `$env:PYTHONIOENCODING="utf-8"` when piping output that contains Vietnamese.
   `renderers/manim_scenes/templates.py` is standalone (runs inside manim, never imported by studio — importing
   manim in-process hijacks logging). Custom scenes: `visual.file` + `scene_class`, user-written only.
 - `src/studio/providers/` — `llm/` (claude/agy/codex CLIs + manual), `tts/` (edge, piper, mock, paid adapters
-  disabled), `align.py` (provider words → faster-whisper → estimate), `source/` (text file, URL, Reddit OAuth,
+  disabled, `vieneu` = VieNeu-TTS v3 Turbo on the GPU PC through `vieneu_runner.py` in its own venv, JSON lines over
+  stdin/stdout; `config/local.yaml` `voice_defaults` picks a machine's default voice), `align.py` (provider words → faster-whisper → estimate), `source/` (text file, URL, Reddit OAuth,
   Threads API), `images.py` (Wikimedia Commons API, free licences only, credited; used by the knowledge `images`
   stage for `photo` scenes). `renderers/card.py` draws the post / passage / hook / end cards (story_reader
   `options.layout` post|passage, `options.part_max_sec` → sibling projects `<dir>_pN`); `core/textnorm.py`

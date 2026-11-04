@@ -48,3 +48,12 @@ Phần giữ: asset Việt Nam, nền đã cắt, capture bài/media, renderer t
 
 
 All modes publish final videos directly into `D:/Video-maker/video-short/output` (flat, mode/project-prefixed filenames). QC, captions and metadata share the video basename. Project work folders contain intermediates only; `_history` holds previous revisions. Threads and Reddit use this same output folder.
+
+
+## Thêm video nền của bạn
+
+```powershell
+.\.venv\Scripts\python.exe -m studio social-assets import-background --source "C:/path/to/minecraft.mp4" --seconds 60
+```
+
+Lệnh giữ nguyên file nguồn, chép vào kho asset bằng tên gắn SHA256 rồi chia thành các đoạn im tiếng khoảng một phút. Cắt theo keyframe, không tái mã hóa nên thời lượng có thể lệch vài giây. Chỉ index nguồn vừa nhập, không ghi mất manifest của các nền đã có; chạy lại không tạo clip trùng. Nền Minecraft được nhận diện từ tên file và tự nằm trong pool nền chung. Media giữ local theo .gitignore, không upload lên Git. Tên file ghi no-copyright không được coi là chứng cứ giấy phép.

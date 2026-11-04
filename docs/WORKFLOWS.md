@@ -116,17 +116,24 @@ studio new newspaper "de-mau-dgnl" --text-file ".\bai-bao.md"          # chữ d
 
   Nội dung...
   ```
-- **news_script**: AI CLI tóm tắt bài thành `beats` (`work/script.json`), mỗi nhịp là một màn hình, gồm 5 loại:
-  - `headline`: ảnh đầu bài, nhãn chuyên mục, tiêu đề chữ lớn in hoa, chip "Nguồn: ảnh … · ngày".
-  - `photo`: ảnh full màn hình chuyển động Ken Burns.
-  - `quote`: ảnh trong khung trắng nghiêng, lower-third ghi tên và chức vụ.
-  - `stat`: con số lớn kèm nhãn, trên nền ảnh làm mờ, có chip tiêu đề bài.
-  - `card`: ảnh tài liệu hoặc poster hiển thị nguyên, không cắt.
+- **news_script**: lên lời thoại theo từng ý trước, mỗi beat có `role`: `hook`, `quote`, `fact`, `number`, `document`, `timeline`, `closing`. Nội dung quyết định thời lượng, mặc định không giới hạn thời gian/số từ/số cảnh. Giữ đủ ý, bối cảnh và điều kiện quan trọng; chỉ bỏ câu lặp và CTA thừa. Giọng đọc mặc định 1.25× (+25%), giữ cao độ với `atempo` khi dùng VieNeu, headline hiện ngay đầu video, giữ năm của tin cũ. Chế độ không dùng AI đọc hết nội dung thay vì cắt đuôi bài theo thời lượng. Kịch bản v1 với `type` vẫn đọc được. Có thể dán JSON vào `work/llm/news_script.response.json`.
+- **news_media**: lấy toàn bộ ảnh có chú thích trong bài, ưu tiên bản gốc; thêm ảnh trong `images/`. Khi thiếu hình, AI điền `image_query` tiếng Anh cho từng ý: pipeline tìm tối đa 3 ảnh tự do qua API **Wikimedia Commons**, dùng cache và giữ tác giả, giấy phép, URL. Đây là ảnh **minh họa**, không thay thế chân dung nhân vật hay tài liệu của sự kiện. Không dùng thumbnail tin liên quan. Nếu API không có ảnh phù hợp, giữ ảnh nguồn hoặc dùng thẻ chữ.
+- **news_scenes**: `news_planner.py` chọn layout từ vai trò câu thoại theo `assets/shared/layouts/news.yaml`:
+  - `headline`: chữ đậm tối đa 2 dòng, gradient, cụm `highlight` màu nhận diện, hiện ngay khung đầu.
+  - `portrait_quote`: ảnh người nói có viền sáng mảnh; tên trên nền tối, chức danh dòng phụ. Chỉ chọn chân dung khớp tên.
+  - `editorial_photo`: ảnh tư liệu theo ý; ưu tiên ảnh mới khi chuyển ý.
+  - `document`: giữ nguyên toàn ảnh tài liệu. Thiếu ảnh đúng nguồn thì `text_card` với `points` và nguồn; không mượn bìa kỳ thi khác.
+  - `stat_card`: số lớn (`value`), đơn vị (`unit`), giải thích (`explain`); giữ tối thiểu 3 giây.
+  - `timeline`: các mốc `dates` có ngày và ý nghĩa; `closing`: câu kết ngắn, nguồn, tên kênh.
 
-  AI chỉ dùng dữ kiện có trong bài. Khi không có CLI nào trả lời (`rewrite: auto`), studio tự dựng nhịp từ chữ bài: tiêu đề + sapo, các câu tiếp theo, và nhịp `quote` khi đoạn văn trích lời người có ảnh chân dung. Cách này không có nhịp con số và gần với đọc nguyên văn, nên dùng AI vẫn tốt hơn. Cũng có thể dán câu trả lời của AI web vào `work/llm/news_script.response.json`.
-- **news_media**: tải ảnh của bài vào `work/news/`. Studio thử bản gốc trước bằng cách bỏ `?w=…&h=…` trên CDN. Ảnh bạn đặt trong `images/` được dùng thêm. Ảnh nào hỏng thì nhịp đó dùng ảnh khác. `images: none` thì chỉ dùng ảnh của bạn.
-- **news_scenes**: mỗi nhịp gồm một ảnh tĩnh (Ken Burns) và một overlay chữ đứng yên. Phụ đề `news_pop` (chữ trắng, từ đang đọc màu cam).
-- Option: `target_sec` (50), `beats` (7), `brand` (tên kênh hiện ở góc phải, mặc định trống), `accent` (màu nhãn, `#FF5A1F`), `images`, `rewrite`, `speech_cleanup`.
+  Planner đối chiếu số/ngày trong chữ trên hình với bài gốc, kiểm tra tên nhân vật và ghi lý do khi hạ về layout dự phòng. Kiểm tra này không thay thế duyệt ngữ nghĩa: vẫn cần đối chiếu số với đúng đơn vị, chức danh, thời điểm và nội dung bài.
+  Sửa `kind` (`portrait|editorial|document`) và `focus: [x,y]` (0–1) trong `work/news/media.json` sau khi xem ảnh. Tài liệu cần `verified: true` sau khi xác minh đúng sự kiện/kỳ thi; chỉ nhãn "bìa" trong chú thích chưa đủ. Ảnh Commons chỉ dùng cho beat đã yêu cầu ảnh đó.
+- Bố cục lấy font, màu nhấn, vùng an toàn và caption từ cấu hình chung; chữ bố cục nằm trên vùng caption. Caption `news_card`: tối đa 2 dòng theo cụm nghĩa, chữ sáng trên nền tối cục bộ. Chỉ highlight khi có timestamp theo từ từ provider hoặc faster-whisper; mốc ước lượng/SRT theo cụm hiển thị nguyên cụm. Pan/zoom nhẹ; thẻ số xuất hiện nhanh, các cảnh cắt theo lời thoại.
+- **package** xuất thêm `output/scene_plan.json`: start/end thực theo giọng, lời thoại, role/layout, asset, nguồn, chữ trên hình, focus, lý do fallback.
+- Thời gian giữ thẻ số, hướng dẫn và timeline tăng theo lượng chữ (`motion.reading_chars_per_sec`), tối thiểu bằng các ngưỡng trong cấu hình. Cảnh dài hơn nếu lời đọc cần thêm thời gian. Ưu tiên độ rõ của nội dung, chuyển động nhẹ và cắt theo ý; không tăng tốc vượt mức đã chọn để ép video ngắn. Sau tăng tốc, căn lại caption theo audio thực tế; nhạc nền không tăng tốc.
+- Option: `target_sec` và `beats` mặc định `null`; nếu điền thì chỉ là gợi ý cho AI, không cắt nội dung để đạt số đó. Các option khác: `layout_config`, `brand`, `accent`, `images`, `extra_images` (`commons|none`), `max_extra_images` (3), `image_queries`, `rewrite`, `speech_cleanup`. Muốn chỉ dùng ảnh của bạn: `images: none` và `extra_images: none`.
+
+  Áp dụng rule mới cho project cũ: đặt `audio.speed: 1.25`, `options.target_sec: null`, `options.beats: null` trong project.json, tạo lại kịch bản nếu bản cũ bị rút ngắn, rồi chạy từ `news_media --force`. Muốn giữ media.json đã chỉnh tay, chạy từ `news_scenes`. Profile nền tảng vẫn có cảnh báo độ dài; cảnh báo này không cắt video.
 - **Bản quyền**: ảnh và bài thuộc về tòa soạn. Studio ghi nguồn trên từng cảnh và trong `metadata.md` (mục Images, Source/credit). Nên tóm tắt, bình luận thay vì đọc lại nguyên bài, và xin phép tòa soạn nếu đăng kênh kiếm tiền.
 
 ## L1 · ai_cinematic (ready)
@@ -180,3 +187,11 @@ Loại visual `manim` dùng được trong mọi workflow, không riêng workflo
 - Thời gian chờ mỗi CLI: `llm.<tên>.timeout_sec` trong `config/studio.yaml` (agy để 600 s vì mất khoảng 3–5 phút
   cho kịch bản 6 cảnh), mặc định `llm.timeout_sec` = 300 s.
 - CLI không cài hoặc lỗi thì chuyển sang CLI kế tiếp. `manual` ghi prompt ra file và dừng với exit 3.
+
+### Tốc độ giọng cho newspaper
+
+Mặc định `audio.speed: 1.25`: nhanh hơn 25%, phần lời đọc dài khoảng 80% bản 1.0×; video vẫn có thời gian giữ thẻ và khoảng ngắt. Đây là lựa chọn biên tập, không phải chuẩn cố định cho mọi giọng. Các mức nghe thử hữu ích: 1.0× để đối chiếu, 1.10–1.15× nếu bản tin nhiều thuật ngữ/số liệu, 1.25× cho nhịp tin nhanh. Chọn một mức cho toàn video, không tự đổi tốc độ từng cảnh.
+
+VieNeu dùng FFmpeg `atempo=1.25`, không thay sample rate để tăng tốc; edge dùng rate `+25%` từ profile gốc và giữ pitch `+0Hz`. Không tăng tốc lần nữa ở bước mix/render.
+
+Tham khảo kỹ thuật: [FFmpeg atempo](https://ffmpeg.org/ffmpeg-filters.html#atempo), [Microsoft SSML rate/pitch](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-synthesis-markup-voice#adjust-prosody), [Google AudioConfig speakingRate/pitch](https://docs.cloud.google.com/text-to-speech/docs/reference/rest/v1/AudioConfig). Chỉ tham khảo tài liệu, không tích hợp dịch vụ trả phí.

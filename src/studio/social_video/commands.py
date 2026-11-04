@@ -129,11 +129,15 @@ def register(app):
         print(approve(video.resolve(),note,reviewer)['status'])
 
     @app.command('social-assets')
-    def assets(action: Annotated[str, typer.Argument()] = 'scan'):
+    def assets(action: Annotated[str, typer.Argument()] = 'scan', source: Path | None = None, seconds: float = 60):
         from . import memes
         if action=='scan': memes.scan()
         elif action=='fetch': memes.fetch(load_config())
-        else: raise typer.BadParameter('Use scan or fetch')
+        elif action=='import-background' and source:
+            from .prepare_assets import import_background
+            result = import_background(source, seconds)
+            print({k:v for k,v in result.items() if k!='clips'})
+        else: raise typer.BadParameter('Use scan, fetch, or import-background --source VIDEO [--seconds 60]')
 
     @app.command('reddit-publish-plan')
     def publish_plan():
