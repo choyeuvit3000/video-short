@@ -23,3 +23,10 @@ defaults:
 offline_fallback:
   vi: piper-vi-vais1000
   en: piper-en-lessac
+
+# Dedicated Vietnamese knowledge voice; explicit project selection takes precedence.
+workflow_defaults:
+  knowledge_explainer:
+    vi: omnivoice-vi-knowledge-under30
+  longform_explainer:
+    vi: omnivoice-vi-knowledge-under30

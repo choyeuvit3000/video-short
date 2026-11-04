@@ -296,6 +296,10 @@ def new(
             )
             if voice:
                 data.setdefault("audio", {})["voice_profile"] = voice
+            elif not data.get("audio", {}).get("voice_profile"):
+                from .voices import load_registry
+
+                data.setdefault("audio", {})["voice_profile"] = load_registry(s).default_for(lang, workflow).id
             if data.get("options", {}).get("topic"):
                 _apply_topic(s, data, user_options=options)
             if url:

@@ -1,0 +1,23 @@
+profiles:
+- id: omnivoice-vi-knowledge-under30
+  lang: vi
+  tier: local
+  provider: omnivoice
+  status: experimental
+  location: node:home-gpu
+  license: Code Apache-2.0; pretrained model CC-BY-NC; user-provided reference for
+    private videos
+  params:
+    model: k2-fsa/OmniVoice
+    revision: c5fdb5ccb189668d56333f77ba2629f4cd7535f4
+    speaker: User-provided Under30 knowledge narration reference
+    ref_audio: local/references/knowledge-under30.wav
+    ref_sha256: b5dbf9e6ad2bec1670672fe7065a2c0a8605170dbcdffc5bc61756f1209e981e
+    ref_text: Đặc biệt là đối với những cái phân cảnh có những cái pha hành động phức
+      tạp ở trong đó. Với cái tính năng này thì anh em chỉ cần tải lên một cái đoạn
+      video có cái chuyển động mà mình mong muốn.
+    num_step: 32
+    seed: 42
+    speed: 1.0
+    target_space_tokens_per_second: 5.4
+  cost_per_1k_chars: 0

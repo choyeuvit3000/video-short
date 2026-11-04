@@ -64,7 +64,7 @@ def trim_silence(path: Path, *, scene_id: str | None = None, keep_lead_ms: int =
 
 def choose_profile(ctx: ProjectContext, reg: VoiceRegistry) -> VoiceProfile:
     p = ctx.project
-    prof = reg.get(p.audio.voice_profile) if p.audio.voice_profile else reg.default_for(p.language)
+    prof = reg.get(p.audio.voice_profile) if p.audio.voice_profile else reg.default_for(p.language,p.workflow)
     if not prof.usable:
         raise ValidationError(f"Voice '{prof.id}' has status '{prof.status}' - enable it in {prof.source_file} "
                               "or pick another (`studio voices list`)", code="voice_disabled")

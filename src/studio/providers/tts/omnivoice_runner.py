@@ -65,6 +65,7 @@ def main():
                 language=req["language"],
                 voice_clone_prompt=prompts[key],
                 speed=float(req["speed"]),
+                duration=req.get("duration"),
                 num_step=int(req["num_step"]),
             )[0]
             if not len(audio) or not np.isfinite(audio).all() or np.max(np.abs(audio)) < 1e-5:

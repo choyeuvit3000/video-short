@@ -135,7 +135,7 @@ def recommendation(folder, mode):
     from ..voices import load_registry
     from .config import get_settings
 
-    b["voice"] = load_registry(get_settings()).defaults.get("vi", b["voice"])
+    b["voice"] = load_registry(get_settings()).default_for(project.get("language", "vi"), mode).id
     b.update(
         goal="Giữ đúng thông tin nguồn, trình bày rõ và dễ xem",
         audience="Người Việt xem video ngắn",
@@ -298,18 +298,26 @@ def preflight(folder: Path):
         canvas.save(path)
         pages.append(path.name)
     words = sum(len(t.split()) for t in texts)
+    from ..voices import load_registry
+    from .config import get_settings
+
+    profile = load_registry(get_settings()).get(data["answers"]["voice"])
+    rate = float(profile.params.get("target_space_tokens_per_second", 3.2))
+    pace = {"calm": 0.95, "normal": 1.0, "brisk": 1.12}[data["answers"]["pacing"]]
+    seconds = words / (rate * float(profile.params.get("speed", 1.0)) * pace)
     report = {
         "brief_status": data["status"],
         "scenes": len(texts),
         "spoken_words": words,
-        "estimated_speech_seconds": round(words / 3.2, 1),
+        "estimated_speech_seconds": round(seconds, 1),
+        "speech_rate_source": "profile" if "target_space_tokens_per_second" in profile.params else "rough default",
         "target_seconds": data["answers"]["target_seconds"],
         "preview_kind": "text storyboard, not pixel-accurate final layout",
         "pages": pages,
         "cost": "no AI/TTS/full-render calls",
         "warnings": [],
     }
-    if words / 3.2 > data["answers"]["target_seconds"] * 1.2:
+    if seconds > data["answers"]["target_seconds"] * 1.2:
         report["warnings"].append(
             "Narration likely exceeds target duration; shorten text or approve a longer video before generating voice"
         )

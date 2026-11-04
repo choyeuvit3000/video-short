@@ -1,7 +1,27 @@
 {
-  "preferred": {"gender": "male", "region": "Southern Vietnamese", "timbre": "deep"},
-  "permanently_blocked": ["edge", "edge-tts", "Mai Anh", "Mai Anh aliases"],
+  "preferred": {
+    "gender": "male",
+    "region": "Southern Vietnamese",
+    "timbre": "deep"
+  },
+  "permanently_blocked": [
+    "edge",
+    "edge-tts",
+    "Mai Anh",
+    "Mai Anh aliases"
+  ],
   "similar_to_maianh": "reject after listening review",
   "production_admission": "SHA256-bound human review; no automatic promotion",
-  "training": "Only rights-cleared single-speaker data; monitor held-out quality before admission"
+  "training": "Only rights-cleared single-speaker data; monitor held-out quality before admission",
+  "workflow_preferences": {
+    "knowledge_explainer": {
+      "voice": "omnivoice-vi-knowledge-under30",
+      "reference": "user-provided Under30 audio",
+      "target_space_tokens_per_second": 5.4,
+      "style": "brisk conversational knowledge narration"
+    },
+    "longform_explainer": {
+      "voice": "omnivoice-vi-knowledge-under30"
+    }
+  }
 }

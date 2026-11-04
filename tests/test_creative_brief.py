@@ -38,6 +38,32 @@ def test_new_brief_uses_machine_voice_default(tmp_path, monkeypatch):
 
     (tmp_path / "posts.json").write_text("[]")
     monkeypatch.setattr(
-        "studio.voices.load_registry", lambda settings: SimpleNamespace(defaults={"vi": "omnivoice-vi-thaison"})
+        "studio.voices.load_registry",
+        lambda settings: SimpleNamespace(
+            default_for=lambda lang, workflow=None: SimpleNamespace(id="omnivoice-vi-thaison")
+        ),
     )
     assert prepare(tmp_path)["answers"]["voice"] == "omnivoice-vi-thaison"
+
+
+def test_knowledge_brief_recommends_workflow_voice(tmp_path):
+    (tmp_path / "project.json").write_text(
+        json.dumps({"workflow": "knowledge_explainer", "language": "vi", "audio": {}, "scenes": []})
+    )
+    assert prepare(tmp_path)["answers"]["voice"] == "omnivoice-vi-knowledge-under30"
+
+
+def test_preflight_estimates_new_reference_cadence_without_tts(tmp_path, monkeypatch):
+    from studio.core.creative_brief import preflight
+
+    (tmp_path / "posts.json").write_text(json.dumps([{"part_texts": [" ".join(["một"] * 54)]}]), encoding="utf-8")
+    prepare(tmp_path, {"voice": "omnivoice-vi-knowledge-under30", "target_seconds": 10})
+
+    def forbid(*a, **k):
+        raise AssertionError("preflight must not invoke TTS")
+
+    monkeypatch.setattr("studio.providers.tts.get_provider", forbid)
+    report = preflight(tmp_path)
+    assert report["estimated_speech_seconds"] == 10.0
+    assert report["speech_rate_source"] == "profile"
+    assert report["warnings"] == []

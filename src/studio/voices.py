@@ -10,7 +10,7 @@ from typing import Any
 import httpx
 
 from .core.cache import file_sha256
-from .core.config import Settings, load_yaml
+from .core.config import Settings, deep_merge, load_yaml
 from .core.errors import ValidationError
 from .core.logging_utils import get_logger
 
@@ -66,6 +66,7 @@ class VoiceRegistry:
     profiles: dict[str, VoiceProfile]
     defaults: dict[str, str]
     offline_fallback: dict[str, str]
+    workflow_defaults: dict[str, dict[str, str]] = field(default_factory=dict)
 
     def get(self, voice_id: str) -> VoiceProfile:
         if voice_id not in self.profiles:
@@ -76,8 +77,8 @@ class VoiceRegistry:
         assert_not_blocked(p.provider, p.id, p.params)
         return p
 
-    def default_for(self, lang: str) -> VoiceProfile:
-        vid = self.defaults.get(lang)
+    def default_for(self, lang: str, workflow: str | None = None) -> VoiceProfile:
+        vid = self.workflow_defaults.get(workflow, {}).get(lang) or self.defaults.get(lang)
         if not vid:
             raise ValidationError(
                 f"No default voice for language '{lang}' in voices/registry.yaml", code="unknown_voice"
@@ -139,7 +140,13 @@ def load_registry(settings: Settings) -> VoiceRegistry:
     # config/local.yaml `voice_defaults: {vi: vieneu-vi-thaison}` - this machine's default voice per language
     defaults = {**dict(reg.get("defaults", {})), **dict(settings.get("voice_defaults", {}) or {})}
     return VoiceRegistry(
-        root=root, profiles=profiles, defaults=defaults, offline_fallback=dict(reg.get("offline_fallback", {}))
+        root=root,
+        profiles=profiles,
+        defaults=defaults,
+        offline_fallback=dict(reg.get("offline_fallback", {})),
+        workflow_defaults=deep_merge(
+            reg.get("workflow_defaults", {}), settings.get("voice_workflow_defaults", {}) or {}
+        ),
     )
 
 

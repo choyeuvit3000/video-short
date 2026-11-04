@@ -13,7 +13,7 @@ defaults:
   ai_generated: true
   platforms: [tiktok, youtube_shorts, reels]
   video: {caption_style: clean_box, background: "color:#000000"}
-  audio: {speed: 1.25}       # voice speed (1.0 = profile's normal pace)
+  audio: {speed: 1.0}        # knowledge profile already matches reference cadence; avoid multiplying twice
   options:
     topic: science          # a file in workflows/_shared/topics/ (`studio topics`)
     scene_count: 6

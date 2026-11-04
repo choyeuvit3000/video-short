@@ -181,3 +181,44 @@ def test_default_engine_and_explicit_engine_are_respected(tmp_path, monkeypatch,
     assert util.load_config()["tts"]["engines"] == ["omnivoice"]
     (tmp_path / "config.json").write_text(json.dumps({"tts": {"engines": ["vieneu"]}}))
     assert util.load_config()["tts"]["engines"] == ["vieneu"]
+
+
+def test_reference_cadence_and_project_multiplier():
+    from studio.providers.tts.omnivoice import target_duration
+
+    text = " ".join(["một"] * 54)
+    assert target_duration(text, {"target_space_tokens_per_second": 5.4}) == pytest.approx(10)
+    assert target_duration(text, {"target_space_tokens_per_second": 5.4, "speed": 1.2}) == pytest.approx(10 / 1.2)
+    assert target_duration(text, {}) is None
+    for rate in (0, -1, float("nan"), float("inf"), 20):
+        with pytest.raises(ValidationError):
+            target_duration(text, {"target_space_tokens_per_second": rate})
+
+
+def test_workflow_default_preserves_language_and_other_modes(settings):
+    from studio.voices import load_registry
+
+    reg = load_registry(settings)
+    assert reg.default_for("vi", "knowledge_explainer").id == "omnivoice-vi-knowledge-under30"
+    assert reg.default_for("vi", "longform_explainer").id == "omnivoice-vi-knowledge-under30"
+    assert reg.default_for("vi", "story_reader").id == "omnivoice-vi-thaison"
+    assert reg.default_for("en", "knowledge_explainer").id == "piper-en-lessac"
+
+
+@pytest.mark.parametrize(
+    ("lang", "voice", "expected"),
+    [("vi", None, "omnivoice-vi-knowledge-under30"), ("en", None, "piper-en-lessac"), ("vi", "mock-vi", "mock-vi")],
+)
+def test_new_knowledge_project_selects_voice_without_double_speed(tmp_path, lang, voice, expected):
+    from typer.testing import CliRunner
+
+    from studio.cli import app
+
+    args = ["new", "knowledge_explainer", "voice default", "--dir", str(tmp_path / "project"), "--lang", lang]
+    if voice:
+        args.extend(["--voice", voice])
+    result = CliRunner().invoke(app, args)
+    assert result.exit_code == 0, result.output
+    data = json.loads((tmp_path / "project/project.json").read_text(encoding="utf-8"))
+    assert data["audio"]["voice_profile"] == expected
+    assert data["audio"]["speed"] == 1.0

@@ -40,7 +40,11 @@ def audition_sample(registry, profile, text=DEFAULT_TEXT):
                 "voice_signature": signature(profile),
                 "text": text,
                 "sha256": hashlib.sha256(sample.read_bytes()).hexdigest(),
-                "preference": "deep male Southern Vietnamese",
+                "preference": (
+                    "user-provided knowledge reference cadence"
+                    if profile.params.get("target_space_tokens_per_second")
+                    else "deep male Southern Vietnamese"
+                ),
                 "training": "not started",
                 "human_listening": "required",
             },

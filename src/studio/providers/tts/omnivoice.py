@@ -5,6 +5,7 @@ from __future__ import annotations
 import atexit
 import hashlib
 import json
+import math
 import os
 import subprocess
 import threading
@@ -82,6 +83,18 @@ def _close_all():
         worker.close()
 
 
+def target_duration(text, params):
+    """Match Vietnamese reference pacing using space-separated speech units, not English WPM."""
+    rate = params.get("target_space_tokens_per_second")
+    if rate is None:
+        return None
+    speed = float(params.get("speed", 1.0))
+    rate = float(rate)
+    if not math.isfinite(rate) or not 1 <= rate <= 12 or not math.isfinite(speed) or not 0.5 <= speed <= 2:
+        raise ValidationError("Invalid speech rate or speed", code="voice_pacing")
+    return max(0.5, len(text.split()) / (rate * speed))
+
+
 class OmniVoiceTTS(TTSProvider):
     name = "omnivoice"
     extension = ".wav"
@@ -138,6 +151,7 @@ class OmniVoiceTTS(TTSProvider):
                 "out": str(out_path.resolve()),
                 "language": profile.lang,
                 "speed": float(p.get("speed", 1.0)),
+                "duration": target_duration(text, p),
                 "num_step": int(p.get("num_step", 32)),
                 "seed": int(p.get("seed", 42)),
             }
