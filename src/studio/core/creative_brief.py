@@ -135,7 +135,9 @@ def recommendation(folder, mode):
     from ..voices import load_registry
     from .config import get_settings
 
-    b["voice"] = load_registry(get_settings()).default_for(project.get("language", "vi"), mode).id
+    b["voice"] = load_registry(get_settings()).default_for(
+        project.get("language", "vi"), mode, project.get("video", {}).get("format", "short_9x16")
+    ).id
     b.update(
         goal="Giữ đúng thông tin nguồn, trình bày rõ và dễ xem",
         audience="Người Việt xem video ngắn",
@@ -313,7 +315,7 @@ def preflight(folder: Path):
     from .config import get_settings
 
     profile = load_registry(get_settings()).get(data["answers"]["voice"])
-    rate = float(profile.params.get("target_space_tokens_per_second", 3.2))
+    rate = float(profile.estimated_space_tokens_per_second or profile.params.get("target_space_tokens_per_second", 3.2))
     pace = {"calm": 0.95, "normal": 1.0, "brisk": 1.12}[data["answers"]["pacing"]]
     seconds = words / (rate * float(profile.params.get("speed", 1.0)) * pace)
     report = {
@@ -321,7 +323,8 @@ def preflight(folder: Path):
         "scenes": len(texts),
         "spoken_words": words,
         "estimated_speech_seconds": round(seconds, 1),
-        "speech_rate_source": "profile" if "target_space_tokens_per_second" in profile.params else "rough default",
+        "speech_rate_source": ("audition estimate" if profile.estimated_space_tokens_per_second else
+                               "profile" if "target_space_tokens_per_second" in profile.params else "rough default"),
         "target_seconds": data["answers"]["target_seconds"],
         "preview_kind": "text storyboard, not pixel-accurate final layout",
         "pages": pages,
@@ -396,18 +399,19 @@ def begin_social(folder, cfg):
     from .voice_policy import assert_social_config, signature, social_profile
 
     assert_social_config(cfg["tts"])  # before reading caches or starting work
+    from .user_review import require
+
+    voice_acceptance = require(folder, "voice")
     key = _hash(
         [
             data["approved_fingerprint"],
+            voice_acceptance["fingerprint"],
             signature(social_profile(cfg["tts"])[0]),
             {k: cfg.get(k) for k in ("tts", "video", "story", "reddit", "fonts", "bgm")},
             {name: _sha(Path(__file__).parents[1] / "social_video" / name)
              for name in ("post_renderer.py", "subs.py", "reddit.py", "reddit_full.py", "quality.py")},
         ]
     )
-    from .user_review import require
-
-    require(folder, "voice")
     cache = _read(folder / "native_render_cache.json", {})
     items = cache.get("outputs", [])
     if (
@@ -417,9 +421,6 @@ def begin_social(folder, cfg):
     ):
         checkpoint(folder, "final")
         return key, [Path(i["path"]) for i in items]
-    from .user_review import require
-
-    require(folder, "voice")
     reserve_render(folder, key)
     return key, []
 

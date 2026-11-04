@@ -302,18 +302,19 @@ def _synth_once(text: str, out: Path, tcfg: dict, attempts: int) -> list[dict]:
                     return _cached("omnivoice|"+json.dumps(profile.params,sort_keys=True),text,out,omni)
                 if engine == "vieneu":
                     from .local_voice import generate
+                    from ..core.voice_policy import signature, social_profile
                     v = tcfg['vieneu']
+                    identity = signature(social_profile(tcfg)[0])
                     def local():
                         out.parent.mkdir(parents=True, exist_ok=True)
                         wav = out.with_suffix('.local.wav')
                         try:
                             generate(text, wav, v)
-                            run([ffmpeg(), '-y', '-v', 'error', '-i', str(wav),
-                                 '-af', f"atempo={float(v.get('speed', 1.0))}", str(out)])
+                            run([ffmpeg(), '-y', '-v', 'error', '-i', str(wav), str(out)])
                         finally:
                             wav.unlink(missing_ok=True)
                         return _spread(text.split(), 0.0, media_duration(out))
-                    return _cached('vieneu|' + json.dumps(v, sort_keys=True), text, out, local)
+                    return _cached('vieneu|native-pause-v2|' + identity + json.dumps(v, sort_keys=True), text, out, local)
                 if engine == "vivibe":
                     v = tcfg["vivibe"]
                     return _cached(f"vivibe|{v['voice_id']}|{v.get('speed', 1.0)}", text, out,
@@ -490,7 +491,7 @@ def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.
 
     from ..core.voice_policy import signature as voice_signature, social_profile
     identity = voice_signature(social_profile(tcfg)[0])
-    signature = hashlib.sha256(json.dumps([texts, roles, tcfg, gap, identity], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
+    signature = hashlib.sha256(json.dumps([texts, roles, tcfg, gap, identity, "native-pause-v2"], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
     workdir = workdir / signature
     workdir.mkdir(parents=True, exist_ok=True)
     texts = [clean_for_speech(t) or "…" for t in texts]
@@ -507,7 +508,11 @@ def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.
         free = {**rcfg, "engines": [e for e in rcfg["engines"] if e not in BATCH_ENGINES]}
         mp3 = workdir / f"{i:04d}.mp3"
         synth(texts[i], mp3, free)
-        tidy(mp3, wavs[i], gap)
+        if free["engines"] == ["vieneu"]:
+            # Keep the model's breathing and sentence endings instead of replacing them with uniform gaps.
+            run([ffmpeg(), "-y", "-v", "error", "-i", str(mp3), "-ar", "48000", "-ac", "2", str(wavs[i])])
+        else:
+            tidy(mp3, wavs[i], gap)
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         list(pool.map(one, range(len(texts))))

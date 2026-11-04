@@ -84,6 +84,8 @@ def payload(folder, stage):
             )
             if not manifest:
                 raise ValidationError("Chuẩn bị gói nghe/xem trước bằng social-voice", code="review_missing_voice")
+            if has_spoken and (folder / "vi.json").is_file() and not manifest.get("body"):
+                raise ValidationError("Cần gói lời đọc Reddit có danh sách câu đã nghe", code="review_missing_voice")
             files = [Path(x) for x in manifest.get("files", [])]
             files += [Path(x) for x in manifest.get("timing_files", [])]
             if (folder / "part_plan.json").is_file():
@@ -109,7 +111,9 @@ def payload(folder, stage):
                 profile = (
                     registry.get(choices["voice_profile"])
                     if choices.get("voice_profile")
-                    else registry.default_for(p.get("language", "vi"), p.get("workflow"))
+                    else registry.default_for(
+                        p.get("language", "vi"), p.get("workflow"), p.get("video", {}).get("format")
+                    )
                 )
                 choices["profile_signature"] = signature(profile)
             style_name = p.get("video", {}).get("caption_style", "clean_box")
@@ -136,6 +140,40 @@ def payload(folder, stage):
         if (folder / "voice_manifest.json").is_file():
             files.append(folder / "voice_manifest.json")
         files += sorted((folder / "work/previews").rglob("*.png"))
+        files += sorted((folder / "work/speech_checks").glob("*.json"))
+        from .speech_checks import critical_numbers, file_sha, text_sha
+
+        if p:
+            samples = [
+                (s["scene_id"], s.get("narration", ""), folder / s["audio_path"])
+                for s in p.get("scenes", [])
+                if s.get("audio_path")
+            ]
+        elif (folder / "vi.json").is_file():
+            from ..social_video.reddit import chunks
+
+            texts = [s for group in chunks(read(folder / "vi.json")["paragraphs"]) for s in group]
+            if len(texts) != len(manifest.get("body", [])):
+                raise ValidationError("Thiếu tệp lời đọc Reddit theo từng câu", code="review_missing_voice")
+            samples = [
+                (f"reddit_{i:04d}", t, Path(a["path"]))
+                for i, (t, a) in enumerate(zip(texts, manifest["body"], strict=True))
+            ]
+        else:
+            samples = []
+            for i, beat in enumerate(read(folder / "merged_plan.json", {}).get("beats", [])):
+                if not beat.get("narration", "").strip():
+                    continue
+                asset = manifest.get("beats", {}).get(str(i))
+                if not asset:
+                    raise ValidationError("Thiếu tệp lời đọc cho bài Threads", code="review_missing_voice")
+                samples.append((f"merged_b{i:02d}", beat["narration"], Path(asset["audio"])))
+        for scene_id, text, audio in samples:
+            if not critical_numbers(text):
+                continue
+            check = read(folder / "work/speech_checks" / (scene_id + ".json"), {})
+            if check.get("audio_sha256") != file_sha(audio) or check.get("text_sha256") != text_sha(text):
+                raise ValidationError("Cần kiểm tra lại cách đọc số từ tệp tiếng thật", code="review_number_check")
         return {
             "script": digest(payload(folder, "script")),
             "voice_choices": choices,
@@ -292,6 +330,14 @@ def prepare(folder, stage):
                 path = Path(item["path"])
                 if path.suffix.lower() in (".mp3", ".wav", ".m4a"):
                     lines += [f"![{path.name}]({path.as_posix()})", ""]
+                if path.parent.name == "speech_checks":
+                    report = read(path, {})
+                    if report.get("checks"):
+                        lines += [
+                            "Cụm cần nghe kỹ: " + "; ".join(c["phrase"] for c in report["checks"]),
+                            "ASR nguyên gốc: " + report.get("raw_transcript", ""),
+                            "",
+                        ]
         else:
             for item in data["videos"]:
                 lines += [f"![Video cần duyệt]({Path(item['path']).as_posix()})", ""]

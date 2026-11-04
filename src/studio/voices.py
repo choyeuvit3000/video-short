@@ -32,6 +32,7 @@ class VoiceProfile:
     files: list[dict[str, Any]] = field(default_factory=list)
     license: str | None = None
     source_file: str = ""
+    estimated_space_tokens_per_second: float | None = None
 
     @property
     def usable(self) -> bool:
@@ -67,6 +68,7 @@ class VoiceRegistry:
     defaults: dict[str, str]
     offline_fallback: dict[str, str]
     workflow_defaults: dict[str, dict[str, str]] = field(default_factory=dict)
+    format_defaults: dict[str, dict[str, str]] = field(default_factory=dict)
 
     def get(self, voice_id: str) -> VoiceProfile:
         if voice_id not in self.profiles:
@@ -77,8 +79,12 @@ class VoiceRegistry:
         assert_not_blocked(p.provider, p.id, p.params)
         return p
 
-    def default_for(self, lang: str, workflow: str | None = None) -> VoiceProfile:
-        vid = self.workflow_defaults.get(workflow, {}).get(lang) or self.defaults.get(lang)
+    def default_for(self, lang: str, workflow: str | None = None, format_name: str | None = None) -> VoiceProfile:
+        vid = (
+            self.format_defaults.get(format_name, {}).get(lang)
+            or self.workflow_defaults.get(workflow, {}).get(lang)
+            or self.defaults.get(lang)
+        )
         if not vid:
             raise ValidationError(
                 f"No default voice for language '{lang}' in voices/registry.yaml", code="unknown_voice"
@@ -147,6 +153,7 @@ def load_registry(settings: Settings) -> VoiceRegistry:
         workflow_defaults=deep_merge(
             reg.get("workflow_defaults", {}), settings.get("voice_workflow_defaults", {}) or {}
         ),
+        format_defaults=deep_merge(reg.get("format_defaults", {}), settings.get("voice_format_defaults", {}) or {}),
     )
 
 

@@ -592,8 +592,9 @@ def voice_story(paragraphs: list[str], cfg: dict, cast: dict,
     speaker's: pieces are voiced separately (grouped by role) and joined per sentence."""
     import hashlib
     from ..core.voice_policy import signature as voice_signature, social_profile
-    identity = voice_signature(social_profile(_tcfg(cfg))[0])
-    signature = hashlib.sha256(json.dumps([paragraphs, cast, _tcfg(cfg), identity, GAP], sort_keys=True,
+    profile = social_profile(_tcfg(cfg))[0]
+    identity = voice_signature(profile)
+    signature = hashlib.sha256(json.dumps([paragraphs, cast, _tcfg(cfg), identity, GAP, "native-pause-v2"], sort_keys=True,
                                           ensure_ascii=False).encode()).hexdigest()[:16]
     audio_dir = audio_dir / signature
     audio_dir.mkdir(parents=True, exist_ok=True)
@@ -621,7 +622,7 @@ def voice_story(paragraphs: list[str], cfg: dict, cast: dict,
     for k, idx in enumerate(owner):
         wav = audio_dir / f"s{k:04d}.wav"
         if not wav.exists():
-            _join([pieces[i][0] for i in idx], wav, GAP - 0.04)
+            _join([pieces[i][0] for i in idx], wav, 0.0 if profile.provider == "vieneu" else GAP - 0.04)
         out.append((wav, media_duration(wav)))
     return out
 
@@ -681,14 +682,12 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
     log(f"Truyện {story_id}: {len(flat)} câu, {len(groups)} thẻ, "
         f"{sum(len(s) for s in flat)} ký tự")
 
-    # Vivibe's hourly export quota is waited out (one voice per story); other Vivibe
-    # failures fall back to the free voices inside tts.
-    # voice every sentence (cached, so re-renders are free); vi["cast"] names the
-    # narrator's voice and who speaks the dialogue
-    cast = vi.get("cast", {})
     paragraphs = [p for p in vi["paragraphs"] if p.strip()]
-    voiced = voice_story(paragraphs, cfg, cast, d / "audio")
-    from .reddit_edit import partition
+    from .reddit_edit import approved_audio, partition, plan
+    voiced, hook_assets = approved_audio(d, len(flat))
+    if plan(groups, voiced, float(rc.get("part_max_sec", 75))) != read_json(d / "part_plan.json", {}).get("parts"):
+        from ..core.errors import ManualGateRequired
+        raise ManualGateRequired("voice_parts", "Bản chia phần thay đổi; cần chuẩn bị lại gói nghe trước khi dựng.")
     parts=partition(groups,voiced,float(rc.get("part_max_sec",75)))
     n_parts=len(parts)
 
@@ -697,8 +696,9 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
     # Cold open: the first story sentence starts at 00:00. Part labels are visual only.
     from .reddit_edit import hook_texts
     hooks=hook_texts(vi,parts)
-    narrator=cast.get("narrator","narrator_female")
-    hook_assets=[voice_free(t,d/"audio_hook",cfg,narrator) if t else None for t in hooks]
+    if len(hook_assets) != n_parts:
+        from ..core.errors import ManualGateRequired
+        raise ManualGateRequired("voice_hooks", "Thiếu câu mở đầu đã nghe duyệt cho từng phần.")
     if any(x and x[1]>5 for x in hook_assets):
         from ..core.errors import ManualGateRequired
         raise ManualGateRequired("reddit_hook","Câu mở đầu vượt năm giây; chỉnh lời đọc trước khi duyệt.")

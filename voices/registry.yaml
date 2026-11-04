@@ -30,3 +30,8 @@ workflow_defaults:
     vi: omnivoice-vi-knowledge-under30
   longform_explainer:
     vi: omnivoice-vi-knowledge-under30
+
+# Vietnamese Shorts use a native Vietnamese preset; production still waits for human admission.
+format_defaults:
+  short_9x16:
+    vi: vieneu-vi-short

@@ -10,9 +10,13 @@ Everything the libraries print goes to stderr, so stdout carries only the protoc
 
 from __future__ import annotations
 
+import argparse
+import hashlib
 import json
 import sys
 import time
+from importlib.metadata import version
+from pathlib import Path
 
 
 def main() -> int:
@@ -21,19 +25,41 @@ def main() -> int:
     proto.reconfigure(encoding="utf-8")
     sys.stdin.reconfigure(encoding="utf-8")
     try:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--binding", default="{}")
+        binding = json.loads(parser.parse_args().binding)
+        if binding.get("package_version") and version("vieneu") != binding["package_version"]:
+            raise ValueError("VieNeu package version changed; re-evaluate the voice")
         import torch
+        import vieneu
         from vieneu import Vieneu
 
         t0 = time.time()
-        tts = Vieneu()
+        model_args = {}
+        if binding.get("revision"):
+            from huggingface_hub import snapshot_download
+
+            model_args["backbone_repo"] = snapshot_download(
+                binding["model"], revision=binding["revision"], local_files_only=True
+            )
+            model_args["model_subfolder"] = binding.get("model_subfolder", "update")
+        tts = Vieneu(**model_args)
+        presets = json.loads(
+            (Path(vieneu.__file__).parent / "assets/voices_v3_turbo.json").read_text(encoding="utf-8")
+        )["presets"]
         rate = int(getattr(tts, "sample_rate", 48000))
         voices = [v for _, v in tts.list_preset_voices()]
     except Exception as e:  # noqa: BLE001 - reported to the caller, which falls back to another voice
         proto.write(json.dumps({"ok": False, "error": f"load failed: {type(e).__name__}: {e}"}) + "\n")
         proto.flush()
         return 1
-    ready = {"ok": True, "ready": True, "load_sec": round(time.time() - t0, 1),
-             "cuda": torch.cuda.is_available(), "voices": voices}
+    ready = {
+        "ok": True,
+        "ready": True,
+        "load_sec": round(time.time() - t0, 1),
+        "cuda": torch.cuda.is_available(),
+        "voices": voices,
+    }
     proto.write(json.dumps(ready, ensure_ascii=False) + "\n")
     proto.flush()
     for line in sys.stdin:
@@ -43,13 +69,20 @@ def main() -> int:
             req = json.loads(line)
             if req.get("voice") and req["voice"] not in voices:
                 raise ValueError(f"unknown VieNeu voice {req['voice']!r}")
-            import unicodedata, re
-            name=re.sub(r"[^a-z]","",unicodedata.normalize("NFKD",req.get("voice") or "").lower())
+            import re
+            import unicodedata
+
+            name = re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", req.get("voice") or "").lower())
             if not name or "maianh" in name:
                 raise ValueError("Mai Anh/default voice is permanently blacklisted")
+            if req.get("preset_sha256"):
+                actual = hashlib.sha256(
+                    json.dumps(presets[req["voice"]], sort_keys=True, ensure_ascii=False).encode()
+                ).hexdigest()
+                if actual != req["preset_sha256"]:
+                    raise ValueError("Voice preset changed; audition and review again")
             torch.manual_seed(int(req.get("seed", 0)))
-            audio = tts.infer(req["text"], voice=req.get("voice"),
-                              temperature=float(req.get("temperature", 0.7)))
+            audio = tts.infer(req["text"], voice=req.get("voice"), temperature=float(req.get("temperature", 0.7)))
             tts.save(audio, req["out"])
             resp = {"ok": True, "sec": round(len(audio) / rate, 3)}
         except Exception as e:  # noqa: BLE001

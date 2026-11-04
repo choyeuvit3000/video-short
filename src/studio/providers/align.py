@@ -61,6 +61,11 @@ def map_onto_text(text: str, recognized: list[Word], duration_ms: int, *, strict
         if strict:
             raise ProviderUnavailable("Không nhận được mốc lời nói; cần căn lại phụ đề", code="alignment_review")
         return estimate_words(text, duration_ms)
+    if strict:
+        from ..core.speech_checks import audit_numbers
+
+        if any(c["evidence"] == "MISSING_MARKER" for c in audit_numbers(text, recognized)["checks"]):
+            raise ProviderUnavailable("ASR thiếu từ đọc số quan trọng; cần nghe/sửa, không tự nội suy chữ phẩy", code="speech_number")
     # Ignore hallucinated zero-length/out-of-range tails; normalize numeric ASR tokens to spoken forms.
     from ..core.speech_edit import normalize
 

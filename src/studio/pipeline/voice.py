@@ -74,7 +74,7 @@ def trim_silence(path: Path, *, scene_id: str | None = None, keep_lead_ms: int =
 
 def choose_profile(ctx: ProjectContext, reg: VoiceRegistry) -> VoiceProfile:
     p = ctx.project
-    prof = reg.get(p.audio.voice_profile) if p.audio.voice_profile else reg.default_for(p.language, p.workflow)
+    prof = reg.get(p.audio.voice_profile) if p.audio.voice_profile else reg.default_for(p.language, p.workflow, p.video.format)
     if not prof.usable:
         raise ValidationError(
             f"Voice '{prof.id}' has status '{prof.status}' - enable it in {prof.source_file} "
@@ -104,6 +104,9 @@ def _words_for(
     }
     for step in chain:
         if step == "provider_words" and provider_words:
+            from ..core.speech_checks import save_audit
+
+            save_audit(ctx.dir, scene_id, audio, text, provider_words, source="provider_words")
             return align.map_onto_text(text, provider_words, duration_ms, strict=strict), "provider"
         if step == "faster_whisper":
             try:
@@ -114,6 +117,11 @@ def _words_for(
                     device=ctx.settings.get("align.device", "auto"),
                     compute_type=ctx.settings.get("align.compute_type", "auto"),
                 )
+                from ..core.speech_checks import save_audit
+
+                report = save_audit(ctx.dir, scene_id, audio, text, rec)
+                if report["checks"]:
+                    warnings.append(f"{scene_id}: nghe xác nhận cách đọc số trong work/speech_checks/{scene_id}.json")
                 return align.map_onto_text(
                     text, rec, duration_ms, strict=strict
                 ), "faster_whisper"
@@ -249,7 +257,8 @@ def run_voice(ctx: ProjectContext, *, overwrite: bool = False) -> dict:
                 overwrite = True  # regenerate every scene with the fallback voice, never mix voices
         prof_id = prof.id
 
-    tail = float(ctx.settings.get("timing.scene_tail_pad_sec", 0.25))
+    profile_tail = prof.params.get("scene_tail_pad_sec") if p.audio.source != "manual" else None
+    tail = float(profile_tail if profile_tail is not None else ctx.settings.get("timing.scene_tail_pad_sec", 0.25))
     min_scene = float(ctx.settings.get("timing.min_scene_sec", 1.5))
     tol_ms = int(ctx.settings.get("timing.voice_overflow_tolerance_ms", 200))
     fmt = ctx.fmt
@@ -275,6 +284,15 @@ def run_voice(ctx: ProjectContext, *, overwrite: bool = False) -> dict:
                         for w in estimate_words(c.text, c.end_ms - c.start_ms)
                     ]
                 timing_src = "manual_srt"
+                from ..core.speech_checks import critical_numbers, save_audit
+
+                if critical_numbers(text):
+                    rec = align.faster_whisper_words(
+                        apath, p.language, model=ctx.settings.get("align.faster_whisper_model", "small"),
+                        device=ctx.settings.get("align.device", "auto"),
+                        compute_type=ctx.settings.get("align.compute_type", "auto"),
+                    )
+                    save_audit(ctx.dir, s.scene_id, apath, text, rec)
             elif text:
                 words, timing_src = _words_for(ctx, text, apath, voice_ms, pwords, warnings, s.scene_id)
         elif text and p.audio.source == "manual":

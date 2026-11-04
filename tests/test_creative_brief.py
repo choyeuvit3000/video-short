@@ -48,17 +48,17 @@ def test_new_brief_uses_machine_voice_default(tmp_path, monkeypatch):
     monkeypatch.setattr(
         "studio.voices.load_registry",
         lambda settings: SimpleNamespace(
-            default_for=lambda lang, workflow=None: SimpleNamespace(id="omnivoice-vi-thaison")
+            default_for=lambda lang, workflow=None, format_name=None: SimpleNamespace(id="vieneu-vi-short")
         ),
     )
-    assert prepare(tmp_path)["answers"]["voice"] == "omnivoice-vi-thaison"
+    assert prepare(tmp_path)["answers"]["voice"] == "vieneu-vi-short"
 
 
 def test_knowledge_brief_recommends_workflow_voice(tmp_path):
     (tmp_path / "project.json").write_text(
         json.dumps({"workflow": "knowledge_explainer", "language": "vi", "audio": {}, "scenes": []})
     )
-    assert prepare(tmp_path)["answers"]["voice"] == "omnivoice-vi-knowledge-under30"
+    assert prepare(tmp_path)["answers"]["voice"] == "vieneu-vi-short"
 
 
 def test_preflight_estimates_new_reference_cadence_without_tts(tmp_path, monkeypatch):

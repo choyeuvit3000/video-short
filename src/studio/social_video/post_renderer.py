@@ -123,6 +123,10 @@ class StoryRenderer:
             if beat.get(name):refs.append(MEMES/self.items[beat[name]]["file"])
         if self.bg_video:refs.append(self.bg_video)
         else:refs.append(self.dir/self.bg_still)
+        from .util import read_json
+        approved = read_json(self.dir / "voice_manifest.json", {}).get("beats", {}).get(str(k))
+        if approved:
+            refs += [Path(approved["audio"]), Path(approved["words"])]
         hashes=[(str(p),_sha(p)) for p in refs]
         hashes += [(name, _sha(Path(__file__).parent / name)) for name in ("post_renderer.py", "subs.py")]
         fingerprint=hashlib.sha256(json.dumps([beat,hook,self.cfg,voice_key,hashes],sort_keys=True).encode()).hexdigest()
@@ -145,8 +149,11 @@ class StoryRenderer:
             words = [{"text": w.text, "start": w.start_ms / 1000, "end": w.end_ms / 1000}
                      for w in load_words(Path(approved["words"]))[0]]
             voice_dur = media_duration(voice)
+        elif beat.get("narration", "").strip():
+            from ..core.errors import ManualGateRequired
+            raise ManualGateRequired("voice_assets", "Chưa có lời đọc được người dùng nghe duyệt; không tự tạo tiếng khi dựng.")
         else:
-            voice, words, voice_dur = self.seg.narrate(beat["narration"], name)
+            voice, words, voice_dur = None, [], 0.0
         inputs: list = []
         filters: list[str] = []
         audio: list[tuple[int, float, float, float]] = []  # (input, delay, max len, volume)

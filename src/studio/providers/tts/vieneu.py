@@ -42,7 +42,7 @@ def _python() -> Path:
 class _Runner:
     """The worker process; one per python path, shared by every provider instance."""
 
-    def __init__(self, python: Path):
+    def __init__(self, python: Path, binding: dict):
         env = {
             **os.environ,
             "HF_HOME": str(_conf().get("hf_home") or DEFAULT_HF_HOME),
@@ -50,13 +50,14 @@ class _Runner:
             "PYTHONIOENCODING": "utf-8",
         }
         self.proc = subprocess.Popen(
-            [str(python), "-I", str(RUNNER)],
+            [str(python), "-I", str(RUNNER), "--binding", json.dumps(binding)],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             env=env,
             encoding="utf-8",
             bufsize=1,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
         )
         self.lock = threading.Lock()
         hello = self._read(LOAD_TIMEOUT_SEC)
@@ -98,7 +99,7 @@ class _Runner:
                 self.proc.kill()
 
 
-_runners: dict[str, _Runner] = {}
+_runners: dict[tuple, _Runner] = {}
 
 
 @atexit.register
@@ -107,11 +108,17 @@ def _close_all() -> None:
         r.close()
 
 
-def _runner() -> _Runner:
+def _runner(profile=None) -> _Runner:
     py = _python()
-    r = _runners.get(str(py))
+    binding = {
+        k: profile.params[k]
+        for k in ("model", "revision", "model_subfolder", "package_version")
+        if profile and k in profile.params
+    }
+    key = (str(py), json.dumps(binding, sort_keys=True))
+    r = _runners.get(key)
     if r is None or r.proc.poll() is not None:
-        r = _runners[str(py)] = _Runner(py)
+        r = _runners[key] = _Runner(py, binding)
     return r
 
 
@@ -144,13 +151,14 @@ class VieneuTTS(TTSProvider):
             raise ProviderUnavailable(reason, code="tts_unavailable")
         p = profile.params
         seed = int(p.get("seed", int(hashlib.sha256(text.encode()).hexdigest()[:8], 16)))  # same text -> same take
-        resp = _runner().ask(
+        resp = _runner(profile).ask(
             {
                 "text": text,
                 "voice": p.get("voice"),
                 "out": str(out_path),
                 "seed": seed,
                 "temperature": float(p.get("temperature", 0.7)),
+                "preset_sha256": p.get("preset_sha256"),
             }
         )
         if not resp.get("ok"):

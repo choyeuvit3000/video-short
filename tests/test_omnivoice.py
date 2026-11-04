@@ -178,9 +178,9 @@ def test_default_engine_and_explicit_engine_are_respected(tmp_path, monkeypatch,
 
     assert load_registry(settings).default_for("vi").id == "omnivoice-vi-thaison"
     monkeypatch.setattr(util, "ROOT", tmp_path)
-    assert util.load_config()["tts"]["engines"] == ["omnivoice"]
-    (tmp_path / "config.json").write_text(json.dumps({"tts": {"engines": ["vieneu"]}}))
     assert util.load_config()["tts"]["engines"] == ["vieneu"]
+    (tmp_path / "config.json").write_text(json.dumps({"tts": {"engines": ["omnivoice"]}}))
+    assert util.load_config()["tts"]["engines"] == ["omnivoice"]
 
 
 def test_reference_cadence_and_project_multiplier():
@@ -207,7 +207,7 @@ def test_workflow_default_preserves_language_and_other_modes(settings):
 
 @pytest.mark.parametrize(
     ("lang", "voice", "expected"),
-    [("vi", None, "omnivoice-vi-knowledge-under30"), ("en", None, "piper-en-lessac"), ("vi", "mock-vi", "mock-vi")],
+    [("vi", None, "vieneu-vi-short"), ("en", None, "piper-en-lessac"), ("vi", "mock-vi", "mock-vi")],
 )
 def test_new_knowledge_project_selects_voice_without_double_speed(tmp_path, lang, voice, expected):
     from typer.testing import CliRunner
