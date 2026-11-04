@@ -139,6 +139,11 @@ def test_explainer_writes_scenes_then_waits_for_review(tmp_path, settings):
     todo = (ctx.dir / "TODO_MANUAL.md").read_text(encoding="utf-8")
     assert "studio approve" in todo and "Investopedia" in todo and "guaranteed" in todo
 
+    assert CliRunner().invoke(app,["approve",str(ctx.dir)]).exit_code==3
+    from studio.core import creative_brief as cb,user_review
+    cb.prepare(ctx.dir,{"goal":"Explain compound interest","audience":"Vietnamese viewer","voice":"mock-vi"})
+    user_review.prepare(ctx.dir,"script")
+    user_review.approve(ctx.dir,"script","User fixture: fact checked and approved")
     r = CliRunner().invoke(app, ["approve", str(ctx.dir)])
     assert r.exit_code == 0, r.output
     ctx2 = type(ctx)(ctx.dir, settings=settings)

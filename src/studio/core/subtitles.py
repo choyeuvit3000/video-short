@@ -95,7 +95,8 @@ def group_words(words: list[Word], *, max_words: int, max_chars: int, max_gap_ms
 # words a phrase may start with: break captions before them rather than after (vi + en)
 BREAK_BEFORE = frozenset(
     "và nhưng còn hoặc hay để khi nếu vì nên từ đến với cho trước sau trong là thì mà cùng tại theo do bởi "
-    "and but or so to for with when if because from in of that which while".split())
+    "and but or so to for with when if because from in of that which while".split()
+)
 _NUMBER_RE = re.compile(r"^\d[\d.,:/%]*$")
 _QUOTES = "\"'“”‘’()"
 
@@ -131,8 +132,7 @@ def group_phrases(words: list[Word], *, max_words: int, max_chars: int, max_gap_
                 seq = cur + [w]
                 # the best break inside the chunk, not too close to its start; later wins a tie
                 lo = min(len(cur), max(2, len(cur) // 3))
-                i, score = max(((i, _good_break(seq, i)) for i in range(lo, len(cur) + 1)),
-                               key=lambda c: (c[1], c[0]))
+                i, score = max(((i, _good_break(seq, i)) for i in range(lo, len(cur) + 1)), key=lambda c: (c[1], c[0]))
                 if score <= 0:  # no natural break: cut before the new word, unless that splits "12.000 | câu"
                     i = len(cur) if _good_break(seq, len(cur)) >= 0 or len(cur) < 3 else len(cur) - 1
                 chunks.append(cur[:i])
@@ -299,6 +299,7 @@ def build_ass(
     font = style.get("font", "Arial")
     size = int(caption.get("font_size", 72) * float(style.get("size_scale", 1.0)))
     primary = hex_to_ass(style.get("color", "#FFFFFF"))
+    secondary = hex_to_ass(style.get("inactive_color", style.get("color", "#FFFFFF")))
     outline = hex_to_ass(style.get("outline_color", "#000000"), alpha=int(style.get("outline_alpha", 0)))
     back = hex_to_ass(style.get("shadow_color", "#000000"), alpha=int(style.get("shadow_alpha", 96)))
     highlight = hex_to_ass(style.get("highlight_color", "#FFE14D"))
@@ -312,7 +313,7 @@ def build_ass(
     margin_r = int(caption.get("margin_r", margin_h))
     upper = bool(style.get("uppercase", False))
     styles = (
-        f"Style: Caption,{font},{size},{primary},{primary},{outline},{back},{bold},0,0,0,100,100,0,0,"
+        f"Style: Caption,{font},{size},{primary},{secondary},{outline},{back},{bold},0,0,0,100,100,0,0,"
         f"{border_style},{outline_w},{shadow},2,{margin_l},{margin_r},{margin_v},1"
     )
     lines = [ASS_HEADER.format(w=width, h=height, styles=styles)]
@@ -322,6 +323,21 @@ def build_ass(
     two_lines = int(style.get("lines", 1)) >= 2
     group = group_phrases if two_lines else group_words
     chunks = group(words, max_words=max_words, max_chars=max_chars)
+    if style.get("smooth_phrases"):
+        merged = []
+        i = 0
+        while i < len(chunks):
+            ch = chunks[i]
+            i += 1
+            if (
+                i < len(chunks)
+                and ch[-1].end_ms - ch[0].start_ms < 600
+                and len(" ".join(w.text for w in ch + chunks[i])) <= max_chars
+            ):
+                ch = ch + chunks[i]
+                i += 1
+            merged.append(ch)
+        chunks = merged
     cues = chunks_to_cues(chunks)
     mode = style.get("mode", "highlight") if reliable_words else "plain"
     line_chars = int(style.get("line_chars") or max(8, max_chars // 2 + 2))
@@ -334,17 +350,32 @@ def build_ass(
         brk = split_lines([w.text for w in ch], line_chars) if two_lines else 0
         if brk:
             cue.text = joined([w.text for w in ch], brk).replace("\\N", "\n")
-        if mode == "highlight" and len(ch) > 1:
+        if mode == "karaoke":
+            parts = []
+            for i, (w, t) in enumerate(zip(ch, texts, strict=True)):
+                end = ch[i + 1].start_ms if i + 1 < len(ch) else cue.end_ms
+                cs = max(1, round((end - w.start_ms) / 10))
+                parts.append("{\\kf" + str(cs) + "}" + t)
+            fade = int(style.get("fade_ms", 50))
+            lines.append(
+                f"Dialogue: 0,{_ass_ts(cue.start_ms)},{_ass_ts(cue.end_ms)},Caption,,0,0,0,,"
+                + "{\\fad("
+                + str(fade)
+                + ","
+                + str(fade)
+                + ")}"
+                + joined(parts, brk)
+            )
+        elif mode == "highlight" and len(ch) > 1:
             for i, w in enumerate(ch):
                 start = cue.start_ms if i == 0 else w.start_ms
                 end = ch[i + 1].start_ms if i + 1 < len(ch) else cue.end_ms
                 if end <= start:
                     continue
-                parts = [
-                    f"{{\\c{highlight}}}{t}{{\\c{primary}}}" if j == i else t for j, t in enumerate(texts)
-                ]
+                parts = [f"{{\\c{highlight}}}{t}{{\\c{primary}}}" if j == i else t for j, t in enumerate(texts)]
                 lines.append(f"Dialogue: 0,{_ass_ts(start)},{_ass_ts(end)},Caption,,0,0,0,,{joined(parts, brk)}")
         else:
-            lines.append(f"Dialogue: 0,{_ass_ts(cue.start_ms)},{_ass_ts(cue.end_ms)},Caption,,0,0,0,,"
-                         f"{joined(texts, brk)}")
+            lines.append(
+                f"Dialogue: 0,{_ass_ts(cue.start_ms)},{_ass_ts(cue.end_ms)},Caption,,0,0,0,,{joined(texts, brk)}"
+            )
     return "\n".join(lines) + "\n", cues

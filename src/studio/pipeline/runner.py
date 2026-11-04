@@ -65,18 +65,16 @@ def _run(ctx: ProjectContext, ro: RunOptions) -> int:
     names = stages_for(ctx)
     registry = get_stages()
     selected = select_stages(ctx, ro)
-    if ctx.settings.get("planning.required", False) and any(
-        n in {"voice", "render", "images", "script", "storyboard", "explainer"} for n in selected
-    ):
-        from ..core.creative_brief import ensure_ready
-
-        ensure_ready(ctx.dir)
-    if ctx.project.audio.source != "manual" and any(n in {"voice", "render"} for n in selected):
-        from ..voices import load_registry
-        from .voice import choose_profile
-
-        choose_profile(ctx, load_registry(ctx.settings))  # also guard cached stages
     for name in selected:
+        if ctx.settings.get("reviews.required", True) and name in {"voice", "render"}:
+            from ..core.user_review import checkpoint
+
+            checkpoint(ctx.dir, "script" if name == "voice" else "voice")
+        if ctx.project.audio.source != "manual" and name in {"voice", "render"}:
+            from ..voices import load_registry
+            from .voice import choose_profile
+
+            choose_profile(ctx, load_registry(ctx.settings))
         fn = registry.get(name)
         if fn is None:
             raise StudioError(f"stage '{name}' has no implementation", code="bad_stage")
@@ -87,7 +85,7 @@ def _run(ctx: ProjectContext, ro: RunOptions) -> int:
             log.info("[%s] up to date - skipped (inputs unchanged; --force to rebuild)", name)
             ctx.set_stage(name, "done", prev.get("message", ""), fingerprint=fp, outputs=prev["outputs"], skipped=True)
             continue
-        if ctx.settings.get("planning.required", False) and name in {"voice", "render", "images"}:
+        if ctx.settings.get("planning.required", False) and name in {"voice", "render"}:
             from ..core.creative_brief import ensure_ready, reserve_render
 
             ensure_ready(ctx.dir)
@@ -128,6 +126,19 @@ def _run(ctx: ProjectContext, ro: RunOptions) -> int:
         extra = {"fingerprint": fp, "outputs": fingerprint.output_shas(ctx, name)} if fp else {}
         ctx.set_stage(name, "done", msg or "", **extra)
         log.info("[%s] done in %.1fs - %s", name, time.monotonic() - t0, msg)
+        if name == "voice" and ctx.settings.get("reviews.required", True):
+            from ..core.user_review import checkpoint
+
+            checkpoint(ctx.dir, "voice")
     if selected and selected[-1] == names[-1]:
         (ctx.dir / "TODO_MANUAL.md").unlink(missing_ok=True)
+    if ctx.settings.get("reviews.required", True) and any(n in {"voice", "render"} for n in selected):
+        from ..core.user_review import checkpoint
+
+        stage = "final" if "render" in selected else "voice"
+        if stage == "final" and "qc" not in selected:
+            from ..core.qc import run_qc
+
+            run_qc(ctx)
+        checkpoint(ctx.dir, stage)
     return EXIT_OK

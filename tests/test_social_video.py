@@ -5,19 +5,23 @@ import pytest
 
 from studio.social_video import quality
 
-def test_review_is_bound_to_current_video(tmp_path):
+def test_review_is_bound_to_current_video(tmp_path,monkeypatch):
+    monkeypatch.setattr("studio.core.user_review.require",lambda *a:None)
     video=tmp_path/'video.mp4'; video.write_bytes(b'first')
+    monkeypatch.setattr("studio.core.user_review.payload",lambda *a:{'videos':[{'path':str(video)}]})
     report={'automatic':'PASS','sha256':quality.sha256(video),'errors':[]}
     video.with_suffix('.qc.json').write_text(json.dumps(report))
-    assert quality.approve(video,'Viewed all scenes and listened to narration','reviewer')['status']=='PASS'
+    assert quality.approve(video,'Viewed all scenes and listened to narration','user',project=tmp_path)['status']=='PASS'
     video.write_bytes(b'edited')
     with pytest.raises(RuntimeError,match='stale'):
-        quality.approve(video,'Same review','reviewer')
+        quality.approve(video,'Same review','user',project=tmp_path)
 
-def test_cannot_approve_failed_or_unchecked_video(tmp_path):
+def test_cannot_approve_failed_or_unchecked_video(tmp_path,monkeypatch):
+    monkeypatch.setattr("studio.core.user_review.require",lambda *a:None)
     video=tmp_path/'video.mp4'; video.write_bytes(b'first')
-    with pytest.raises(RuntimeError): quality.approve(video,'checked','reviewer')
-    with pytest.raises(ValueError): quality.approve(video,'','reviewer')
+    monkeypatch.setattr("studio.core.user_review.payload",lambda *a:{'videos':[{'path':str(video)}]})
+    with pytest.raises(RuntimeError): quality.approve(video,'checked','user',project=tmp_path)
+    with pytest.raises(ValueError): quality.approve(video,'','user')
 
 def test_failed_candidate_never_replaces_previous_good_video(tmp_path,monkeypatch):
     draft=tmp_path/'draft.mp4';draft.write_bytes(b'draft')
@@ -55,7 +59,7 @@ def test_reddit_action_is_a_positional_argument(monkeypatch):
 def test_documented_review_options_parse(monkeypatch,tmp_path):
     from studio.cli import app
     from typer.testing import CliRunner
-    monkeypatch.setattr(quality,'approve',lambda *args:{'status':'PASS'})
+    monkeypatch.setattr(quality,'approve',lambda *args,**kwargs:{'status':'PASS'})
     result=CliRunner().invoke(app,['social-review',str(tmp_path/'x.mp4'),
         '--reviewer','Codex','--note','Actual review'])
     assert result.exit_code==0,result.output

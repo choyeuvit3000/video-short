@@ -48,23 +48,15 @@ def group_words(words: list[dict], max_words: int = 4) -> list[list[dict]]:
 
 def write_ass(words: list[dict], offset: float, out: Path, width: int, height: int,
               font: str, margin_v: int = 260) -> None:
-    lines = [HEADER.format(w=width, h=height, font=font, margin_v=margin_v)]
-    groups = group_words(words)
-    for g, group in enumerate(groups):
-        # A group stays up until the next one starts, never longer, so two
-        # groups are never on screen together.
-        next_start = groups[g + 1][0]["start"] if g + 1 < len(groups) else None
-        for i, w in enumerate(group):
-            start = w["start"] + offset
-            if i + 1 < len(group):
-                end = group[i + 1]["start"]
-            else:
-                end = w["end"] + 0.25
-                if next_start is not None:
-                    end = min(end, next_start)
-            end += offset
-            text = " ".join(
-                (HIGHLIGHT + _esc(x["text"]) + RESET) if j == i else _esc(x["text"])
-                for j, x in enumerate(group))
-            lines.append(f"Dialogue: 0,{_ts(start)},{_ts(end)},Main,,0,0,0,,{text}")
-    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    from ..core.subtitles import Word, build_ass
+
+    aligned = [Word(w["text"], round((w["start"] + offset) * 1000),
+                    round((w["end"] + offset) * 1000)) for w in words]
+    ass, _ = build_ass(aligned, width=width, height=height,
+                       style={"font": font, "color": "#FFFFFF", "inactive_color": "#C8CDD2",
+                              "outline_color": "#16212B", "outline": 1.5, "shadow": 0.5,
+                              "box": False, "mode": "karaoke", "lines": 2, "max_words": 9,
+                              "max_chars": 40, "line_chars": 22, "smooth_phrases": True, "fade_ms": 50},
+                       caption={"font_size": 52 * width / 1080, "margin_v": max(margin_v, round(310 * height / 1920)),
+                                "margin_h": round(110 * width / 1080)})
+    out.write_text(ass, encoding="utf-8")

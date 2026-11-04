@@ -126,6 +126,10 @@ def register(app):
         if action=='fetch': reddit.fetch(cfg['reddit']['sub'],cfg['reddit']['period'])
         elif action=='list': print(reddit.list_json(cfg))
         elif action=='prep' and id: print(reddit.prep(id))
+        elif action=='voice' and id:
+            from .review_voice import prepare_voice
+            from ..cli import _guard
+            _guard(lambda:(print(prepare_voice(reddit.STORE/id)),0)[1])
         elif action=='render' and id:
             from ..cli import _guard
             _guard(lambda:(print(reddit.render(id,cfg)),0)[1])
@@ -133,6 +137,12 @@ def register(app):
             from ..cli import _guard
             _guard(lambda:(print(reddit.auto(cfg,count,cfg['reddit']['translator'])),0)[1])
         else: raise typer.BadParameter('Use fetch/list/prep --id ID/render --id ID/auto')
+
+    @app.command('social-voice')
+    def social_voice(project: Path):
+        from .review_voice import prepare_voice
+        from ..cli import _guard
+        _guard(lambda:(print(prepare_voice(project)),0)[1])
 
     @app.command('social-qc')
     def qc(video: Path):
@@ -142,10 +152,10 @@ def register(app):
         if result['errors']: raise typer.Exit(5)
 
     @app.command('social-review')
-    def review(video: Path, note: Annotated[str, typer.Option()], reviewer: Annotated[str, typer.Option()]):
+    def review(video: Path, note: Annotated[str, typer.Option()], reviewer: Annotated[str, typer.Option()], project: Path | None = None):
         """Record actual editorial review, bound to the video's current SHA256."""
         from .quality import approve
-        print(approve(video.resolve(),note,reviewer)['status'])
+        print(approve(video.resolve(),note,reviewer,project=project)['status'])
 
     @app.command('social-assets')
     def assets(action: Annotated[str, typer.Argument()] = 'scan', source: Path | None = None, seconds: float = 60):

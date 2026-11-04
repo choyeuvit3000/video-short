@@ -246,6 +246,11 @@ def stage_images(ctx: ProjectContext, opts: dict) -> str:
 
 
 def stage_review(ctx: ProjectContext, opts: dict) -> str:
+    if ctx.settings.get("reviews.required", True):
+        from ..core.user_review import checkpoint
+
+        checkpoint(ctx.dir, "script")
+        return "user script checkpoint accepted"
     p = ctx.project
     topic = _topic(ctx)
     if not topic.review_required or p.options.get("review") is False:

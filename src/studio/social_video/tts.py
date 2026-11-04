@@ -44,7 +44,8 @@ def clean_for_speech(text: str) -> str:
     text = EMOTICON_RE.sub("", text)
     text = TOKEN_RE.sub(lambda m: TEENCODE[m.group(1).lower()], text)
     text = re.sub(r"[@#](?=\w)", "", text)
-    return re.sub(r"\s+", " ", text).strip()
+    from ..core.speech_edit import normalize
+    return normalize(re.sub(r"\s+", " ", text).strip())
 
 
 async def _synth(text: str, voice: str, rate: str, out: Path,
@@ -474,7 +475,7 @@ def role_cfg(tcfg: dict, role: str) -> dict:
     return out
 
 
-def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.18,
+def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.10,
                     roles: list[str] | None = None) -> list[tuple[Path, float]]:
     """One wav (48 kHz stereo) per text -> [(wav, seconds)].
 

@@ -86,3 +86,7 @@ remote:
 planning:
   required: true
   default_full_render_budget: 1
+
+reviews:
+  required: true
+  max_approvals: 3

@@ -206,12 +206,8 @@ def prepare(folder: Path, answers=None, *, accept_recommendations=False):
     return result
 
 
-def approve(folder: Path, reviewer: str):
+def apply_project_choices(folder):
     data = prepare(folder)
-    if data["missing"]:
-        raise ValidationError("Unanswered brief fields: " + ", ".join(data["missing"]), code="brief_incomplete")
-    if not reviewer.strip():
-        raise ValidationError("Name the person approving this concrete brief", code="brief_incomplete")
     project = folder / "project.json"
     if project.is_file():
         from ..voices import load_registry
@@ -227,6 +223,19 @@ def approve(folder: Path, reviewer: str):
             ctx.project.options["rewrite"] = "none" if b["source_policy"] == "faithful" else "llm"
         ctx.save()
         data = prepare(folder)
+
+
+def approve(folder: Path, reviewer: str):
+    data = prepare(folder)
+    if data["missing"]:
+        raise ValidationError("Unanswered brief fields: " + ", ".join(data["missing"]), code="brief_incomplete")
+    if not reviewer.strip():
+        raise ValidationError("Name the person approving this concrete brief", code="brief_incomplete")
+    apply_project_choices(folder)
+    from .user_review import require
+
+    require(folder, "script")
+    data = prepare(folder)
     data.update(status="APPROVED", approved_fingerprint=data["fingerprint"], reviewer=reviewer)
     _write(folder / "video_brief.json", data)
     return prepare(folder)
@@ -234,13 +243,15 @@ def approve(folder: Path, reviewer: str):
 
 def ensure_ready(folder: Path):
     data = prepare(folder)
+    from .user_review import require
+
+    require(folder, "script")
+    if data["missing"]:
+        raise ManualGateRequired("creative_brief", "Chốt mục tiêu và người xem trước khi tiếp tục.")
     if data["status"] != "APPROVED":
-        raise ManualGateRequired(
-            "creative_brief",
-            f"Read {folder / 'VIDEO_BRIEF.md'} and answer interview_questions.json. "
-            f'Run studio brief "{folder}" --interactive, review studio preflight, then '
-            f'studio brief "{folder}" --approve --reviewer NAME. No voice/full render started.',
-        )
+        # The user-owned script checkpoint is authoritative; voice settings are reviewed separately at checkpoint 2.
+        data.update(status="APPROVED", approved_fingerprint=data["fingerprint"], reviewer="user")
+        _write(folder / "video_brief.json", data)
     return data
 
 
@@ -378,6 +389,9 @@ def finish_render(folder, success, outputs=()):
 
 
 def begin_social(folder, cfg):
+    from .user_review import checkpoint
+
+    checkpoint(folder, "script")
     data = apply_social(folder, cfg)
     from .voice_policy import assert_social_config, signature, social_profile
 
@@ -387,8 +401,13 @@ def begin_social(folder, cfg):
             data["approved_fingerprint"],
             signature(social_profile(cfg["tts"])[0]),
             {k: cfg.get(k) for k in ("tts", "video", "story", "reddit", "fonts", "bgm")},
+            {name: _sha(Path(__file__).parents[1] / "social_video" / name)
+             for name in ("post_renderer.py", "subs.py", "reddit.py", "reddit_full.py", "quality.py")},
         ]
     )
+    from .user_review import require
+
+    require(folder, "voice")
     cache = _read(folder / "native_render_cache.json", {})
     items = cache.get("outputs", [])
     if (
@@ -396,7 +415,11 @@ def begin_social(folder, cfg):
         and items
         and all(Path(i["path"]).is_file() and _sha(Path(i["path"])) == i["sha256"] for i in items)
     ):
+        checkpoint(folder, "final")
         return key, [Path(i["path"]) for i in items]
+    from .user_review import require
+
+    require(folder, "voice")
     reserve_render(folder, key)
     return key, []
 
@@ -407,3 +430,6 @@ def complete_social(folder, key, outputs):
         {"key": key, "outputs": [{"path": str(p), "sha256": _sha(p)} for p in outputs]},
     )
     finish_render(folder, True, outputs)
+    from .user_review import checkpoint
+
+    checkpoint(folder, "final")

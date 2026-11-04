@@ -15,6 +15,11 @@ Rules:
 - Hook: a clear opening line. Show the news immediately, with the headline on the first
   frame. For an archived article, keep its year explicit; never turn a past schedule into current advice.
 - `narration` is 1-2 short spoken sentences (no emojis, no markdown). Write numbers and dates as they are read.
+- For Vietnamese narration, use everyday Vietnamese instead of English jargon. Explain an essential technical
+  term in plain words once. Read every number, unit, symbol and abbreviation in words: 5/10 is “năm trên mười”
+  for a score or “năm phần mười” for a fraction; “ngày 5/10” is a date. Keep the original numeric form only in
+  on-screen fields. Review the draft for confusing references, duplicated ideas and unsupported claims.
+- This is a draft for the creator to edit and approve. Do not claim approval or initiate voice generation.
 - A good order for most stories: hook -> who says it (quote) -> the photo or the key number -> the document /
   guide -> the dates (timeline) -> a short closing. Change it when the article calls for it.
 - Roles (fill the fields of the role, "" / [] for the others):

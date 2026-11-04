@@ -1,14 +1,21 @@
-# Calm captions on a dark box - good for long-form 16:9 and explainers.
+# Stable meaning-based phrases. Soft outline; no opaque box or word-by-word layout changes.
 font: Arial
 bold: true
 uppercase: false
 color: "#FFFFFF"
-highlight_color: "#7FD1FF"
-outline_color: "#101010"
-outline: 10
-shadow: 0
+inactive_color: "#C8CDD2"
+outline_color: "#16212B"
+outline: 2.2
+shadow: 1
 shadow_color: "#000000"
-shadow_alpha: 64
-box: true
-mode: plain
-size_scale: 0.85
+shadow_alpha: 150
+box: false
+mode: karaoke
+size_scale: 0.68
+lines: 2
+max_words: 9
+max_chars: 40
+line_chars: 22
+smooth_phrases: true
+fade_ms: 50
+margin_v: 510

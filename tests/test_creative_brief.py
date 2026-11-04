@@ -13,11 +13,19 @@ def test_approval_invalidation_and_render_budget(tmp_path):
     with pytest.raises(ManualGateRequired):
         ensure_ready(tmp_path)
     prepare(tmp_path, {"goal": "Review source", "audience": "Vietnamese viewer"})
-    approve(tmp_path, "creator")
+    from studio.core import user_review
+
+    user_review.prepare(tmp_path, "script")
+    user_review.approve(tmp_path, "script", "User fixture: approved this script and choices")
+    approve(tmp_path, "user")
     reserve_render(tmp_path, "first")
     finish_render(tmp_path, False)
     assert json.loads((tmp_path / "generation_budget.json").read_text())["attempts"][0]["status"] == "FAILED"
-    approve(tmp_path, "creator")
+    from studio.core import user_review
+
+    user_review.prepare(tmp_path, "script")
+    user_review.approve(tmp_path, "script", "User fixture: approved this script and choices")
+    approve(tmp_path, "user")
     with pytest.raises(ManualGateRequired):
         reserve_render(tmp_path, "second")
     source.write_text('[{"part_texts":["changed"]}]')

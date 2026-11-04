@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -168,6 +169,10 @@ def run_qc(ctx: ProjectContext) -> dict[str, Any]:
             warnings.append(f"{len(lay['outside_safe_zone'])} caption(s) leave the safe zone, e.g. "
                             f"{lay['outside_safe_zone'][0]!r}")
 
+    video_hash = None
+    if final.is_file():
+        with final.open("rb") as stream:
+            video_hash = hashlib.file_digest(stream, "sha256").hexdigest()
     report = {
         "project_id": p.project_id,
         "workflow": p.workflow,
@@ -175,6 +180,7 @@ def run_qc(ctx: ProjectContext) -> dict[str, Any]:
         "status": "PASS" if not errors else "FAIL",
         "checked_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "output_path": str(final),
+        "sha256": video_hash,
         "expected_duration_sec": expected,
         "actual_duration_sec": summary.get("duration_sec"),
         "video": summary.get("video"),

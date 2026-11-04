@@ -124,6 +124,7 @@ class StoryRenderer:
         if self.bg_video:refs.append(self.bg_video)
         else:refs.append(self.dir/self.bg_still)
         hashes=[(str(p),_sha(p)) for p in refs]
+        hashes += [(name, _sha(Path(__file__).parent / name)) for name in ("post_renderer.py", "subs.py")]
         fingerprint=hashlib.sha256(json.dumps([beat,hook,self.cfg,voice_key,hashes],sort_keys=True).encode()).hexdigest()
         output=self.dir/f"{self.tag}_b{k:02d}.mp4";key_file=output.with_suffix(".cache.json")
         if output.is_file() and key_file.is_file():
@@ -136,7 +137,16 @@ class StoryRenderer:
     def _render_beat(self, k: int, beat: dict, hook: str) -> Path:
         name = f"{self.tag}_b{k:02d}"
         kind = beat["kind"]
-        voice, words, voice_dur = self.seg.narrate(beat["narration"], name)
+        from ..core.subtitles import load_words
+        from .util import read_json
+        approved = read_json(self.dir / "voice_manifest.json", {}).get("beats", {}).get(str(k))
+        if approved and beat.get("narration"):
+            voice = Path(approved["audio"])
+            words = [{"text": w.text, "start": w.start_ms / 1000, "end": w.end_ms / 1000}
+                     for w in load_words(Path(approved["words"]))[0]]
+            voice_dur = media_duration(voice)
+        else:
+            voice, words, voice_dur = self.seg.narrate(beat["narration"], name)
         inputs: list = []
         filters: list[str] = []
         audio: list[tuple[int, float, float, float]] = []  # (input, delay, max len, volume)

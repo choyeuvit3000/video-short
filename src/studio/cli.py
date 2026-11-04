@@ -368,10 +368,6 @@ def run(
 
     def body() -> int:
         ctx = _ctx(project, "run")
-        if ctx.settings.get("planning.required", False):
-            from .core.creative_brief import ensure_ready
-
-            ensure_ready(ctx.dir)
         ro = RunOptions(
             from_stage=from_stage,
             only=only or [],
@@ -434,6 +430,9 @@ def approve(project: ProjectArg) -> None:
         ctx = _ctx(project, "approve")
         if not ctx.project.scenes:
             raise StudioError("nothing to approve: the project has no scenes yet - run it first", code="no_scenes")
+        from .core.user_review import require
+
+        require(ctx.dir, "script")
         ctx.project.options["reviewed"] = True
         ctx.save()
         console.print(f'[green]approved[/] {len(ctx.project.scenes)} scenes - next: studio run "{project}"')
@@ -466,6 +465,10 @@ def _single_stage(project: Path, stage: str, **opts) -> None:
 
     def body() -> int:
         ctx = _ctx(project, stage)
+        if ctx.settings.get("reviews.required", True) and stage in ("voice", "render"):
+            from .core.user_review import checkpoint
+
+            checkpoint(ctx.dir, "script" if stage == "voice" else "voice")
         if ctx.settings.get("planning.required", False) and stage in ("voice", "render"):
             from .core.creative_brief import ensure_ready
 
@@ -495,6 +498,15 @@ def _single_stage(project: Path, stage: str, **opts) -> None:
 
             finish_render(ctx.dir, True)
         ctx.set_stage(stage, "done", msg)
+        if ctx.settings.get("reviews.required", True) and stage in ("voice", "render"):
+            from .core.user_review import checkpoint
+
+            gate = "voice" if stage == "voice" else "final"
+            if stage == "render":
+                from .core.qc import run_qc
+
+                run_qc(ctx)
+            checkpoint(ctx.dir, gate)
         console.print(f"[green]{stage}[/] {msg}")
         return EXIT_OK
 
@@ -964,6 +976,26 @@ def preflight_command(project: Path):
     from .core.creative_brief import preflight
 
     _guard(lambda: (console.print(preflight(project.resolve())), EXIT_OK)[1])
+
+
+@app.command("review")
+def review_command(project: Path, stage: str = "script", action: str = "prepare", message: str = ""):
+    """Three user-owned checkpoints. Approve only following an actual user response."""
+    from .core import user_review
+
+    def body():
+        if stage not in user_review.STAGES:
+            raise ValidationError("stage must be script, voice or final", code="review_stage")
+        if action == "prepare":
+            result = user_review.prepare(project, stage)
+        elif action == "approve":
+            result = user_review.approve(project, stage, message)
+        else:
+            raise ValidationError("action must be prepare or approve", code="review_action")
+        console.print(result)
+        return EXIT_OK
+
+    _guard(body)
 
 
 # Native social video commands (approved merged Threads + Reddit).

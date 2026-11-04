@@ -33,7 +33,7 @@ W, H = 1080, 1920
 CARD_X, CARD_W, CARD_Y = 60, 960, 230
 PAD = 40
 SEAM = 960          # scene layout: photo above, gameplay below
-GAP = 0.15            # even pause between sentences (engine silences are trimmed first)
+GAP = 0.10            # even pause between sentences (engine silences are trimmed first)
 FONTS = "C:/Windows/Fonts/"
 COLORS = {"card": (14, 17, 19, 246), "border": (52, 62, 66, 255), "text": (242, 244, 245),
           "dim": (128, 138, 142), "meta": (130, 140, 145), "pill": (36, 44, 48, 255)}
@@ -139,8 +139,9 @@ def candidates(cfg: dict) -> list[dict]:
 TRANSLATE_SCHEMA = {
     "type": "object",
     "properties": {"title": {"type": "string"},
-                   "paragraphs": {"type": "array", "items": {"type": "string"}}},
-    "required": ["title", "paragraphs"],
+                   "paragraphs": {"type": "array", "items": {"type": "string"}},
+                   "character_map": {"type":"object","additionalProperties":{"type":"string"}}},
+    "required": ["title", "paragraphs", "character_map"],
     "additionalProperties": False,
 }
 
@@ -149,7 +150,11 @@ def translate_prompt(story: dict) -> str:
     paras = "\n".join(f"[{i}] {p}" for i, p in enumerate(story["paragraphs"]))
     return f"""Dịch truyện kinh dị dưới đây (r/{story['sub']}, tác giả u/{story['author']}) sang tiếng Việt để
 làm video đọc truyện. Văn kể chuyện tự nhiên, rùng rợn, ngôi thứ nhất "tôi" (giữ đúng ngôi của bản gốc),
-câu ngắn vừa phải để đọc thành tiếng. Giữ nguyên tên riêng; đổi đơn vị đo sang hệ mét; số đếm nhỏ viết bằng chữ.
+câu ngắn vừa phải để đọc thành tiếng. Lập character_map cố định cho toàn truyện: tên nhân vật tiếng Anh đổi sang tên Việt ngắn, tự nhiên,
+không trùng nhau (Minh, Lan, Hùng...) hoặc một cách đọc cố định do người dùng duyệt. Thay nhất quán trong mọi đoạn.
+Giữ nguyên địa điểm, sự kiện và bối cảnh nguồn; không tự đổi số khẩn cấp 911 thành số ở Việt Nam.
+Các chi tiết khó Việt hóa phải ghi chú để người dùng duyệt. Viết toàn bộ số và ký hiệu thành chữ dễ đọc.
+Đặc biệt giữ rõ các cụm như "chuột", "cửa sập"; không viết tắt hoặc phiên âm tùy hứng.
 Không tóm tắt, không bỏ đoạn, không thêm lời bình. Bỏ các dòng không phải truyện (lời cảm ơn, link, "edit:").
 Mỗi đoạn gốc thành một phần tử trong "paragraphs" (đúng thứ tự). "title": tiêu đề dịch, giữ độ gây tò mò.
 
@@ -157,7 +162,8 @@ Tiêu đề: {story['title']}
 
 {paras}
 
-Chỉ trả về JSON {{"title": "...", "paragraphs": ["...", ...]}}."""
+Chỉ trả về JSON {{"title": "...", "character_map": {{"Megan": "Lan"}}, "paragraphs": ["...", ...]}}.
+character_map phải ghi tất cả tên đã đổi trong truyện, để {{}} khi không có tên cần đổi."""
 
 
 def _google(text: str) -> str:
@@ -315,6 +321,8 @@ class Cards:
         d.text((tx + d.textlength(sub, font=self.f_sub) + 12, y + 2), f"• {self.age}",
                font=self.f_meta, fill=COLORS["meta"])
         d.text((tx, y + 38), f"u/{self.story['author']}", font=self.f_meta, fill=COLORS["meta"])
+        if getattr(self,"part_label",""):
+            d.text((CARD_X+CARD_W-PAD-210,y+38),self.part_label,font=self.f_meta,fill=COLORS["meta"])
         return y + 2 * r + 34
 
     def _watermark(self, im) -> None:
@@ -451,7 +459,11 @@ class Cards:
 # ---------------------------------------------------------------- audio
 
 def _tcfg(cfg: dict) -> dict:
-    return {**cfg["tts"], "wait_quota": cfg["reddit"]["wait_for_vivibe"]}
+    import copy
+    t=copy.deepcopy(cfg["tts"])
+    for engine in ("vieneu","omnivoice"):
+        if engine in t:t[engine]["speed"]=float(t[engine].get("speed",1.0))*float(cfg["reddit"].get("narration_speed",1.1))
+    return {**t,"wait_quota":cfg["reddit"]["wait_for_vivibe"]}
 
 
 def voice_all(texts: list[str], audio_dir: Path, cfg: dict,
@@ -460,13 +472,12 @@ def voice_all(texts: list[str], audio_dir: Path, cfg: dict,
 
 
 def voice_free(text: str, audio_dir: Path, cfg: dict, role: str) -> tuple[Path, float]:
-    """One line in the free voices only (edge/gTTS), cached under a hash of its text, so
-    editing a hook re-voices it and the paid quota is never touched."""
+    """Opening in the same admitted local voice; no legacy Edge/gTTS fallback."""
     import hashlib
 
     key = hashlib.sha1(f"{role}|{text}".encode("utf-8")).hexdigest()[:12]
     tcfg = _tcfg(cfg)
-    tcfg = {**tcfg, "engines": [e for e in tcfg["engines"] if e in ("vieneu", "edge", "gtts")]}
+    tcfg = {**tcfg, "engines": [e for e in tcfg["engines"] if e in ("vieneu", "omnivoice")]}
     return tts.voice_sentences([text], audio_dir / key, tcfg, GAP, [role])[0]
 
 
@@ -580,7 +591,10 @@ def voice_story(paragraphs: list[str], cfg: dict, cast: dict,
     """One wav per sentence, narration in the narrator's voice and quotes in the
     speaker's: pieces are voiced separately (grouped by role) and joined per sentence."""
     import hashlib
-    signature = hashlib.sha256(json.dumps([paragraphs, cast, cfg['tts']], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
+    from ..core.voice_policy import signature as voice_signature, social_profile
+    identity = voice_signature(social_profile(_tcfg(cfg))[0])
+    signature = hashlib.sha256(json.dumps([paragraphs, cast, _tcfg(cfg), identity, GAP], sort_keys=True,
+                                          ensure_ascii=False).encode()).hexdigest()[:16]
     audio_dir = audio_dir / signature
     audio_dir.mkdir(parents=True, exist_ok=True)
     narrator = cast.get("narrator", "narrator_female")
@@ -674,53 +688,22 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
     cast = vi.get("cast", {})
     paragraphs = [p for p in vi["paragraphs"] if p.strip()]
     voiced = voice_story(paragraphs, cfg, cast, d / "audio")
-    budget = rc["part_max_sec"] - 9   # title + ending cards
-
-    # split into parts at passage boundaries, as evenly as possible: as few parts as the
-    # budget allows, each cut at the boundary nearest to an equal share (no 15 s tail)
-    spans, k = [], 0
-    for g in groups:
-        spans.append(((g, k), sum(dur for _, dur in voiced[k:k + len(g)])))
-        k += len(g)
-    total = sum(t for _, t in spans)
-    n_target = max(1, math.ceil(total / budget))
-    while True:
-        parts, cur, cur_t, done_t = [], [], 0.0, 0.0
-        for item, t in spans:
-            share = (total - done_t) / max(1, n_target - len(parts))   # what each remaining part gets
-            over = cur_t + t > budget
-            past = cur and len(parts) < n_target - 1 and abs(cur_t + t - share) > abs(cur_t - share)
-            if cur and (over or past):
-                parts.append(cur)
-                done_t += cur_t
-                cur, cur_t = [], 0.0
-            cur.append(item)
-            cur_t += t
-        if cur:
-            parts.append(cur)
-        if len(parts) <= n_target:
-            break
-        n_target += 1   # a long passage forced an extra cut: re-balance with one more part
-    n_parts = len(parts)
+    from .reddit_edit import partition
+    parts=partition(groups,voiced,float(rc.get("part_max_sec",75)))
+    n_parts=len(parts)
 
     cards = Cards(story, vi, cfg, d / "cards")
-    # a shocking title and spoken hook (vi["shock_title"], vi["hook"]) open every part
     title_text = (vi.get("shock_title") or vi["title"]).strip()
-    hook = (vi.get("hook") or "").strip()
-    narrator = cast.get("narrator", "narrator_female")
-    # vi["continues"]: this file holds only the first part of a longer story
-    last = "Còn tiếp ở phần sau." if vi.get("continues") else "Hết truyện."
-    end_texts = [f"Còn tiếp ở phần {_number_vi(i + 2)}." for i in range(n_parts - 1)] + [last]
-    if hook:   # extra lines in the free voices, cached by text
-        hook_voice = voice_free(hook, d / "audio_hook", cfg, narrator)
-        intro = [voice_free(f"Phần {_number_vi(i + 1)}.", d / "audio_hook", cfg, narrator)
-                 if n_parts > 1 else None for i in range(n_parts)]
-        endings = [voice_free(t, d / "audio_hook", cfg, narrator) for t in end_texts]
-    else:      # old style: the title read out
-        intro_texts = ([f"{title_text}. Phần {_number_vi(i + 1)}." for i in range(n_parts)]
-                       if n_parts > 1 else [title_text])
-        extra = voice_all(intro_texts + end_texts, d / "audio_extra", cfg, narrator)
-        intro, endings = extra[:n_parts], extra[n_parts:]
+    # Cold open: the first story sentence starts at 00:00. Part labels are visual only.
+    from .reddit_edit import hook_texts
+    hooks=hook_texts(vi,parts)
+    narrator=cast.get("narrator","narrator_female")
+    hook_assets=[voice_free(t,d/"audio_hook",cfg,narrator) if t else None for t in hooks]
+    if any(x and x[1]>5 for x in hook_assets):
+        from ..core.errors import ManualGateRequired
+        raise ManualGateRequired("reddit_hook","Câu mở đầu vượt năm giây; chỉnh lời đọc trước khi duyệt.")
+    hook = ""
+    endings=[(None,0.0)]*n_parts
     faces, screams, stings = (jumpscare.faces(), jumpscare.screams(), jumpscare.stings()) if rc.get("jumpscares_enabled",True) else ([],[],[])
     rng = random.Random(story_id)
     # vi["scenes"] {"paragraph index": "English photo query"}: the split-screen layout, a photo
@@ -744,15 +727,11 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
     made = []
     for p, part in enumerate(parts):
         timeline: list[tuple[Path, Path | None, float]] = []   # (card png, audio wav, seconds)
-        if hook:
-            wav, dur = hook_voice
-            timeline.append((cards.hook(f"hook_{p}", hook), wav, dur + 0.35))
-            wav, dur = intro[p] or (None, 0.0)
-            timeline.append((cards.title(f"title_{p}", p + 1, n_parts), wav,
-                             max(dur + 0.3, 1.4)))
-        else:
-            wav, dur = intro[p]
-            timeline.append((cards.title(f"title_{p}", p + 1, n_parts), wav, dur + 0.25))
+        cards.part_label=f"Phần {p+1}/{n_parts}" if n_parts>1 else ""
+        hook=hooks[p]
+        if hook_assets[p]:
+            wav,dur=hook_assets[p]
+            timeline.append((cards.hook(f"hook_{p}",hook),wav,dur))
         sents = [(g, k0, j) for g, k0 in part for j in range(len(g))]
         scare = jumpscare.moment([g[j] for g, _, j in sents]) if faces and screams else None
         scare_at = None
@@ -774,7 +753,7 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
         wav, dur = endings[p]
         end_text = (("Còn tiếp…" if vi.get("continues") else "Hết truyện") if p == n_parts - 1
                     else f"Còn tiếp ở phần {p + 2}…")
-        timeline.append((cards.end(f"end_{p}", end_text), wav, dur + 0.6))
+        timeline.append((cards.end(f"end_{p}", end_text), wav, dur + 0.35))
 
         tag = f"part{p + 1}"
         card_list = d / f"{tag}_cards.txt"
@@ -813,7 +792,10 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
 
         out = outdir / (f"reddit__{story_id}__{slug}_p{p + 1}.mp4" if n_parts > 1 else f"reddit__{story_id}__{slug}.mp4")
         # rendered in three runs (picture, sound, mux): one graph with both stalls ffmpeg
-        speed = max(1.0, total / 179.5)   # Shorts stop at 3 minutes: speed up the rare long part
+        if total>float(rc.get("part_max_sec",75))+.05:
+            from ..core.errors import ManualGateRequired
+            raise ManualGateRequired("reddit_duration","Phần vượt thời lượng đã duyệt; sửa kế hoạch chia phần trước khi dựng.")
+        speed = 1.0  # pacing is applied once in TTS, never a hidden late speed-up
         length = total / speed
 
         # picture: 0 cards (jumpscare frames included), 1 one gameplay video from a random point
@@ -882,10 +864,19 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
         log(f"  → {out.name} ({length:.0f}s"
             + (f", jumpscare {scare_at:.0f}s" if scare_at is not None else "") + ")")
 
+    if rc.get("export_full",True) and len(parts)>1:
+        from .reddit_full import export_full
+        full=export_full(story_id,story,vi,groups,voiced,cfg,d)
+        made.append(full)
+    from ..core.user_review import write
+    write(d/"youtube_handoff.json",{"channel":"@truyenlareddit","shorts":[str(x) for x in made if x.parent.name=="reddit"],
+        "full":[str(x) for x in made if x.parent.name=="reddit_full"],"related_video":"Sau khi đăng bản đầy đủ, chọn video đó trong mục Video liên quan của từng Short; cần tính năng nâng cao.",
+        "upload_status":"NOT_UPLOADED","pinned_comment":"Người dùng tự duyệt nội dung/liên kết trước khi đăng hoặc ghim."})
     titles = outdir / "titles.txt"
     with titles.open("a", encoding="utf-8") as fh:
         for p, out in enumerate(made):
-            suffix = f" (Phần {p + 1}/{n_parts})" if n_parts > 1 else ""
+            suffix = (" — Bản đầy đủ" if out.parent.name == "reddit_full" else
+                      f" (Phần {p + 1}/{n_parts})" if n_parts > 1 else "")
             fh.write(f"{title_text}{suffix}\t{out.name}\tTruyện gốc: u/{story['author']} – "
                      f"r/{story['sub']} – {story['url']}\n")
     done = read_json(DONE, {})

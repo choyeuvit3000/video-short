@@ -12,7 +12,7 @@ def activate(studio_root: Path):
         sys.path.insert(0, src)
     os.environ['STUDIO_FFMPEG_DIR'] = str(Path(ffmpeg()).parent)
 
-def master(source: Path, destination: Path, studio_root: Path, overlay: Path | None = None):
+def master(source: Path, destination: Path, studio_root: Path, overlay: Path | None = None, *, width: int = 1080, height: int = 1920):
     """Studio-style loudness target + safe atomic publication, preserving source video."""
     activate(studio_root)
     from studio.core.qc import check_media
@@ -36,7 +36,7 @@ def master(source: Path, destination: Path, studio_root: Path, overlay: Path | N
              '-map', '0:a:0', '-af', norm,
              '-ar', '48000', '-ac', '2', '-c:a', 'aac', '-b:a', '192k',
              '-t', str(media_duration(source)), '-movflags', '+faststart', str(tmp)])
-        report, errors, warnings = check_media(tmp, width=1080, height=1920, fps=30,
+        report, errors, warnings = check_media(tmp, width=width, height=height, fps=30,
             expected_sec=None, tolerance_sec=.5)
         write_json(destination.with_suffix('.qc.json'),
                    {'media': report, 'errors': errors, 'warnings': warnings})

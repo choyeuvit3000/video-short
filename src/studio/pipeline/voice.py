@@ -10,7 +10,7 @@ from pathlib import Path
 
 from ..core.cache import Cache, cache_key
 from ..core.cost import CostLedger
-from ..core.errors import ProviderUnavailable, StudioError, ValidationError
+from ..core.errors import ManualGateRequired, ProviderUnavailable, StudioError, ValidationError
 from ..core.ffmpeg import run_ffmpeg
 from ..core.logging_utils import get_logger
 from ..core.media_probe import probe
@@ -33,8 +33,11 @@ log = get_logger()
 
 
 def _text_hash(text: str, profile: VoiceProfile, trim: bool = False) -> str:
-    return hashlib.sha256(json.dumps([text, profile.id, profile.params, *(["trim"] if trim else [])],
-                                     sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
+    return hashlib.sha256(
+        json.dumps(
+            [text, profile.id, profile.params, *(["trim"] if trim else [])], sort_keys=True, ensure_ascii=False
+        ).encode()
+    ).hexdigest()[:16]
 
 
 SILENCE_DB = -45
@@ -43,8 +46,12 @@ SILENCE_DB = -45
 def trim_silence(path: Path, *, scene_id: str | None = None, keep_lead_ms: int = 60, keep_tail_ms: int = 150) -> int:
     """Cut the silence before the first and after the last sound of a generated clip, in place (edge-tts adds
     ~0.2 s / ~0.75 s). Returns the milliseconds removed at the start, to shift word timings."""
-    err = run_ffmpeg(["-i", str(path), "-af", f"silencedetect=n={SILENCE_DB}dB:d=0.05", "-f", "null", "-"],
-                     stage="voice", scene_id=scene_id, loglevel="info")
+    err = run_ffmpeg(
+        ["-i", str(path), "-af", f"silencedetect=n={SILENCE_DB}dB:d=0.05", "-f", "null", "-"],
+        stage="voice",
+        scene_id=scene_id,
+        loglevel="info",
+    )
     dur = probe(path).duration
     starts = [float(x) for x in re.findall(r"silence_start: (-?[0-9.]+)", err)]
     ends = [float(x) for x in re.findall(r"silence_end: ([0-9.]+)", err)]
@@ -56,54 +63,83 @@ def trim_silence(path: Path, *, scene_id: str | None = None, keep_lead_ms: int =
     if b - a < 0.2 or (a < 0.02 and dur - b < 0.02):
         return 0
     tmp = path.with_name(f"{path.stem}.trim{path.suffix}")
-    run_ffmpeg(["-i", str(path), "-af", f"atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS", str(tmp)],
-               stage="voice", scene_id=scene_id)
+    run_ffmpeg(
+        ["-i", str(path), "-af", f"atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS", str(tmp)],
+        stage="voice",
+        scene_id=scene_id,
+    )
     tmp.replace(path)
     return int(round(a * 1000))
 
 
 def choose_profile(ctx: ProjectContext, reg: VoiceRegistry) -> VoiceProfile:
     p = ctx.project
-    prof = reg.get(p.audio.voice_profile) if p.audio.voice_profile else reg.default_for(p.language,p.workflow)
+    prof = reg.get(p.audio.voice_profile) if p.audio.voice_profile else reg.default_for(p.language, p.workflow)
     if not prof.usable:
-        raise ValidationError(f"Voice '{prof.id}' has status '{prof.status}' - enable it in {prof.source_file} "
-                              "or pick another (`studio voices list`)", code="voice_disabled")
+        raise ValidationError(
+            f"Voice '{prof.id}' has status '{prof.status}' - enable it in {prof.source_file} "
+            "or pick another (`studio voices list`)",
+            code="voice_disabled",
+        )
     from ..core.voice_policy import assert_voice_allowed
-    assert_voice_allowed(prof,reg.root)
+
+    assert_voice_allowed(prof, reg.root)
     if prof.lang != p.language:
         log.warning("voice %s is %s but project language is %s", prof.id, prof.lang, p.language)
     return prof
 
 
-def _words_for(ctx: ProjectContext, text: str, audio: Path, duration_ms: int, provider_words: list[Word] | None,
-               warnings: list[str], scene_id: str) -> tuple[list[Word], str]:
+def _words_for(
+    ctx: ProjectContext,
+    text: str,
+    audio: Path,
+    duration_ms: int,
+    provider_words: list[Word] | None,
+    warnings: list[str],
+    scene_id: str,
+) -> tuple[list[Word], str]:
     chain = ctx.settings.get("providers.align", ["provider_words", "faster_whisper", "estimate"])
+    strict = ctx.settings.get("reviews.required", True) and ctx.project.workflow in {
+        "newspaper", "knowledge_explainer", "longform_explainer",
+    }
     for step in chain:
         if step == "provider_words" and provider_words:
-            return align.map_onto_text(text, provider_words, duration_ms), "provider"
+            return align.map_onto_text(text, provider_words, duration_ms, strict=strict), "provider"
         if step == "faster_whisper":
             try:
                 rec = align.faster_whisper_words(
-                    audio, ctx.project.language,
+                    audio,
+                    ctx.project.language,
                     model=ctx.settings.get("align.faster_whisper_model", "small"),
                     device=ctx.settings.get("align.device", "auto"),
                     compute_type=ctx.settings.get("align.compute_type", "auto"),
                 )
-                return align.map_onto_text(text, rec, duration_ms), "faster_whisper"
+                return align.map_onto_text(
+                    text, rec, duration_ms, strict=strict
+                ), "faster_whisper"
             except ProviderUnavailable as e:
                 log.info("[voice][%s] alignment skipped: %s", scene_id, e)
         if step == "estimate":
+            if strict:
+                raise ManualGateRequired(
+                    "alignment",
+                    "Không dùng phụ đề ước lượng. Cần sửa/căn lại mốc tiếng nói thật; audio đã cache, không gen lại giọng.",
+                )
             warnings.append(f"{scene_id}: caption timing is ESTIMATED (no word timings) - review sync")
             return estimate_words(text, duration_ms), "estimate"
+    if strict:
+        raise ManualGateRequired("alignment", "Chưa có mốc lời nói thật; cần căn phụ đề trước khi tiếp tục.")
     return estimate_words(text, duration_ms), "estimate"
 
 
-def _synthesize_all(ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile, ledger: CostLedger,
-                    overwrite: bool) -> dict[str, tuple[Path, list[Word] | None]]:
-    node = prof.location[len("node:"):] if prof.location.startswith("node:") else None
+def _synthesize_all(
+    ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile, ledger: CostLedger, overwrite: bool
+) -> dict[str, tuple[Path, list[Word] | None]]:
+    node = prof.location[len("node:") :] if prof.location.startswith("node:") else None
     if node and node != ctx.settings.get("worker.node_id"):
-        raise ProviderUnavailable(f"voice {prof.id} runs only on node '{node}' - use `studio run --node {node}`",
-                                  code="tts_wrong_node")
+        raise ProviderUnavailable(
+            f"voice {prof.id} runs only on node '{node}' - use `studio run --node {node}`", code="tts_wrong_node"
+        )
     prof = with_speed(prof, ctx.project.audio.speed)  # also for a fallback voice
     provider = get_provider(prof.provider, reg)
     reason = provider.check(prof)
@@ -124,8 +160,8 @@ def _synthesize_all(ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile,
         if s.audio_path and not overwrite:
             existing = ctx.resolve(s.audio_path)
             same = meta.exists() and json.loads(meta.read_text(encoding="utf-8")).get("hash") == h
-            if existing.is_file() and (same or not meta.exists()):
-                # not generated by us (manual) or unchanged -> keep it
+            if existing.is_file() and same:
+                # Unproven old audio must not bypass the selected voice/cache policy.
                 cached_words = None
                 wp = ctx.dir / "subtitles" / f"{s.scene_id}.provider_words.json"
                 if same and wp.exists():
@@ -147,8 +183,9 @@ def _synthesize_all(ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile,
             res = provider.synthesize(text, prof, out)
             words = res.words
             if res.cost_usd > 0:
-                ledger.record(stage="voice", provider=prof.id, usd=res.cost_usd, detail=f"{len(text)} chars",
-                              scene_id=s.scene_id)
+                ledger.record(
+                    stage="voice", provider=prof.id, usd=res.cost_usd, detail=f"{len(text)} chars", scene_id=s.scene_id
+                )
             cache.put_files(key, {"audio" + provider.extension: out})
             cache.put_json(key, {"words": [w.__dict__ for w in words] if words else None})
         if trim:  # the cache keeps the untrimmed take; trim the project copy
@@ -164,8 +201,26 @@ def _synthesize_all(ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile,
 
 
 def run_voice(ctx: ProjectContext, *, overwrite: bool = False) -> dict:
+    if ctx.settings.get("reviews.required", True):
+        from ..core.user_review import require, script_issues
+
+        require(ctx.dir, "script")
+        if script_issues(ctx.dir):
+            raise ValidationError("Lời đọc chưa qua chuẩn hóa số/tên", code="speech_review")
     p = ctx.project
     reg = load_registry(ctx.settings)
+    if ctx.settings.get("reviews.required", True) and not overwrite:
+        from ..core.user_review import require
+
+        if p.audio.source != "manual":
+            choose_profile(ctx, reg)
+        try:
+            require(ctx.dir, "voice")
+        except (ValidationError, ManualGateRequired):
+            pass
+        else:
+            log.info("[voice] keeping the user's accepted audio and timings unchanged")
+            return ctx.load_timeline()
     ledger = CostLedger(ctx.dir, p.budget.max_cost_usd)
     warnings: list[str] = []
 
@@ -180,6 +235,10 @@ def run_voice(ctx: ProjectContext, *, overwrite: bool = False) -> dict:
                 audio = _synthesize_all(ctx, reg, prof, ledger, overwrite)
                 break
             except ProviderUnavailable as e:
+                if ctx.settings.get("reviews.required", True):
+                    raise ManualGateRequired(
+                        "voice_choice", f"Giọng {prof.id} chưa dùng được: {e}. Chọn lại giọng trước khi tạo mẫu mới."
+                    ) from e
                 tried.append(prof.id)
                 fb = reg.fallback_for(prof)
                 if not fb or fb.id in tried or not fb.usable:
@@ -211,8 +270,10 @@ def run_voice(ctx: ProjectContext, *, overwrite: bool = False) -> dict:
             if s.subtitle_path:  # manual SRT supplied: trust it, take word times from cues
                 cues = read_srt(ctx.resolve(s.subtitle_path))
                 for c in cues:
-                    words += [Word(w.text, w.start_ms + c.start_ms, w.end_ms + c.start_ms)
-                              for w in estimate_words(c.text, c.end_ms - c.start_ms)]
+                    words += [
+                        Word(w.text, w.start_ms + c.start_ms, w.end_ms + c.start_ms)
+                        for w in estimate_words(c.text, c.end_ms - c.start_ms)
+                    ]
                 timing_src = "manual_srt"
             elif text:
                 words, timing_src = _words_for(ctx, text, apath, voice_ms, pwords, warnings, s.scene_id)
@@ -234,30 +295,34 @@ def run_voice(ctx: ProjectContext, *, overwrite: bool = False) -> dict:
         if words:
             sw = s.scene_id
             save_words(ctx.dir / "subtitles" / f"{sw}.words.json", words, source=timing_src or "unknown")
-            cues = chunks_to_cues(group_words(words, max_words=int(cap.get("max_words", 3)),
-                                              max_chars=int(cap.get("max_chars", 18))))
+            cues = chunks_to_cues(
+                group_words(words, max_words=int(cap.get("max_words", 3)), max_chars=int(cap.get("max_chars", 18)))
+            )
             write_srt(ctx.dir / "subtitles" / f"{sw}.srt", cues)
             all_words += [Word(w.text, w.start_ms + cursor, min(w.end_ms, dur_ms) + cursor) for w in words]
-        scenes_tl.append({
-            "scene_id": s.scene_id,
-            "start_ms": cursor,
-            "duration_ms": dur_ms,
-            "voice_ms": voice_ms,
-            "audio": entry[0].relative_to(ctx.dir).as_posix() if entry else None,
-            "timing_source": timing_src,
-        })
+        scenes_tl.append(
+            {
+                "scene_id": s.scene_id,
+                "start_ms": cursor,
+                "duration_ms": dur_ms,
+                "voice_ms": voice_ms,
+                "audio": entry[0].relative_to(ctx.dir).as_posix() if entry else None,
+                "timing_source": timing_src,
+            }
+        )
         cursor += dur_ms
 
     if overflow:
         raise ValidationError(
             "Voice longer than scene (fixed timing) - shorten narration or raise duration_sec:\n  "
-            + "\n  ".join(overflow), code="voice_too_long")
+            + "\n  ".join(overflow),
+            code="voice_too_long",
+        )
     if cursor / 1000 > fmt.max_duration_sec:
         warnings.append(f"total {cursor / 1000:.1f}s exceeds {fmt.max_duration_sec:.0f}s for {fmt.name}")
 
     save_words(ctx.work / "words.json", all_words, source="timeline")
-    tl = {"format": fmt.name, "voice_profile": prof_id, "total_ms": cursor, "scenes": scenes_tl,
-          "warnings": warnings}
+    tl = {"format": fmt.name, "voice_profile": prof_id, "total_ms": cursor, "scenes": scenes_tl, "warnings": warnings}
     ctx.timeline_path().write_text(json.dumps(tl, ensure_ascii=False, indent=1), encoding="utf-8")
     ctx.save()
     for w in warnings:

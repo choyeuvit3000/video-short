@@ -37,5 +37,8 @@ def clean_for_speech(text: str, lang: str = "vi") -> str:
     if lang == "vi":
         text = TEENCODE_RE.sub(lambda m: TEENCODE_VI[m.group(1).lower()], text)
     text = TAG_RE.sub("", text)
+    if lang == "vi":
+        from .speech_edit import normalize
+        text=normalize(text)
     paras = [" ".join(p.split()) for p in re.split(r"\n\s*\n", text)]
     return "\n\n".join(p for p in paras if p)

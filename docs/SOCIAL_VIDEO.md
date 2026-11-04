@@ -29,11 +29,11 @@ Mỗi video được mastering hai lượt về đích -14 LUFS/-1.5 dBTP, kiể
 
 - `automatic: PASS`, `editorial: PENDING`, `status: REVIEW_REQUIRED`: đã qua kiểm tra máy, chưa duyệt nội dung.
 - `status: FAIL`: không được thay thế bản tốt trước đó.
-- `status: PASS`, `editorial: APPROVED`: đã có review với người duyệt, ghi chú và SHA256 đúng file hiện tại.
+- `status: PASS`, `editorial: APPROVED`: đã có người dùng duyệt mốc cuối, ghi chú và SHA256 đúng file hiện tại.
 
 ```powershell
 .\.venv\Scripts\python.exe -m studio social-qc VIDEO
-.\.venv\Scripts\python.exe -m studio social-review VIDEO --reviewer Codex --note "Kiểm tra cụ thể đã thực hiện và giới hạn"
+.\.venv\Scripts\python.exe -m studio review PROJECT --stage final
 ```
 
 Không tự duyệt chỉ vì encode thành công. Sau khi sửa video phải chạy QC/review lại; review cũ không áp dụng cho hash mới. File `.candidate.mp4` bị lỗi được giữ để điều tra, không thay thế file cuối.
@@ -63,7 +63,7 @@ Lệnh giữ nguyên file nguồn, chép vào kho asset bằng tên gắn SHA256
 
 Edge (all voices/providers), Mai Anh and aliases are permanently forbidden, including random selection, fallback and cached audio. Prefer a deep male Southern Vietnamese voice; reject voices that sound like Mai Anh. New voices/checkpoints stay quarantined until intelligibility, pronunciation, naturalness, artifacts and dissimilarity are reviewed against a SHA256-bound audition. Never claim training or listening occurred without evidence.
 
-Before expensive generation, run `studio brief PROJECT --interactive --detailed`, then `studio preflight PROJECT`; resolve the creator’s requirements and review the concrete brief before `studio brief PROJECT --approve --reviewer NAME`. Static preflight is a text storyboard, not a rendered layout. Default budget is one full render per approved brief; inspect QC before explicitly granting another attempt. Source or plan changes invalidate approval. Target duration is advisory when preserving complete source clips.
+Before expensive generation, clarify the concrete brief and run `studio preflight PROJECT`. Then follow the three user-owned checkpoints in `studio review`: script plus production choices, voice plus layout/timings, final video after QC. Only record an actual user acceptance with `--action approve --message` containing that response. Never invent it or use Codex/agent approval as a substitute. Edits before acceptance stay within that checkpoint; changed accepted content invalidates its hash. There are at most three accepted review events per video/bundle; do not silently reset or grant a fourth. Full render budget remains separate (default one per approved brief).
 
 
 Nghe thử giọng nam miền Nam (chưa train mới): `.venv/Scripts/python.exe scripts/voice_lab.py audition`. Mẫu ở `voices/candidates/`, không vào pool production. Chỉ người thực sự nghe và đánh giá được chạy `scripts/voice_lab.py review VOICE_ID --reviewer NAME --confirm-listened --confirm-dissimilar --confirm-pronunciation --confirm-natural --confirm-clean`. Không tự tick thay người nghe.
@@ -75,3 +75,14 @@ Runtime: `scripts/install_omnivoice.ps1` creates `D:/studio-node/tts/omnivoice/.
 
 
 Vietnamese knowledge videos use `omnivoice-vi-knowledge-under30` by default (`knowledge_explainer` and `longform_explainer`). This follows the newer user-provided Under30 audio reference and its brisk conversational cadence, rather than forcing the older generic voice preference. Reference is copied into local voices assets; no training was run. Target is 5.4 whitespace-separated speech units/second, measured source 5.44; the test generated 5.35. The knowledge workflow uses audio.speed=1.0 because its voice profile already controls cadence. Explicit project voices override workflow defaults; English keeps its own voice. SHA-bound generated-sample listening review still applies; do not mark naturalness or similarity approved from ASR alone.
+
+
+## Three creator approvals (user instruction, 2026-11-04)
+
+1. **Script and production choices:** simplify jargon/English; check factual fidelity and spoken Vietnamese numbers, ratios, dates, symbols and abbreviations. Show the complete editable script, Reddit character map and opening lines, duration/part target, captions and background/effects choices. Prepare `studio review PROJECT --stage script`; wait for the user before TTS. A known voice being globally admitted does not approve this video's audio.
+2. **Narration and layout:** after script acceptance, generate/cache only required speech and timings; present all actual audio, pronunciation checks, part boundaries and layout/subtitle preview together. Use `studio voice PROJECT`, or `studio social-voice PROJECT` / `studio reddit-story voice --id ID`, then prepare `--stage voice`. User may request changes before accepting. Never silently switch voices or accelerate after this acceptance. News/knowledge/Threads word emphasis must use actual speech anchors, not evenly estimated timestamps; ASR mismatch stops the workflow. Keep phrase geometry stable (no per-word size pop), two lines, restrained contrast, no heavy black box; use dark ink on light canvases.
+3. **Final video:** render only after user accepts narration; run technical QC and inspect visuals/audio, present video and material limitations, then wait for user acceptance via `--stage final`. Do not upload, schedule, comment or pin without explicit authorization. A technical PASS is not user approval.
+
+`studio review PROJECT --stage STAGE --action approve --message "actual user reply"` is used only after that reply arrives. `user_reviews.json` hashes bind accepted versions. Old `options.reviewed`, old creative brief approval, `--force`, render caches and `social-review --reviewer Codex` cannot authorize new work. At most three accepted approvals total; edits proposed before acceptance do not consume an approval. If accepted content changes and the budget cannot cover all stages, stop and ask the user how to proceed, without resetting it. For Reddit multipart output, present all parts and the full version in the same three checkpoints.
+
+Reddit: maintain a fixed `character_map` for the whole story (explicit `{}` when none), with Vietnamese names or a user-reviewed reading. Preserve original places/events; changes of setting require the user's script-stage acceptance. Default Shorts ceiling is 75 seconds including opening/effects/end card, at about 1.1 speech speed. This is an experimental editorial target, not a claim about YouTube's algorithm. Start with the dramatic situation; never narrate a part number at the opening. Longer stories also export a genuine 1920x1080 full recomposition from the approved complete narration; do not pad it to an arbitrary duration. `youtube_handoff.json` records local Short/full paths and Related Video instructions, not a completed upload.

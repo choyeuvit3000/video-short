@@ -293,6 +293,15 @@ def caption_style(ctx: ProjectContext) -> dict:
     if not path.is_file():
         raise ValidationError(f"caption style '{name}' not found in {path.parent}", code="missing_style")
     style = load_yaml(path)
+    # Flat light knowledge canvases need ink captions; white outlines look harsh on paper.
+    background = ctx.project.video.background or ""
+    if name == "clean_box" and background.startswith("color:#"):
+        color = background.removeprefix("color:#")
+        if len(color) == 6:
+            rgb = [int(color[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+            if sum(c * w for c, w in zip(rgb, (0.2126, 0.7152, 0.0722), strict=True)) > 0.7:
+                style.update(color="#182532", inactive_color="#77838D", outline_color="#" + color,
+                             outline=0.7, shadow=0)
     if ctx.project.workflow == "newspaper":
         from ..workflows.news_planner import load_layout_config
 
@@ -360,6 +369,9 @@ def build_captions(ctx: ProjectContext, tl: dict) -> tuple[Path | None, Path | N
 
 
 def render_project(ctx: ProjectContext, *, burn_subs: bool | None = None, allow_sidecar: bool = False) -> Path:
+    if ctx.settings.get("reviews.required",True):
+        from ..core.user_review import require
+        require(ctx.dir,"voice")
     tl = ctx.load_timeline()
     p = ctx.project
     if len(tl["scenes"]) != len(p.scenes):

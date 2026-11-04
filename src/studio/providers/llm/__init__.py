@@ -161,6 +161,7 @@ PROVIDERS = {p.name: p for p in (ClaudeCLI, AgyCLI, CodexCLI)}
 def generate_json(ctx: ProjectContext, task: str, prompt: str, schema: dict, *,
                   chain: list[str] | None = None, force: bool = False) -> tuple[dict, str]:
     """Run `prompt` through the provider chain. Returns (data, provider_name)."""
+    prompt += "\nLời đọc tiếng Việt: câu ngắn, dễ hiểu; hạn chế thuật ngữ và từ tiếng Anh, giải thích bằng từ Việt. Viết số/ký hiệu thành chữ theo ngữ cảnh (5/10: năm trên mười; ngày 5/10: ngày năm tháng mười). Không tự đổi địa điểm/sự kiện nguồn. Chờ người dùng sửa/duyệt kịch bản; không tự duyệt."
     brief=ctx.dir/"video_brief.json"
     if brief.is_file():
         approved=json.loads(brief.read_text(encoding="utf-8"))

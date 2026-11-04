@@ -17,8 +17,8 @@ def sha256(path: Path) -> str:
             h.update(block)
     return h.hexdigest()
 
-def inspect(path: Path, expected: float | None = None) -> dict:
-    media, errors, warnings = check_media(path, width=1080, height=1920, fps=30,
+def inspect(path: Path, expected: float | None = None, *, width: int = 1080, height: int = 1920) -> dict:
+    media, errors, warnings = check_media(path, width=width, height=height, fps=30,
         expected_sec=expected, tolerance_sec=.5)
     duration = media.get('duration_sec', 0)
     analysis = analyze_av(path, duration) if duration else {}
@@ -51,7 +51,16 @@ def inspect(path: Path, expected: float | None = None) -> dict:
     write_json(path.with_suffix('.qc.json'), report)
     return report
 
-def approve(path: Path, note: str, reviewer: str) -> dict:
+def approve(path: Path, note: str, reviewer: str, *, project: Path | None = None) -> dict:
+    if reviewer != 'user':
+        raise ValueError('Chỉ người dùng được duyệt video cuối; agent không tự duyệt. Dùng studio review PROJECT --stage final sau khi nhận phản hồi người dùng.')
+    if project is None:
+        raise ValueError('Cần PROJECT và mốc final do người dùng duyệt; dùng studio review PROJECT --stage final')
+    from ..core.user_review import require
+    require(project,'final')
+    from ..core.user_review import payload
+    if path.resolve() not in {Path(v['path']).resolve() for v in payload(project,'final')['videos']}:
+        raise ValueError('Video không thuộc gói cuối người dùng đã duyệt')
     report = read_json(path.with_suffix('.qc.json'), {})
     if not note.strip() or not reviewer.strip():
         raise ValueError('Reviewer and concrete review note are required')
@@ -66,8 +75,13 @@ def publish(draft: Path, out: Path, cfg: dict, credit: Path | None = None) -> Pa
     from studio.core.paths import find_repo_root
     candidate = out.with_name(out.stem + '.candidate.mp4')
     expected = media_duration(draft)
-    master(draft, candidate, find_repo_root(), credit)
-    report = inspect(candidate, expected)
+    width,height=cfg.get('video',{}).get('width',1080),cfg.get('video',{}).get('height',1920)
+    if (width,height)==(1080,1920):
+        master(draft,candidate,find_repo_root(),credit)
+        report=inspect(candidate,expected)
+    else:
+        master(draft,candidate,find_repo_root(),credit,width=width,height=height)
+        report=inspect(candidate,expected,width=width,height=height)
     if report['errors']:
         raise RuntimeError(f"QC failed; candidate retained: {report['errors']}")
     if out.exists():
