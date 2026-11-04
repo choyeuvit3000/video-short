@@ -361,8 +361,9 @@ def stage_news_scenes(ctx: ProjectContext, opts: dict) -> str:
         m = media[idx] if idx is not None else None
         src = ctx.dir / m["path"] if m else None
         still = frames / f"{sid}.jpg"
-        if kind == "quote":
-            still_framed(src, still, w, h)
+        if kind == "quote":  # alternate the tilt so two quotes of the same person do not look identical
+            still_framed(src, still, w, h, tilt=-3.0 if sum(s.scene_id.endswith("_quote") for s in scenes) % 2 == 0
+                         else 3.0)
         elif kind == "card":
             still_card(src, still, w, h)
         elif kind == "stat" or src is None:

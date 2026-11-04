@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 from pathlib import Path
 
 from ..core.cache import Cache, cache_key
 from ..core.cost import CostLedger
 from ..core.errors import ProviderUnavailable, StudioError, ValidationError
+from ..core.ffmpeg import run_ffmpeg
 from ..core.logging_utils import get_logger
 from ..core.media_probe import probe
 from ..core.project import ProjectContext
@@ -30,9 +32,34 @@ from ..voices import VoiceProfile, VoiceRegistry, load_registry, with_speed
 log = get_logger()
 
 
-def _text_hash(text: str, profile: VoiceProfile) -> str:
-    return hashlib.sha256(json.dumps([text, profile.id, profile.params], sort_keys=True,
-                                     ensure_ascii=False).encode()).hexdigest()[:16]
+def _text_hash(text: str, profile: VoiceProfile, trim: bool = False) -> str:
+    return hashlib.sha256(json.dumps([text, profile.id, profile.params, *(["trim"] if trim else [])],
+                                     sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
+
+
+SILENCE_DB = -45
+
+
+def trim_silence(path: Path, *, scene_id: str | None = None, keep_lead_ms: int = 60, keep_tail_ms: int = 150) -> int:
+    """Cut the silence before the first and after the last sound of a generated clip, in place (edge-tts adds
+    ~0.2 s / ~0.75 s). Returns the milliseconds removed at the start, to shift word timings."""
+    err = run_ffmpeg(["-i", str(path), "-af", f"silencedetect=n={SILENCE_DB}dB:d=0.05", "-f", "null", "-"],
+                     stage="voice", scene_id=scene_id, loglevel="info")
+    dur = probe(path).duration
+    starts = [float(x) for x in re.findall(r"silence_start: (-?[0-9.]+)", err)]
+    ends = [float(x) for x in re.findall(r"silence_end: ([0-9.]+)", err)]
+    lead = ends[0] if starts and starts[0] <= 0.01 and ends else 0.0
+    open_tail = starts and (len(ends) < len(starts) or ends[-1] >= dur - 0.02)
+    tail = starts[-1] if open_tail and starts[-1] > lead else dur
+    a = max(0.0, lead - keep_lead_ms / 1000)
+    b = min(dur, tail + keep_tail_ms / 1000)
+    if b - a < 0.2 or (a < 0.02 and dur - b < 0.02):
+        return 0
+    tmp = path.with_name(f"{path.stem}.trim{path.suffix}")
+    run_ffmpeg(["-i", str(path), "-af", f"atrim=start={a:.3f}:end={b:.3f},asetpts=PTS-STARTPTS", str(tmp)],
+               stage="voice", scene_id=scene_id)
+    tmp.replace(path)
+    return int(round(a * 1000))
 
 
 def choose_profile(ctx: ProjectContext, reg: VoiceRegistry) -> VoiceProfile:
@@ -81,6 +108,7 @@ def _synthesize_all(ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile,
     if reason:
         raise ProviderUnavailable(f"voice {prof.id}: {reason}", code="tts_unavailable")
     cache = Cache(ctx.settings.path("cache"), "tts")
+    trim = ctx.project.audio.trim_silence
     results: dict[str, tuple[Path, list[Word] | None]] = {}
     audio_dir = ctx.dir / "audio"
     audio_dir.mkdir(exist_ok=True)
@@ -90,7 +118,7 @@ def _synthesize_all(ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile,
             continue
         out = audio_dir / f"{s.scene_id}{provider.extension}"
         meta = audio_dir / f"{s.scene_id}.tts.json"
-        h = _text_hash(text, prof)
+        h = _text_hash(text, prof, trim)
         if s.audio_path and not overwrite:
             existing = ctx.resolve(s.audio_path)
             same = meta.exists() and json.loads(meta.read_text(encoding="utf-8")).get("hash") == h
@@ -121,6 +149,10 @@ def _synthesize_all(ctx: ProjectContext, reg: VoiceRegistry, prof: VoiceProfile,
                               scene_id=s.scene_id)
             cache.put_files(key, {"audio" + provider.extension: out})
             cache.put_json(key, {"words": [w.__dict__ for w in words] if words else None})
+        if trim:  # the cache keeps the untrimmed take; trim the project copy
+            cut = trim_silence(out, scene_id=s.scene_id)
+            if cut and words:
+                words = [Word(w.text, max(0, w.start_ms - cut), max(0, w.end_ms - cut)) for w in words]
         meta.write_text(json.dumps({"hash": h, "voice": prof.id}, ensure_ascii=False), encoding="utf-8")
         if words:
             save_words(ctx.dir / "subtitles" / f"{s.scene_id}.provider_words.json", words, source="provider")

@@ -141,6 +141,18 @@ def _gradient(img: Image.Image, top: float, bottom: float, max_alpha: int) -> No
     img.alpha_composite(layer)
 
 
+def _balanced_wrap(d: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_w: int) -> list[str]:
+    """Same number of lines as a greedy wrap, but evened out (no lone "15.3" on the last line)."""
+    lines = _wrap(d, text, font, max_w)
+    width = max_w
+    while len(lines) > 1 and width > max_w * 0.5:
+        trial = _wrap(d, text, font, int(width * 0.96))
+        if len(trial) > len(lines):
+            break
+        width, lines = int(width * 0.96), trial
+    return lines
+
+
 def _text_block(d: ImageDraw.ImageDraw, x: int, y: int, lines: list[str], font: ImageFont.FreeTypeFont, *,
                 fill, line_h: int, stroke: int = 0) -> int:
     for ln in lines:
@@ -204,10 +216,10 @@ def news_overlay(
 
     if kind == "headline" and headline:
         f_h = load_font(fonts_dir, int((84 if vertical else 72) * u), "bold")
-        lines = _wrap(d, headline.upper(), f_h, col_w)
+        lines = _balanced_wrap(d, headline.upper(), f_h, col_w)
         while len(lines) > 4 and f_h.size > 40:
             f_h = load_font(fonts_dir, f_h.size - 6, "bold")
-            lines = _wrap(d, headline.upper(), f_h, col_w)
+            lines = _balanced_wrap(d, headline.upper(), f_h, col_w)
         lh = int(f_h.size * 1.15)
         bottom = int(h * (0.6 if vertical else 0.8))
         y = bottom - lh * len(lines)

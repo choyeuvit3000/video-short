@@ -159,6 +159,24 @@ def test_newspaper_ai_beats(tmp_path, settings):
 
 @needs_ffmpeg
 @pytest.mark.ffmpeg
+def test_trim_silence(tmp_path):
+    from studio.core.ffmpeg import run_ffmpeg
+    from studio.core.media_probe import probe
+    from studio.pipeline.voice import trim_silence
+
+    clip = tmp_path / "v.mp3"  # 0.5 s silence, 1 s tone, 1 s silence - like an edge-tts take
+    run_ffmpeg(["-f", "lavfi", "-i", "anullsrc=r=24000:cl=mono:d=0.5", "-f", "lavfi",
+                "-i", "sine=frequency=300:sample_rate=24000:duration=1", "-f", "lavfi",
+                "-i", "anullsrc=r=24000:cl=mono:d=1", "-filter_complex", "[0][1][2]concat=n=3:v=0:a=1",
+                str(clip)], stage="fixture")
+    cut = trim_silence(clip)
+    assert 400 <= cut <= 470  # 0.5 s minus the 60 ms kept
+    assert 1.1 <= probe(clip).duration <= 1.35
+    assert trim_silence(clip) <= 20  # already tight: (almost) nothing more to cut
+
+
+@needs_ffmpeg
+@pytest.mark.ffmpeg
 @pytest.mark.parametrize("fmt", ["test_9x16", "test_16x9"])
 def test_newspaper_end_to_end(tmp_path, settings, fmt):
     ctx = _news_project(tmp_path, settings, name=f"Tin {fmt}")

@@ -15,7 +15,7 @@ defaults:
   platforms: [tiktok, youtube_shorts, reels]
   video:
     caption_style: news_pop
-  audio: {speed: 1.15}
+  audio: {speed: 1.15, trim_silence: true}   # news pacing: no dead air between beats
   options:
     rewrite: auto               # auto (AI if a CLI answers, else beats from the article text) | llm | none
     target_sec: 50
