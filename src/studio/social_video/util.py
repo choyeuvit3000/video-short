@@ -35,7 +35,7 @@ DEFAULT_CONFIG = {
             "python": os.environ.get("STUDIO_VIENEU_PYTHON", "D:/studio-node/tts/vieneu/.venv/Scripts/python.exe"),
             "runner": str(STUDIO_ROOT / "src/studio/providers/tts/vieneu_runner.py"),
             "hf_home": os.environ.get("HF_HOME", "D:/studio-node/hf"),
-            "voice": "Mai Anh", "temperature": 0.7, "speed": 1.08,
+            "voice": "Thái Sơn", "temperature": 0.7, "speed": 1.08,
         },
         "voice": "vi-VN-HoaiMyNeural",
         "rate": "+60%",

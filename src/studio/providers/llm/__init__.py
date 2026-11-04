@@ -161,6 +161,11 @@ PROVIDERS = {p.name: p for p in (ClaudeCLI, AgyCLI, CodexCLI)}
 def generate_json(ctx: ProjectContext, task: str, prompt: str, schema: dict, *,
                   chain: list[str] | None = None, force: bool = False) -> tuple[dict, str]:
     """Run `prompt` through the provider chain. Returns (data, provider_name)."""
+    brief=ctx.dir/"video_brief.json"
+    if brief.is_file():
+        approved=json.loads(brief.read_text(encoding="utf-8"))
+        if approved.get("status")=="APPROVED":
+            prompt += "\n\nApproved creator brief (requirements, not source facts):\n" + json.dumps(approved["answers"],ensure_ascii=False)
     llm_dir = ctx.work / "llm"
     llm_dir.mkdir(exist_ok=True)
     resp = llm_dir / f"{task}.response.json"

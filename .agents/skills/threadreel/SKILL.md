@@ -9,7 +9,7 @@ Nơi chạy duy nhất: `D:/Video-maker/video-short`. Python: `D:/Video-maker/vi
 
 ## Threads
 
-Chuẩn đầu ra là video merged người dùng duyệt: thẻ bài chụp thật, nền mờ, toàn bộ clip và tiếng nguồn, chú thích đọc bằng VieNeu Mai Anh, credit tác giả xuyên suốt. Không biến bài thành truyện. Không mặc định xuất A/B, không dùng giao diện/pipeline digest cũ.
+Chuẩn đầu ra là video merged người dùng duyệt: thẻ bài chụp thật, nền mờ, toàn bộ clip và tiếng nguồn, chú thích đọc bằng VieNeu đã duyệt QC (ưu tiên nam trầm miền Nam), credit tác giả xuyên suốt. Không biến bài thành truyện. Không mặc định xuất A/B, không dùng giao diện/pipeline digest cũ.
 
 ```powershell
 .\.venv\Scripts\python.exe -m studio threads-post "https://www.threads.com/@user/post/ID"
@@ -27,7 +27,7 @@ Chuẩn đầu ra là video merged người dùng duyệt: thẻ bài chụp th�
 .\.venv\Scripts\python.exe -m studio reddit-story render --id ID
 ```
 
-Bản dịch ở `projects/social_video/work/reddit/ID/vi.json`; giữ cấu trúc đoạn, thoại, chia phần, nền và lịch sử đăng cũ. Giọng local Mai Anh; không âm thầm dùng lại cache giọng khác.
+Bản dịch ở `projects/social_video/work/reddit/ID/vi.json`; giữ cấu trúc đoạn, thoại, chia phần, nền và lịch sử đăng cũ. Giọng local đã duyệt QC, ưu tiên nam trầm miền Nam; không âm thầm dùng lại cache giọng khác.
 
 ## QC mọi video trước khi giao
 
@@ -50,3 +50,10 @@ Video cuối dùng chung root `D:/Video-maker/video-short/output`, chia thư m�
 
 
 Thêm nền riêng: `studio social-assets import-background --source VIDEO --seconds 60`. Lệnh giữ file nguồn, tạo các clip silent theo keyframe, giữ manifest cũ, đăng ký shared asset bằng hardlink khi có thể. Media chỉ local; code và asset metadata được commit.
+
+
+## Voice admission and generation planning
+
+Edge (all voices/providers), Mai Anh and aliases are permanently forbidden, including random selection, fallback and cached audio. Prefer a deep male Southern Vietnamese voice; reject voices that sound like Mai Anh. New voices/checkpoints stay quarantined until intelligibility, pronunciation, naturalness, artifacts and dissimilarity are reviewed against a SHA256-bound audition. Never claim training or listening occurred without evidence.
+
+Before expensive generation, run `studio brief PROJECT --interactive --detailed`, then `studio preflight PROJECT`; resolve the creator’s requirements and review the concrete brief before `studio brief PROJECT --approve --reviewer NAME`. Static preflight is a text storyboard, not a rendered layout. Default budget is one full render per approved brief; inspect QC before explicitly granting another attempt. Source or plan changes invalidate approval. Target duration is advisory when preserving complete source clips.

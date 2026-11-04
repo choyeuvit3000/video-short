@@ -44,6 +44,8 @@ class EdgeTTS(TTSProvider):
         return words
 
     def synthesize(self, text, profile, out_path):
+        from ...core.voice_policy import assert_not_blocked
+        assert_not_blocked("edge",profile.id,profile.params)
         last: Exception | None = None
         for attempt in range(1, self.retries + 1):
             try:

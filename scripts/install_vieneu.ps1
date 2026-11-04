@@ -8,9 +8,9 @@
 
     tts:
       vieneu: {python: <Root>\.venv\Scripts\python.exe, hf_home: <HfHome>}
-    voice_defaults: {vi: vieneu-vi-maianh}     # optional: make it this machine's default Vietnamese voice
+    voice_defaults: {vi: vieneu-vi-thaison}     # optional: make it this machine's default Vietnamese voice
 
-  and check with:  studio voices test vieneu-vi-maianh
+  and check with:  studio voices test vieneu-vi-thaison
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File .\scripts\install_vieneu.ps1

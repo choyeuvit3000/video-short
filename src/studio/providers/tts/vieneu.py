@@ -43,11 +43,21 @@ class _Runner:
     """The worker process; one per python path, shared by every provider instance."""
 
     def __init__(self, python: Path):
-        env = {**os.environ, "HF_HOME": str(_conf().get("hf_home") or DEFAULT_HF_HOME),
-               "HF_HUB_DISABLE_SYMLINKS_WARNING": "1", "PYTHONIOENCODING": "utf-8"}
-        self.proc = subprocess.Popen([str(python), "-I", str(RUNNER)], stdin=subprocess.PIPE,
-                                     stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, env=env,
-                                     encoding="utf-8", bufsize=1)
+        env = {
+            **os.environ,
+            "HF_HOME": str(_conf().get("hf_home") or DEFAULT_HF_HOME),
+            "HF_HUB_DISABLE_SYMLINKS_WARNING": "1",
+            "PYTHONIOENCODING": "utf-8",
+        }
+        self.proc = subprocess.Popen(
+            [str(python), "-I", str(RUNNER)],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            env=env,
+            encoding="utf-8",
+            bufsize=1,
+        )
         self.lock = threading.Lock()
         hello = self._read(LOAD_TIMEOUT_SEC)
         if not hello.get("ok"):
@@ -116,13 +126,33 @@ class VieneuTTS(TTSProvider):
         return None
 
     def synthesize(self, text, profile, out_path):
+        from ...core.voice_policy import assert_voice_allowed
+
+        assert_voice_allowed(profile, self.registry.root if hasattr(self, "registry") else None)
+        return self._generate(text, profile, out_path)
+
+    def audition(self, text, profile, out_path):
+        """Quarantined evaluation only; never a production fallback."""
+        from ...core.voice_policy import assert_voice_allowed
+
+        assert_voice_allowed(profile, self.registry.root, audition=True)
+        return self._generate(text, profile, out_path)
+
+    def _generate(self, text, profile, out_path):
         reason = self.check(profile)
         if reason:
             raise ProviderUnavailable(reason, code="tts_unavailable")
         p = profile.params
         seed = int(p.get("seed", int(hashlib.sha256(text.encode()).hexdigest()[:8], 16)))  # same text -> same take
-        resp = _runner().ask({"text": text, "voice": p.get("voice"), "out": str(out_path), "seed": seed,
-                              "temperature": float(p.get("temperature", 0.7))})
+        resp = _runner().ask(
+            {
+                "text": text,
+                "voice": p.get("voice"),
+                "out": str(out_path),
+                "seed": seed,
+                "temperature": float(p.get("temperature", 0.7)),
+            }
+        )
         if not resp.get("ok"):
             raise ProviderUnavailable(f"VieNeu failed: {resp.get('error')}", code="tts_unavailable")
         speed = float(p.get("speed", 1.0))

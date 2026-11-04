@@ -9,7 +9,7 @@ Nơi chạy chính: `D:\Video-maker\video-short`. Không còn cần Python/code/
 .\.venv\Scripts\python.exe -m studio threads-post "projects/social_video/work/compare_DfSLpwgiXeL" --narration-file "projects/social_video/inputs/merged_narration.json"
 ```
 
-Chuẩn là video merged đã duyệt: ảnh chụp thật, nền mờ, clip/âm thanh nguồn đầy đủ, Mai Anh đọc chú thích, credit xuyên suốt. Không tự viết thành truyện hoặc mặc định xuất hai bản A/B. Media được giữ nguyên; bình luận/reaction cần plan biên tập rõ ràng, đúng id asset và URL nguồn. Có thể truyền `--plan-file` với `source` và `beats` gồm `kind/ref/narration/image_id/sound_id/caption_top/caption_bottom`. Narration file là mảng JSON các chú thích đã chuẩn hóa cách đọc, không thêm ý.
+Chuẩn là video merged đã duyệt: ảnh chụp thật, nền mờ, clip/âm thanh nguồn đầy đủ, giọng local đã duyệt QC đọc chú thích, credit xuyên suốt. Không tự viết thành truyện hoặc mặc định xuất hai bản A/B. Media được giữ nguyên; bình luận/reaction cần plan biên tập rõ ràng, đúng id asset và URL nguồn. Có thể truyền `--plan-file` với `source` và `beats` gồm `kind/ref/narration/image_id/sound_id/caption_top/caption_bottom`. Narration file là mảng JSON các chú thích đã chuẩn hóa cách đọc, không thêm ý.
 
 ## Reddit
 
@@ -57,3 +57,13 @@ All modes share `D:/Video-maker/video-short/output/YYYY-MM-DD/MODE/`. Date uses 
 ```
 
 Lệnh giữ nguyên file nguồn, chép vào kho asset bằng tên gắn SHA256 rồi chia thành các đoạn im tiếng khoảng một phút. Cắt theo keyframe, không tái mã hóa nên thời lượng có thể lệch vài giây. Chỉ index nguồn vừa nhập, không ghi mất manifest của các nền đã có; chạy lại không tạo clip trùng. Nền Minecraft được nhận diện từ tên file và tự nằm trong pool nền chung. Media giữ local theo .gitignore, không upload lên Git. Tên file ghi no-copyright không được coi là chứng cứ giấy phép.
+
+
+## Voice admission and generation planning
+
+Edge (all voices/providers), Mai Anh and aliases are permanently forbidden, including random selection, fallback and cached audio. Prefer a deep male Southern Vietnamese voice; reject voices that sound like Mai Anh. New voices/checkpoints stay quarantined until intelligibility, pronunciation, naturalness, artifacts and dissimilarity are reviewed against a SHA256-bound audition. Never claim training or listening occurred without evidence.
+
+Before expensive generation, run `studio brief PROJECT --interactive --detailed`, then `studio preflight PROJECT`; resolve the creator’s requirements and review the concrete brief before `studio brief PROJECT --approve --reviewer NAME`. Static preflight is a text storyboard, not a rendered layout. Default budget is one full render per approved brief; inspect QC before explicitly granting another attempt. Source or plan changes invalidate approval. Target duration is advisory when preserving complete source clips.
+
+
+Nghe thử giọng nam miền Nam (chưa train mới): `.venv/Scripts/python.exe scripts/voice_lab.py audition`. Mẫu ở `voices/candidates/`, không vào pool production. Chỉ người thực sự nghe và đánh giá được chạy `scripts/voice_lab.py review VOICE_ID --reviewer NAME --confirm-listened --confirm-dissimilar --confirm-pronunciation --confirm-natural --confirm-clean`. Không tự tick thay người nghe.

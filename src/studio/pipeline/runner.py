@@ -32,9 +32,11 @@ def stages_for(ctx: ProjectContext) -> list[str]:
 
 
 def write_todo(ctx: ProjectContext, gate: ManualGateRequired) -> None:
-    text = (f"# TODO (manual step) - {ctx.project.title or ctx.project.project_id}\n\n"
-            f"Pipeline stopped at stage **{gate.stage}**. Do the steps below, then run again:\n\n"
-            f"```powershell\nstudio run \"{ctx.dir}\"\n```\n\n{gate.instructions}")
+    text = (
+        f"# TODO (manual step) - {ctx.project.title or ctx.project.project_id}\n\n"
+        f"Pipeline stopped at stage **{gate.stage}**. Do the steps below, then run again:\n\n"
+        f'```powershell\nstudio run "{ctx.dir}"\n```\n\n{gate.instructions}'
+    )
     (ctx.dir / "TODO_MANUAL.md").write_text(text, encoding="utf-8")
 
 
@@ -42,12 +44,13 @@ def select_stages(ctx: ProjectContext, ro: RunOptions) -> list[str]:
     names = stages_for(ctx)
     for n in [*ro.only, *([ro.from_stage] if ro.from_stage else [])]:
         if n not in names:
-            raise ValidationError(f"stage '{n}' is not part of workflow {ctx.project.workflow}: {names}",
-                                  code="bad_stage")
+            raise ValidationError(
+                f"stage '{n}' is not part of workflow {ctx.project.workflow}: {names}", code="bad_stage"
+            )
     if ro.only:
         return [n for n in names if n in ro.only]
     if ro.from_stage:
-        return names[names.index(ro.from_stage):]
+        return names[names.index(ro.from_stage) :]
     return names
 
 
@@ -62,6 +65,17 @@ def _run(ctx: ProjectContext, ro: RunOptions) -> int:
     names = stages_for(ctx)
     registry = get_stages()
     selected = select_stages(ctx, ro)
+    if ctx.settings.get("planning.required", False) and any(
+        n in {"voice", "render", "images", "script", "storyboard", "explainer"} for n in selected
+    ):
+        from ..core.creative_brief import ensure_ready
+
+        ensure_ready(ctx.dir)
+    if ctx.project.audio.source != "manual" and any(n in {"voice", "render"} for n in selected):
+        from ..voices import load_registry
+        from .voice import choose_profile
+
+        choose_profile(ctx, load_registry(ctx.settings))  # also guard cached stages
     for name in selected:
         fn = registry.get(name)
         if fn is None:
@@ -71,24 +85,46 @@ def _run(ctx: ProjectContext, ro: RunOptions) -> int:
         if not ro.force and fingerprint.up_to_date(ctx, name, fp):
             prev = ctx.state()["stages"][name]
             log.info("[%s] up to date - skipped (inputs unchanged; --force to rebuild)", name)
-            ctx.set_stage(name, "done", prev.get("message", ""), fingerprint=fp, outputs=prev["outputs"],
-                          skipped=True)
+            ctx.set_stage(name, "done", prev.get("message", ""), fingerprint=fp, outputs=prev["outputs"], skipped=True)
             continue
+        if ctx.settings.get("planning.required", False) and name in {"voice", "render", "images"}:
+            from ..core.creative_brief import ensure_ready, reserve_render
+
+            ensure_ready(ctx.dir)
+            if name == "render":
+                reserve_render(ctx.dir, fp or "render")
         ctx.set_stage(name, "running")
         t0 = time.monotonic()
+        tracked_render = name == "render" and ctx.settings.get("planning.required", False)
         try:
             msg = fn(ctx, opts)
         except ManualGateRequired as gate:
+            if tracked_render:
+                from ..core.creative_brief import finish_render
+
+                finish_render(ctx.dir, False)
             write_todo(ctx, gate)
             ctx.set_stage(name, "waiting_manual", str(gate))
             log.warning("[%s] waiting for manual input -> %s", name, ctx.dir / "TODO_MANUAL.md")
             raise
         except StudioError as e:
+            if tracked_render:
+                from ..core.creative_brief import finish_render
+
+                finish_render(ctx.dir, False)
             ctx.set_stage(name, "failed", str(e))
             raise
         except Exception as e:  # unexpected: record, then let the CLI report it
+            if tracked_render:
+                from ..core.creative_brief import finish_render
+
+                finish_render(ctx.dir, False)
             ctx.set_stage(name, "failed", f"{type(e).__name__}: {e}")
             raise
+        if tracked_render:
+            from ..core.creative_brief import finish_render
+
+            finish_render(ctx.dir, True)
         extra = {"fingerprint": fp, "outputs": fingerprint.output_shas(ctx, name)} if fp else {}
         ctx.set_stage(name, "done", msg or "", **extra)
         log.info("[%s] done in %.1fs - %s", name, time.monotonic() - t0, msg)

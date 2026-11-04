@@ -35,7 +35,9 @@ class VoiceProfile:
 
     @property
     def usable(self) -> bool:
-        return self.status in ("ready", "experimental")
+        from .core.voice_policy import blocked
+
+        return self.status in ("ready", "experimental") and not blocked(self.provider, self.id, self.params)
 
     def estimate_cost(self, text: str) -> float:
         return len(text) / 1000 * float(self.cost_per_1k_chars or 0)
@@ -68,20 +70,52 @@ class VoiceRegistry:
     def get(self, voice_id: str) -> VoiceProfile:
         if voice_id not in self.profiles:
             raise ValidationError(f"Unknown voice '{voice_id}'. See `studio voices list`.", code="unknown_voice")
-        return self.profiles[voice_id]
+        from .core.voice_policy import assert_not_blocked
+
+        p = self.profiles[voice_id]
+        assert_not_blocked(p.provider, p.id, p.params)
+        return p
 
     def default_for(self, lang: str) -> VoiceProfile:
         vid = self.defaults.get(lang)
         if not vid:
-            raise ValidationError(f"No default voice for language '{lang}' in voices/registry.yaml",
-                                  code="unknown_voice")
+            raise ValidationError(
+                f"No default voice for language '{lang}' in voices/registry.yaml", code="unknown_voice"
+            )
         return self.get(vid)
 
     def fallback_for(self, profile: VoiceProfile) -> VoiceProfile | None:
         fid = profile.fallback or self.offline_fallback.get(profile.lang)
         if fid and fid != profile.id and fid in self.profiles:
-            return self.profiles[fid]
+            candidate = self.profiles[fid]
+            if not candidate.usable:
+                return None
+            from .core.voice_policy import assert_voice_allowed
+
+            try:
+                assert_voice_allowed(candidate, self.root)
+            except ValidationError:
+                return None
+            return candidate
         return None
+
+    def random_for(self, lang: str, rng=None) -> VoiceProfile:
+        import random
+
+        from .core.voice_policy import assert_voice_allowed
+
+        pool = []
+        for p in self.profiles.values():
+            if p.lang != lang or not p.usable or p.provider == "mock":
+                continue
+            try:
+                assert_voice_allowed(p, self.root)
+            except ValidationError:
+                continue
+            pool.append(p)
+        if not pool:
+            raise ValidationError("No reviewed non-blacklisted voices available", code="voice_quality_pending")
+        return (rng or random).choice(pool)
 
     def model_dir(self, profile: VoiceProfile) -> Path:
         return self.root / "local" / "models" / profile.id
@@ -102,10 +136,11 @@ def load_registry(settings: Settings) -> VoiceRegistry:
                 if prof.id in profiles:
                     raise ValidationError(f"Duplicate voice id '{prof.id}' in {f}", code="config_error")
                 profiles[prof.id] = prof
-    # config/local.yaml `voice_defaults: {vi: vieneu-vi-maianh}` - this machine's default voice per language
+    # config/local.yaml `voice_defaults: {vi: vieneu-vi-thaison}` - this machine's default voice per language
     defaults = {**dict(reg.get("defaults", {})), **dict(settings.get("voice_defaults", {}) or {})}
-    return VoiceRegistry(root=root, profiles=profiles, defaults=defaults,
-                         offline_fallback=dict(reg.get("offline_fallback", {})))
+    return VoiceRegistry(
+        root=root, profiles=profiles, defaults=defaults, offline_fallback=dict(reg.get("offline_fallback", {}))
+    )
 
 
 def is_installed(reg: VoiceRegistry, profile: VoiceProfile) -> bool:

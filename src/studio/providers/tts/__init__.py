@@ -14,6 +14,8 @@ PROVIDERS: dict[str, type[TTSProvider]] = {
 
 
 def get_provider(name: str, registry) -> TTSProvider:
+    from ...core.voice_policy import assert_not_blocked
+    assert_not_blocked(name)
     cls = PROVIDERS.get(name)
     if cls is None:
         raise ProviderUnavailable(

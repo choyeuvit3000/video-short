@@ -253,6 +253,8 @@ BATCH_ENGINES = ("vivibe", "revid")
 def synth(text: str, out: Path, tcfg: dict, attempts: int = 3) -> list[dict]:
     """Write an mp3 and return word timings, trying engines in `tts.engines` order, e.g.
     Vivibe (economy voice) -> revidapi (paid credits) -> edge-tts (free) -> gTTS (free)."""
+    from ..core.voice_policy import assert_social_config
+    assert_social_config(tcfg)
     text = clean_for_speech(text)
     if not text:
         return []
@@ -464,6 +466,8 @@ def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.
     (the free fallbacks) voice whatever is left, text by text, in parallel.
     """
     from concurrent.futures import ThreadPoolExecutor
+    from ..core.voice_policy import assert_social_config
+    assert_social_config(tcfg)
 
     signature = hashlib.sha256(json.dumps([texts, roles, tcfg, gap], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
     workdir = workdir / signature

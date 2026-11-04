@@ -82,3 +82,7 @@ worker:
 remote:
   poll_sec: 10
   wait_timeout_min: 180
+
+planning:
+  required: true
+  default_full_render_budget: 1

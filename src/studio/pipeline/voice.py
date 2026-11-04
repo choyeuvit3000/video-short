@@ -68,6 +68,8 @@ def choose_profile(ctx: ProjectContext, reg: VoiceRegistry) -> VoiceProfile:
     if not prof.usable:
         raise ValidationError(f"Voice '{prof.id}' has status '{prof.status}' - enable it in {prof.source_file} "
                               "or pick another (`studio voices list`)", code="voice_disabled")
+    from ..core.voice_policy import assert_voice_allowed
+    assert_voice_allowed(prof,reg.root)
     if prof.lang != p.language:
         log.warning("voice %s is %s but project language is %s", prof.id, prof.lang, p.language)
     return prof

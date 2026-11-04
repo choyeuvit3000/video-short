@@ -35,6 +35,7 @@ def settings(tmp_path: Path) -> Settings:
         "providers": {"llm": ["manual"], "align": ["provider_words", "estimate"]},
         # a worker PC's config/local.yaml (worker.node_id: home-gpu + its token in .env) must not leak in
         "worker": {"node_id": None},
+        "planning": {"required": False},
     })
     data.pop("voice_defaults", None)  # a GPU PC's local default voice (VieNeu) must not leak in either
     return Settings(root=base.root, data=data, formats=base.formats)

@@ -76,26 +76,37 @@ def threads_post(source: str, narration_file: Path | None = None, plan_file: Pat
                 if beat.get(key) and beat[key] not in library:
                     raise ValueError(f'Unknown asset: {beat[key]}')
     write_json(wd/'merged_plan.json',{'style':'approved-merged-v1','source':post['url'],'beats':beats})
-    r = StoryRenderer(cfg,wd,memes.load(),post,'merged')
-    hook = texts[0] if texts and len(texts[0].split()) <= 8 else ''
-    clips=[r.render_beat(k,b,hook if k==0 else '') for k,b in enumerate(beats)]
-    draft = wd/'merged_draft.mp4'
-    _concat_raw(clips,wd,draft,cfg,name='merged_joined')
-    credit=Image.new('RGBA',(1080,1920),(0,0,0,0))
-    draw=ImageDraw.Draw(credit)
-    draw.rounded_rectangle((60,220,940,315),radius=20,fill=(16,16,16,235))
-    draw.text((85,240),'Threads · @'+post['author'],fill='white',
-              font=ImageFont.truetype(cfg['fonts']['body'],40))
-    credit.save(wd/'credit.png')
-    tag=post['url'].rstrip('/').rsplit('/',1)[-1]
-    from studio.core.outputs import organized_output
-    folder = organized_output(FINAL_OUTPUT, 'threads', wd/'output_location.json')
-    out=folder/f'threads__{tag}.mp4'
-    out.parent.mkdir(parents=True,exist_ok=True)
-    publish(draft,out,cfg,wd/'credit.png')
-    write_json(out.with_suffix('.source.json'),{'url':post['url'],'author':post['author'],
-        'style':'approved-merged-v1','voice':cfg['tts'].get('vieneu',{}).get('voice'),
-        'source_media_sec':[media_duration(wd/m['file']) for m in post.get('media',[]) if m['kind']=='video']})
+    from ..core.creative_brief import begin_social,complete_social
+    key,cached=begin_social(wd,cfg)
+    if cached:
+        print(f'UP_TO_DATE: {cached[0]}',flush=True)
+        return cached[0]
+    try:
+        r = StoryRenderer(cfg,wd,memes.load(),post,'merged')
+        hook = texts[0] if texts and len(texts[0].split()) <= 8 else ''
+        clips=[r.render_beat(k,b,hook if k==0 else '') for k,b in enumerate(beats)]
+        draft = wd/'merged_draft.mp4'
+        _concat_raw(clips,wd,draft,cfg,name='merged_joined')
+        credit=Image.new('RGBA',(1080,1920),(0,0,0,0))
+        draw=ImageDraw.Draw(credit)
+        draw.rounded_rectangle((60,220,940,315),radius=20,fill=(16,16,16,235))
+        draw.text((85,240),'Threads · @'+post['author'],fill='white',
+                  font=ImageFont.truetype(cfg['fonts']['body'],40))
+        credit.save(wd/'credit.png')
+        tag=post['url'].rstrip('/').rsplit('/',1)[-1]
+        from studio.core.outputs import organized_output
+        folder = organized_output(FINAL_OUTPUT, 'threads', wd/'output_location.json')
+        out=folder/f'threads__{tag}.mp4'
+        out.parent.mkdir(parents=True,exist_ok=True)
+        publish(draft,out,cfg,wd/'credit.png')
+        write_json(out.with_suffix('.source.json'),{'url':post['url'],'author':post['author'],
+            'style':'approved-merged-v1','voice':cfg['tts'].get('vieneu',{}).get('voice'),
+            'source_media_sec':[media_duration(wd/m['file']) for m in post.get('media',[]) if m['kind']=='video']})
+    except Exception:
+        from ..core.creative_brief import finish_render
+        finish_render(wd,False)
+        raise
+    complete_social(wd,key,[out])
     print(f'REVIEW_REQUIRED: {out}',flush=True)
     return out
 
@@ -103,7 +114,8 @@ def register(app):
     @app.command('threads-post')
     def post(source: str, narration_file: Path | None = None, plan_file: Path | None = None):
         """Threads post using the approved merged layout; no story adaptation."""
-        threads_post(source,narration_file,plan_file)
+        from ..cli import _guard
+        _guard(lambda: (threads_post(source,narration_file,plan_file),0)[1])
 
     @app.command('reddit-story')
     def reddit_story(action: Annotated[str, typer.Argument()] = 'render', id: str | None = None, count: int = 1):
@@ -113,8 +125,12 @@ def register(app):
         if action=='fetch': reddit.fetch(cfg['reddit']['sub'],cfg['reddit']['period'])
         elif action=='list': print(reddit.list_json(cfg))
         elif action=='prep' and id: print(reddit.prep(id))
-        elif action=='render' and id: print(reddit.render(id,cfg))
-        elif action=='auto': print(reddit.auto(cfg,count,cfg['reddit']['translator']))
+        elif action=='render' and id:
+            from ..cli import _guard
+            _guard(lambda:(print(reddit.render(id,cfg)),0)[1])
+        elif action=='auto':
+            from ..cli import _guard
+            _guard(lambda:(print(reddit.auto(cfg,count,cfg['reddit']['translator'])),0)[1])
         else: raise typer.BadParameter('Use fetch/list/prep --id ID/render --id ID/auto')
 
     @app.command('social-qc')

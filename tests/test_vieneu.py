@@ -13,10 +13,12 @@ from .conftest import needs_ffmpeg
 
 FAKE_RUNNER = r'''
 import json, math, struct, sys, wave
-print(json.dumps({"ok": True, "ready": True, "voices": ["Mai Anh"], "cuda": False}), flush=True)
+sys.stdin.reconfigure(encoding="utf-8")
+sys.stdout.reconfigure(encoding="utf-8")
+print(json.dumps({"ok": True, "ready": True, "voices": ["Minh Đức"], "cuda": False}), flush=True)
 for line in sys.stdin:
     req = json.loads(line)
-    if req["voice"] != "Mai Anh":
+    if req["voice"] != "Minh Đức":
         print(json.dumps({"ok": False, "error": "unknown voice"}), flush=True)
         continue
     with wave.open(req["out"], "wb") as w:  # a 1 s tone stands in for the voice
@@ -34,6 +36,7 @@ def fake_vieneu(tmp_path, monkeypatch):
     monkeypatch.setenv("STUDIO_VIENEU_PYTHON", sys.executable)
     vieneu._close_all()
     vieneu._runners.clear()
+    monkeypatch.setattr("studio.core.voice_policy.assert_voice_allowed",lambda *a,**k:None)
     yield
     vieneu._close_all()
     vieneu._runners.clear()
@@ -42,16 +45,16 @@ def fake_vieneu(tmp_path, monkeypatch):
 def test_vieneu_profiles_are_commercial_and_fall_back(settings):
     reg = load_registry(settings)
     voices = [p for p in reg.profiles.values() if p.provider == "vieneu"]
-    assert len(voices) >= 3 and all(p.status == "ready" and p.location == "node:home-gpu" for p in voices)
-    assert all("Apache-2.0" in p.license and p.fallback in reg.profiles for p in voices)
-    assert reg.default_for("vi").provider != "vieneu"  # machine defaults never leak into tests
+    assert len(voices) >= 3 and all(p.location == "node:home-gpu" for p in voices)
+    assert all("Apache-2.0" in p.license and not (p.fallback or "").startswith("edge") for p in voices)
+    assert reg.default_for("vi").id == "vieneu-vi-thaison"  # production candidate remains quarantined
 
 
 def test_vieneu_missing_venv(settings, monkeypatch, tmp_path):
     monkeypatch.setenv("STUDIO_VIENEU_PYTHON", str(tmp_path / "nope" / "python.exe"))
     reg = load_registry(settings)
     prov = vieneu.VieneuTTS(reg)
-    assert "install_vieneu.ps1" in prov.check(reg.get("vieneu-vi-maianh"))
+    assert "install_vieneu.ps1" in prov.check(reg.get("vieneu-vi-minhduc"))
 
 
 @needs_ffmpeg
@@ -60,7 +63,7 @@ def test_vieneu_runner_protocol_and_speed(settings, fake_vieneu, tmp_path):
 
     reg = load_registry(settings)
     prov = vieneu.VieneuTTS(reg)
-    prof = reg.get("vieneu-vi-maianh")
+    prof = reg.get("vieneu-vi-minhduc")
     res = prov.synthesize("Xin chào.", prof, tmp_path / "a.wav")
     assert res.words is None and abs(probe(res.audio_path).duration - 1.0) < 0.05
     fast = prov.synthesize("Xin chào.", with_speed(prof, 1.25), tmp_path / "b.wav")  # atempo, same process

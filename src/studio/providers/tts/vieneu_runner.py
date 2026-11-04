@@ -3,7 +3,7 @@
     <vieneu venv>/python -I vieneu_runner.py
 
 Loads the model once, then reads one JSON request per stdin line:
-    {"text": "...", "voice": "Mai Anh", "out": "C:/.../s01.wav", "temperature": 0.7, "seed": 123}
+    {"text": "...", "voice": "Thái Sơn", "out": "C:/.../s01.wav", "temperature": 0.7, "seed": 123}
 and answers one JSON line on stdout: {"ok": true, "sec": 4.2} or {"ok": false, "error": "..."}.
 Everything the libraries print goes to stderr, so stdout carries only the protocol.
 """
@@ -43,6 +43,10 @@ def main() -> int:
             req = json.loads(line)
             if req.get("voice") and req["voice"] not in voices:
                 raise ValueError(f"unknown VieNeu voice {req['voice']!r}")
+            import unicodedata, re
+            name=re.sub(r"[^a-z]","",unicodedata.normalize("NFKD",req.get("voice") or "").lower())
+            if not name or "maianh" in name:
+                raise ValueError("Mai Anh/default voice is permanently blacklisted")
             torch.manual_seed(int(req.get("seed", 0)))
             audio = tts.infer(req["text"], voice=req.get("voice"),
                               temperature=float(req.get("temperature", 0.7)))

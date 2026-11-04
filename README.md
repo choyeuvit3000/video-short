@@ -132,7 +132,7 @@ Kết quả kiểm thử thật: [TEST_REPORT.md](TEST_REPORT.md). Đối chiế
 
 ## Threads merged và Reddit hợp nhất
 
-Hai mode native trong Studio: `studio threads-post URL_OR_CAPTURE_DIR` và `studio reddit-story render --id ID`. Threads dùng chuẩn merged đã duyệt, không kể lại thành truyện; Reddit là mode riêng. QC/mastering/contact sheet và review theo SHA256 bắt buộc. Giọng mặc định VieNeu Mai Anh.
+Hai mode native trong Studio: `studio threads-post URL_OR_CAPTURE_DIR` và `studio reddit-story render --id ID`. Threads dùng chuẩn merged đã duyệt, không kể lại thành truyện; Reddit là mode riêng. QC/mastering/contact sheet và review theo SHA256 bắt buộc. Giọng mặc định VieNeu đã duyệt QC (ưu tiên nam trầm miền Nam).
 
 Hướng dẫn: [docs/SOCIAL_VIDEO.md](docs/SOCIAL_VIDEO.md). Báo cáo chuyển dữ liệu được giữ local tại `docs/SOCIAL_MIGRATION_REPORT.md`. Dữ liệu nằm ở `projects/social_video`; bộ cũ trong Downloads đã nghỉ dùng. Theo yêu cầu mới, video đầu ra cũ không được giữ; asset/source/bản dịch và bằng chứng QA vẫn còn để dựng mới.
 

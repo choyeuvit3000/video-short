@@ -34,9 +34,11 @@ def _crop(src: Path, aspect: float) -> str:
     return f"crop=iw:trunc(iw/{aspect:.5f}/2)*2:0:(ih-oh)/2,"
 
 
-def pick(seconds: float, rng: random.Random, aspect: float = 9 / 16) -> tuple[Path, float, str] | None:
+def pick(seconds: float, rng: random.Random, aspect: float = 9 / 16, family: str = "any") -> tuple[Path, float, str] | None:
     """(source, start second, crop filter to `aspect`) for one part `seconds` long, or None."""
-    pool = _sources()
+    pool = sorted(SOURCES.glob("minecraft*.mp4")) if family == "minecraft" else _sources()
+    if family == "minecraft" and not pool:
+        raise ValueError("No imported Minecraft background is available")
     if not pool:
         return None
     usage = read_json(USAGE, {})

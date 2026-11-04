@@ -15,8 +15,8 @@
 # A profile with status disabled/planned is never used automatically.
 
 defaults:
-  vi: edge-vi-hoaimy
-  en: edge-en-andrew
+  vi: vieneu-vi-thaison
+  en: piper-en-lessac
 
 # When the chosen voice cannot run (offline, node down, missing key), the pipeline
 # switches the WHOLE project to the profile's `fallback` - voices are never mixed in one video.

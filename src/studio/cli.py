@@ -25,18 +25,31 @@ from rich.table import Table
 
 from . import __version__
 from .core.config import deep_merge, get_settings
-from .core.errors import EXIT_ERROR, EXIT_OK, EXIT_VALIDATION, ManualGateRequired, StudioError, WaitingForNode
+from .core.errors import (
+    EXIT_ERROR,
+    EXIT_OK,
+    EXIT_VALIDATION,
+    ManualGateRequired,
+    StudioError,
+    ValidationError,
+    WaitingForNode,
+)
 from .core.ffmpeg import ffmpeg_bin, ffprobe_bin, has_encoder, has_filter, run_ffmpeg
 from .core.logging_utils import _RedactFilter, attach_run_log, console, get_logger, redact
 from .core.media_probe import probe
 from .core.project import ProjectContext, scaffold
 from .core.schema import Project
 
-app = typer.Typer(help="AI Shorts Studio - multi-workflow short/long video pipeline.", no_args_is_help=True,
-                  add_completion=False, pretty_exceptions_enable=False)
+app = typer.Typer(
+    help="AI Shorts Studio - multi-workflow short/long video pipeline.",
+    no_args_is_help=True,
+    add_completion=False,
+    pretty_exceptions_enable=False,
+)
 voices_app = typer.Typer(help="Manage voices (free / api / local models).", no_args_is_help=True)
-discover_app = typer.Typer(help="Find hot posts through official APIs (you choose what to render).",
-                           no_args_is_help=True)
+discover_app = typer.Typer(
+    help="Find hot posts through official APIs (you choose what to render).", no_args_is_help=True
+)
 nodes_app = typer.Typer(help="Worker machines from config/nodes.yaml.", no_args_is_help=True)
 jobs_app = typer.Typer(help="Jobs on worker nodes (list / pull results / cancel).", no_args_is_help=True)
 worker_app = typer.Typer(help="Run this machine as a studio-worker node.", no_args_is_help=True)
@@ -110,9 +123,13 @@ def doctor(gpu: Annotated[bool, typer.Option("--gpu", help="Also check NVIDIA GP
     for cli in ("claude", "agy", "codex"):
         path = shutil.which(s.get(f"llm.{cli}_cli.command") or cli)
         add(f"{cli} CLI", True if path else None, path or "not on PATH (LLM chain skips it)")
-    for mod, label in (("edge_tts", "edge-tts"), ("piper", "piper-tts [piper]"),
-                       ("faster_whisper", "faster-whisper [align]"), ("fastapi", "fastapi [worker]"),
-                       ("manim", "manim [manim]")):
+    for mod, label in (
+        ("edge_tts", "edge-tts"),
+        ("piper", "piper-tts [piper]"),
+        ("faster_whisper", "faster-whisper [align]"),
+        ("fastapi", "fastapi [worker]"),
+        ("manim", "manim [manim]"),
+    ):
         found = importlib.util.find_spec(mod) is not None
         add(label, True if found else (False if mod == "edge_tts" else None), "")
     for key in ("projects", "cache"):
@@ -124,21 +141,29 @@ def doctor(gpu: Annotated[bool, typer.Option("--gpu", help="Also check NVIDIA GP
             add(f"write {key}/", True, str(d))
         except OSError as e:
             add(f"write {key}/", False, str(e))
-    add("LaTeX (manim formulas, optional)", True if shutil.which("latex") else None,
-        "not needed: formulas fall back to Unicode text")
+    add(
+        "LaTeX (manim formulas, optional)",
+        True if shutil.which("latex") else None,
+        "not needed: formulas fall back to Unicode text",
+    )
     add(".env", True if (s.root / ".env").exists() else None, "copy .env.example -> .env for API keys")
     if gpu:
         smi = shutil.which("nvidia-smi")
         if smi:
-            q = subprocess.run([smi, "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"],
-                               capture_output=True, text=True)
+            q = subprocess.run(
+                [smi, "--query-gpu=name,memory.total,driver_version", "--format=csv,noheader"],
+                capture_output=True,
+                text=True,
+            )
             add("nvidia-smi", q.returncode == 0, q.stdout.strip() or q.stderr.strip())
         else:
             add("nvidia-smi", False, "no NVIDIA driver found")
         if has_encoder("h264_nvenc"):
             try:
-                run_ffmpeg(["-f", "lavfi", "-i", "color=c=black:s=256x256:d=0.5", "-c:v", "h264_nvenc",
-                            "-f", "null", "-"], stage="doctor")
+                run_ffmpeg(
+                    ["-f", "lavfi", "-i", "color=c=black:s=256x256:d=0.5", "-c:v", "h264_nvenc", "-f", "null", "-"],
+                    stage="doctor",
+                )
                 add("h264_nvenc encode", True, "set render.encoder: h264_nvenc in config/local.yaml")
             except StudioError as e:
                 add("h264_nvenc encode", False, str(e)[:120])
@@ -174,8 +199,14 @@ def workflows() -> None:
         t.add_column(c, overflow="fold")
     for wf in list_workflows(get_settings()):
         st = wf["status"]
-        t.add_row(wf["name"], str(wf.get("tier", "")), f"[green]{st}[/]" if st == "ready" else f"[yellow]{st}[/]",
-                  ", ".join(wf.get("formats", [])), str(wf.get("cost", "")), str(wf.get("description", "")))
+        t.add_row(
+            wf["name"],
+            str(wf.get("tier", "")),
+            f"[green]{st}[/]" if st == "ready" else f"[yellow]{st}[/]",
+            ", ".join(wf.get("formats", [])),
+            str(wf.get("cost", "")),
+            str(wf.get("description", "")),
+        )
     console.print(t)
 
 
@@ -188,10 +219,14 @@ def topics() -> None:
     for c in ("id", "name", "review", "sources", "disclaimer", "templates"):
         t.add_column(c, overflow="fold")
     for tp in list_topics(get_settings()):
-        t.add_row(tp.id, tp.label("vi"), "yes" if tp.review_required else "no",
-                  "required" if tp.require_sources else "-",
-                  ("on screen" if tp.disclaimer_on_screen else "description") if tp.disclaimer else "-",
-                  str(len(tp.templates)))
+        t.add_row(
+            tp.id,
+            tp.label("vi"),
+            "yes" if tp.review_required else "no",
+            "required" if tp.require_sources else "-",
+            ("on screen" if tp.disclaimer_on_screen else "description") if tp.disclaimer else "-",
+            str(len(tp.templates)),
+        )
     console.print(t)
 
 
@@ -203,8 +238,9 @@ def new(
     lang: Annotated[str, typer.Option("--lang", help="vi | en")] = "vi",
     text_file: Annotated[Path | None, typer.Option("--text-file", help="Source text (copied to source/)")] = None,
     url: Annotated[str | None, typer.Option("--url", help="Source URL (Reddit uses the official API)")] = None,
-    brief_file: Annotated[Path | None, typer.Option("--brief-file", help="Brief file (ai_cinematic, "
-                                                                     "knowledge_explainer)")] = None,
+    brief_file: Annotated[
+        Path | None, typer.Option("--brief-file", help="Brief file (ai_cinematic, knowledge_explainer)")
+    ] = None,
     brief: Annotated[str | None, typer.Option("--brief", help="Brief as text (stored in options.brief)")] = None,
     topic: Annotated[str | None, typer.Option("--topic", help="Knowledge topic (see `studio topics`)")] = None,
     voice: Annotated[str | None, typer.Option("--voice", help="Voice id (see `studio voices list`)")] = None,
@@ -246,11 +282,18 @@ def new(
             suffix = f"_{f.split('_')[0]}" if len(formats) > 1 else ""
             pid = (base + suffix)[:64]
             pdir = out_dir or (s.path("projects") / workflow / pid)
-            data = deep_merge(project_defaults(wf, f), {
-                "project_id": pid, "workflow": workflow, "language": lang, "title": "",
-                "video": {"format": f}, "options": options,
-                "budget": {"max_cost_usd": float(s.get("budget.default_max_cost_usd", 0))},
-            })
+            data = deep_merge(
+                project_defaults(wf, f),
+                {
+                    "project_id": pid,
+                    "workflow": workflow,
+                    "language": lang,
+                    "title": "",
+                    "video": {"format": f},
+                    "options": options,
+                    "budget": {"max_cost_usd": float(s.get("budget.default_max_cost_usd", 0))},
+                },
+            )
             if voice:
                 data.setdefault("audio", {})["voice_profile"] = voice
             if data.get("options", {}).get("topic"):
@@ -297,16 +340,23 @@ def run(
     project: ProjectArg,
     from_stage: Annotated[str | None, typer.Option("--from", help="Start at this stage")] = None,
     only: Annotated[list[str], typer.Option("--only", help="Run only these stages (repeatable)")] = None,
-    force: Annotated[bool, typer.Option("--force", help="Regenerate source/script/scenes/storyboard and rebuild "
-                                                     "render/qc/package even if up to date")] = False,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help="Regenerate source/script/scenes/storyboard and rebuild render/qc/package even if up to date",
+        ),
+    ] = False,
     overwrite: Annotated[bool, typer.Option("--overwrite", help="Re-synthesize TTS audio")] = False,
     strict: Annotated[bool, typer.Option("--strict", help="QC warnings fail the run")] = False,
     allow_sidecar: Annotated[bool, typer.Option("--allow-sidecar-subs")] = False,
-    node: Annotated[str | None, typer.Option(
-        "--node", help="Run validate/voice/render/qc/package on a worker: 'auto' or a node id")] = None,
+    node: Annotated[
+        str | None, typer.Option("--node", help="Run validate/voice/render/qc/package on a worker: 'auto' or a node id")
+    ] = None,
     wait: Annotated[bool, typer.Option("--wait/--no-wait", help="Wait for the worker and pull results")] = True,
-    timeout_min: Annotated[float | None, typer.Option(
-        "--timeout", help="Minutes to wait (default remote.wait_timeout_min)")] = None,
+    timeout_min: Annotated[
+        float | None, typer.Option("--timeout", help="Minutes to wait (default remote.wait_timeout_min)")
+    ] = None,
     fallback: Annotated[str, typer.Option("--fallback", help="Named node unavailable: local | fail")] = "local",
 ) -> None:
     """Run the project's workflow (resumable; exit 3 at manual steps, exit 6 while a worker has the job)."""
@@ -314,8 +364,16 @@ def run(
 
     def body() -> int:
         ctx = _ctx(project, "run")
-        ro = RunOptions(from_stage=from_stage, only=only or [], force=force,
-                        stage_opts={"overwrite": overwrite, "strict": strict, "allow_sidecar": allow_sidecar})
+        if ctx.settings.get("planning.required", False):
+            from .core.creative_brief import ensure_ready
+
+            ensure_ready(ctx.dir)
+        ro = RunOptions(
+            from_stage=from_stage,
+            only=only or [],
+            force=force,
+            stage_opts={"overwrite": overwrite, "strict": strict, "allow_sidecar": allow_sidecar},
+        )
         if node and node != "local":
             _run_remote(ctx, ro, node, wait=wait, timeout_min=timeout_min, fallback=fallback)
         else:
@@ -326,8 +384,7 @@ def run(
     _guard(body)
 
 
-def _run_remote(ctx: ProjectContext, ro, node_id: str, *, wait: bool, timeout_min: float | None,
-                fallback: str) -> None:
+def _run_remote(ctx: ProjectContext, ro, node_id: str, *, wait: bool, timeout_min: float | None, fallback: str) -> None:
     from .nodes import NodeUnavailable, select_node
     from .nodes.client import NodeClient
     from .nodes.remote import pull_job, split_stages, submit_project, wait_for_job
@@ -356,8 +413,12 @@ def _run_remote(ctx: ProjectContext, ro, node_id: str, *, wait: bool, timeout_mi
     if not wait:
         raise WaitingForNode(f'job {job_id} submitted to {target.id} - later: studio jobs pull "{ctx.dir}"')
     s = ctx.settings
-    wait_for_job(client, job_id, poll_sec=float(s.get("remote.poll_sec", 10)),
-                 timeout_sec=60 * float(timeout_min or s.get("remote.wait_timeout_min", 180)))
+    wait_for_job(
+        client,
+        job_id,
+        poll_sec=float(s.get("remote.poll_sec", 10)),
+        timeout_sec=60 * float(timeout_min or s.get("remote.wait_timeout_min", 180)),
+    )
     pull_job(ctx, client, job_id)
 
 
@@ -371,15 +432,16 @@ def approve(project: ProjectArg) -> None:
             raise StudioError("nothing to approve: the project has no scenes yet - run it first", code="no_scenes")
         ctx.project.options["reviewed"] = True
         ctx.save()
-        console.print(f"[green]approved[/] {len(ctx.project.scenes)} scenes - next: studio run \"{project}\"")
+        console.print(f'[green]approved[/] {len(ctx.project.scenes)} scenes - next: studio run "{project}"')
         return EXIT_OK
 
     _guard(body)
 
 
 @app.command()
-def validate(project: ProjectArg,
-             media: Annotated[bool, typer.Option(help="Require media files to exist")] = True) -> None:
+def validate(
+    project: ProjectArg, media: Annotated[bool, typer.Option(help="Require media files to exist")] = True
+) -> None:
     """Check project.json and referenced files."""
     from .core.validator import validate_project
 
@@ -400,12 +462,33 @@ def _single_stage(project: Path, stage: str, **opts) -> None:
 
     def body() -> int:
         ctx = _ctx(project, stage)
+        if ctx.settings.get("planning.required", False) and stage in ("voice", "render"):
+            from .core.creative_brief import ensure_ready
+
+            ensure_ready(ctx.dir)
+        if ctx.project.audio.source != "manual" and stage in ("voice", "render"):
+            from .pipeline.voice import choose_profile
+            from .voices import load_registry
+
+            choose_profile(ctx, load_registry(ctx.settings))
+        if ctx.settings.get("planning.required",False) and stage == "render":
+            from .core.creative_brief import reserve_render
+            reserve_render(ctx.dir,"single-stage-render")
         ctx.set_stage(stage, "running")
+        tracked = stage == "render" and ctx.settings.get("planning.required", False)
         try:
             msg = get_stages()[stage](ctx, opts)
-        except StudioError as e:
+        except Exception as e:
+            if tracked:
+                from .core.creative_brief import finish_render
+
+                finish_render(ctx.dir, False)
             ctx.set_stage(stage, "failed", str(e))
             raise
+        if tracked:
+            from .core.creative_brief import finish_render
+
+            finish_render(ctx.dir, True)
         ctx.set_stage(stage, "done", msg)
         console.print(f"[green]{stage}[/] {msg}")
         return EXIT_OK
@@ -490,8 +573,7 @@ def voices_list(
             continue
         inst = "-" if not p.files else ("[green]yes[/]" if is_installed(reg, p) else "[yellow]no[/]")
         st = f"[green]{p.status}[/]" if p.usable else f"[dim]{p.status}[/]"
-        t.add_row(p.id, p.lang, p.tier, p.provider, st, p.location, inst, f"{p.cost_per_1k_chars:g}",
-                  p.fallback or "")
+        t.add_row(p.id, p.lang, p.tier, p.provider, st, p.location, inst, f"{p.cost_per_1k_chars:g}", p.fallback or "")
     console.print(t)
 
 
@@ -634,8 +716,9 @@ def nodes_status() -> None:
                 status_txt = f"[green]{reason}[/]" + (f" - {h['paused_reason']}" if h.get("paused_reason") else "")
             else:
                 status_txt = f"[red]{reason}[/]"
-            table.add_row(n.id, n.role, n.url or "-", "open" if n.schedule.is_open() else "closed",
-                          status_txt, queue, gpu)
+            table.add_row(
+                n.id, n.role, n.url or "-", "open" if n.schedule.is_open() else "closed", status_txt, queue, gpu
+            )
         console.print(table)
         return EXIT_OK
 
@@ -658,8 +741,9 @@ def _worker_nodes(node_id: str | None) -> list[str]:
 
 
 @jobs_app.command("list")
-def jobs_list(node: Annotated[str | None, typer.Option("--node")] = None,
-              limit: Annotated[int, typer.Option("--limit")] = 20) -> None:
+def jobs_list(
+    node: Annotated[str | None, typer.Option("--node")] = None, limit: Annotated[int, typer.Option("--limit")] = 20
+) -> None:
     """Jobs on the worker node(s), newest first."""
     from .nodes.remote import load_index
 
@@ -673,9 +757,16 @@ def jobs_list(node: Annotated[str | None, typer.Option("--node")] = None,
                 console.print(f"[red]{nid}[/]: {e}")
                 continue
             for j in jobs:
-                table.add_row(nid, j["id"], j["status"], j.get("stage") or "", j.get("project_id") or "",
-                              j.get("created_at") or "", j.get("finished_at") or "",
-                              idx.get(j["id"], {}).get("project_dir", "-"))
+                table.add_row(
+                    nid,
+                    j["id"],
+                    j["status"],
+                    j.get("stage") or "",
+                    j.get("project_id") or "",
+                    j.get("created_at") or "",
+                    j.get("finished_at") or "",
+                    idx.get(j["id"], {}).get("project_dir", "-"),
+                )
         console.print(table)
         return EXIT_OK
 
@@ -695,13 +786,18 @@ def _resolve_job(target: str, node: str | None) -> tuple[str, str, Path | None]:
         return target, node or idx["node"], Path(idx["project_dir"])
     if node:
         return target, node, None
-    raise StudioError(f"'{target}' is neither a project with work/remote_job.json nor a known job id "
-                      "(pass --node for a job submitted from another machine)", code="unknown_job")
+    raise StudioError(
+        f"'{target}' is neither a project with work/remote_job.json nor a known job id "
+        "(pass --node for a job submitted from another machine)",
+        code="unknown_job",
+    )
 
 
 @jobs_app.command("pull")
-def jobs_pull(target: Annotated[str, typer.Argument(help="Project folder or job id")],
-              node: Annotated[str | None, typer.Option("--node")] = None) -> None:
+def jobs_pull(
+    target: Annotated[str, typer.Argument(help="Project folder or job id")],
+    node: Annotated[str | None, typer.Option("--node")] = None,
+) -> None:
     """Download a finished job's results into its project (locally edited files are kept, see *.remote.*)."""
     from .nodes.remote import pull_job
 
@@ -718,8 +814,10 @@ def jobs_pull(target: Annotated[str, typer.Argument(help="Project folder or job 
 
 
 @jobs_app.command("cancel")
-def jobs_cancel(target: Annotated[str, typer.Argument(help="Project folder or job id")],
-                node: Annotated[str | None, typer.Option("--node")] = None) -> None:
+def jobs_cancel(
+    target: Annotated[str, typer.Argument(help="Project folder or job id")],
+    node: Annotated[str | None, typer.Option("--node")] = None,
+) -> None:
     """Cancel a queued job (a running job stops before its next stage)."""
 
     def body() -> int:
@@ -759,13 +857,17 @@ def worker_serve(
             from .worker.app import create_app
             from .worker.service import WorkerService
         except ImportError as e:
-            raise StudioError(f'worker extra not installed: uv pip install -e ".[worker]" ({e})',
-                              code="missing_extra") from e
+            raise StudioError(
+                f'worker extra not installed: uv pip install -e ".[worker]" ({e})', code="missing_extra"
+            ) from e
         s = get_settings()
         bind = host or s.get("worker.host", "127.0.0.1")
         if bind in ("0.0.0.0", "::") and not s.get("worker.allow_any_interface", False):
-            raise StudioError("refusing to listen on every interface - bind the Tailscale IP "
-                              "(or set worker.allow_any_interface: true if you really mean it)", code="worker_bind")
+            raise StudioError(
+                "refusing to listen on every interface - bind the Tailscale IP "
+                "(or set worker.allow_any_interface: true if you really mean it)",
+                code="worker_bind",
+            )
         service = WorkerService(s, ignore_schedule=ignore_schedule or None)
         stop = threading.Event()
         loop = threading.Thread(target=service.loop, args=(stop,), name="studio-worker-loop", daemon=True)
@@ -789,8 +891,63 @@ def version() -> None:
     console.print(f"studio {__version__} (python {platform.python_version()}, {os.name})")
 
 
+@app.command("brief")
+def brief_command(
+    project: Path,
+    interactive: bool = False,
+    detailed: bool = False,
+    answers: Path | None = None,
+    accept_recommendations: bool = False,
+    approve: bool = False,
+    reviewer: str = "",
+    reset_budget: bool = False,
+    reason: str = "",
+):
+    """Interview the creator and approve a concrete creative brief before generation."""
+    from .core import creative_brief as cb
+
+    def body():
+        folder = project.resolve()
+        supplied = json.loads(answers.read_text(encoding="utf-8-sig")) if answers else {}
+        data = cb.prepare(folder, supplied, accept_recommendations=accept_recommendations)
+        if interactive:
+            fields = list(cb.LABELS) if detailed else data["missing"]
+            updates = {}
+            for key in fields:
+                default = data["answers"][key] or data["recommendations"][key]
+                field = cb.Brief.model_fields[key]
+                choices = getattr(field.annotation, "__args__", ())
+                suffix = " [" + " / ".join(map(str, choices)) + "]" if choices else ""
+                updates[key] = typer.prompt(cb.LABELS[key] + suffix, default=str(default))
+            data = cb.prepare(folder, updates)
+        console.print((folder / "VIDEO_BRIEF.md").read_text(encoding="utf-8"))
+        if approve:
+            cb.preflight(folder)
+            data = cb.approve(folder, reviewer)
+            console.print("Brief approved: " + data["approved_fingerprint"][:12])
+        if reset_budget:
+            if not reason.strip():
+                raise ValidationError("--reason is required to grant another render", code="brief_incomplete")
+            ledger = cb._read(folder / "generation_budget.json", {"attempts": []})
+            ledger.setdefault("resets", []).append({"reason": reason, "attempts": ledger["attempts"]})
+            ledger["attempts"] = []
+            cb._write(folder / "generation_budget.json", ledger)
+        return EXIT_OK
+
+    _guard(body)
+
+
+@app.command("preflight")
+def preflight_command(project: Path):
+    """Generate static storyboard/estimates only: no TTS, model calls or video render."""
+    from .core.creative_brief import preflight
+
+    _guard(lambda: (console.print(preflight(project.resolve())), EXIT_OK)[1])
+
+
 # Native social video commands (approved merged Threads + Reddit).
-from .social_video.commands import register as _register_social
+from .social_video.commands import register as _register_social  # noqa: E402
+
 _register_social(app)
 
 if __name__ == "__main__":

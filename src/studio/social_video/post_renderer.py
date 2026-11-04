@@ -30,7 +30,9 @@ class StoryRenderer:
         self.top = 250
         self.bottom = 380 if self.subs else 200
         self.bg_video = None
-        bgs = _backgrounds()
+        bgs = sorted((ASSETS / "backgrounds").glob("minecraft*.mp4")) if cfg["story"]["background"] == "minecraft" else _backgrounds()
+        if cfg["story"]["background"] == "minecraft" and not bgs:
+            raise ValueError("No imported Minecraft background is available")
         if cfg["story"]["background"] != "blur" and bgs:
             self.bg_video = random.choice(bgs)
             self.bg_len = max(media_duration(self.bg_video), 1.0)
@@ -106,7 +108,31 @@ class StoryRenderer:
         with Image.open(self.dir / image) as im:
             return round(im.height * width / im.width)
 
-    def render_beat(self, k: int, beat: dict, hook: str) -> Path:
+    def render_beat(self,k,beat,hook):
+        import json,hashlib
+        from ..core.creative_brief import _sha
+        from ..core.voice_policy import assert_social_config
+        if beat.get("narration"):assert_social_config(self.cfg["tts"])
+        refs=[]
+        kind=beat["kind"];ref=beat["ref"]
+        if kind=="post":refs.append(self.dir/self.post["parts"][ref])
+        elif kind=="media":refs.append(self.dir/self.post["media"][ref]["file"])
+        elif kind=="comment":refs.append(self.dir/self.post["comments"][ref]["image"])
+        for name in ("image_id","sound_id"):
+            if beat.get(name):refs.append(MEMES/self.items[beat[name]]["file"])
+        if self.bg_video:refs.append(self.bg_video)
+        else:refs.append(self.dir/self.bg_still)
+        hashes=[(str(p),_sha(p)) for p in refs]
+        fingerprint=hashlib.sha256(json.dumps([beat,hook,self.cfg,hashes],sort_keys=True).encode()).hexdigest()
+        output=self.dir/f"{self.tag}_b{k:02d}.mp4";key_file=output.with_suffix(".cache.json")
+        if output.is_file() and key_file.is_file():
+            cached=json.loads(key_file.read_text())
+            if cached.get("key")==fingerprint and cached.get("sha256")==_sha(output):return output
+        result=self._render_beat(k,beat,hook)
+        key_file.write_text(json.dumps({"key":fingerprint,"sha256":_sha(result)}),encoding="utf-8")
+        return result
+
+    def _render_beat(self, k: int, beat: dict, hook: str) -> Path:
         name = f"{self.tag}_b{k:02d}"
         kind = beat["kind"]
         voice, words, voice_dur = self.seg.narrate(beat["narration"], name)

@@ -68,3 +68,8 @@ tools/ffmpeg/
 # Per-run project state is local, project/source specifications may be versioned
 projects/**/state.json
 projects/**/cost.json
+
+# Quarantined voice evaluation/training and human admission records
+/voices/candidates/
+/voices/reviews/
+/voices/training/

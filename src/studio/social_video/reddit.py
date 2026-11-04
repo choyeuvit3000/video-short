@@ -656,7 +656,7 @@ def _number_vi(n: int) -> str:
         if n <= 10 else str(n)
 
 
-def render(story_id: str, cfg: dict) -> list[Path]:
+def _render_approved(story_id: str, cfg: dict) -> list[Path]:
     d = STORE / story_id
     story, vi = read_json(d / "source.json"), read_json(d / "vi.json")
     if not vi:
@@ -721,7 +721,7 @@ def render(story_id: str, cfg: dict) -> list[Path]:
                        if n_parts > 1 else [title_text])
         extra = voice_all(intro_texts + end_texts, d / "audio_extra", cfg, narrator)
         intro, endings = extra[:n_parts], extra[n_parts:]
-    faces, screams, stings = jumpscare.faces(), jumpscare.screams(), jumpscare.stings()
+    faces, screams, stings = (jumpscare.faces(), jumpscare.screams(), jumpscare.stings()) if rc.get("jumpscares_enabled",True) else ([],[],[])
     rng = random.Random(story_id)
     # vi["scenes"] {"paragraph index": "English photo query"}: the split-screen layout, a photo
     # found online for each scene above the gameplay; stories without it keep the Reddit cards
@@ -818,7 +818,7 @@ def render(story_id: str, cfg: dict) -> list[Path]:
 
         # picture: 0 cards (jumpscare frames included), 1 one gameplay video from a random point
         v_in = ["-f", "concat", "-safe", "0", "-i", card_list.name]
-        bg = bgclips.pick(total, rng, W / (H - SEAM) if scenes else W / H)
+        bg = bgclips.pick(total, rng, W / (H - SEAM) if scenes else W / H, family=rc.get("background_family","any"))
         if bg:
             src, start, crop = bg
             v_in += ["-stream_loop", "-1", "-ss", f"{start:.2f}", "-an", "-i", str(src)]
@@ -891,6 +891,23 @@ def render(story_id: str, cfg: dict) -> list[Path]:
     done = read_json(DONE, {})
     done[story_id] = {"title": title_text, "files": [str(m.resolve()) for m in made]}
     write_json(DONE, done)
+    return made
+
+
+def render(story_id: str, cfg: dict) -> list[Path]:
+    import copy
+    from ..core.creative_brief import begin_social,complete_social,finish_render
+    cfg=copy.deepcopy(cfg);folder=STORE/story_id
+    key,cached=begin_social(folder,cfg)
+    if cached:
+        log("UP_TO_DATE: cached Reddit outputs unchanged")
+        return cached
+    try:
+        made=_render_approved(story_id,cfg)
+    except Exception:
+        finish_render(folder,False)
+        raise
+    complete_social(folder,key,made)
     return made
 
 

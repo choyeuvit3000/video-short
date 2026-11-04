@@ -25,7 +25,7 @@ SKIP_DIRS = {"output", "logs", "cache", "__pycache__"}
 SKIP_PREFIXES = ("output/history/",)  # old renders stay on the controller
 # where a worker job may write back into the project (state.json is merged, never copied)
 RESULT_PREFIXES = ("output/", "audio/", "subtitles/", "work/", "logs/")
-RESULT_FILES = {"project.json", "cost.json"}
+RESULT_FILES = {"project.json", "cost.json", "generation_budget.json"}
 
 
 def _entry(path: Path, rel: str, hc: HashCache) -> dict[str, Any]:

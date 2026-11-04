@@ -34,6 +34,8 @@ def _read(timeout):
 
 def generate(text: str, wav: Path, cfg: dict):
     global _proc, _key
+    from ..core.voice_policy import assert_social_config
+    assert_social_config({"engines":["vieneu"],"vieneu":cfg})
     key = (cfg['python'], cfg['runner'], cfg['hf_home'])
     with _lock:
         if _proc is None or _proc.poll() is not None or key != _key:
@@ -45,7 +47,7 @@ def generate(text: str, wav: Path, cfg: dict):
                 encoding='utf-8', env=env, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
             _key = key
             _read(600)
-        _proc.stdin.write(json.dumps({'text': text, 'voice': cfg.get('voice', 'Mai Anh'),
+        _proc.stdin.write(json.dumps({'text': text, 'voice': cfg.get('voice'),
             'out': str(wav.resolve()), 'seed': 42, 'temperature': cfg.get('temperature', .7)},
             ensure_ascii=False) + '\n')
         _proc.stdin.flush()
