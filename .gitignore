@@ -73,3 +73,5 @@ projects/**/cost.json
 /voices/candidates/
 /voices/reviews/
 /voices/training/
+
+/voices/local/references/

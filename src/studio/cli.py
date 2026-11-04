@@ -471,9 +471,10 @@ def _single_stage(project: Path, stage: str, **opts) -> None:
             from .voices import load_registry
 
             choose_profile(ctx, load_registry(ctx.settings))
-        if ctx.settings.get("planning.required",False) and stage == "render":
+        if ctx.settings.get("planning.required", False) and stage == "render":
             from .core.creative_brief import reserve_render
-            reserve_render(ctx.dir,"single-stage-render")
+
+            reserve_render(ctx.dir, "single-stage-render")
         ctx.set_stage(stage, "running")
         tracked = stage == "render" and ctx.settings.get("planning.required", False)
         try:
@@ -608,6 +609,22 @@ def _synth_sample(voice_id: str, text: str | None, out_dir: Path) -> Path:
     out = out_dir / f"{voice_id}{prov.extension}"
     res = prov.synthesize(text, prof, out)
     return res.audio_path
+
+
+@voices_app.command("audition")
+def voices_audition(voice_id: str, text: Annotated[str | None, typer.Option("--text")] = None) -> None:
+    """Create a quarantined local sample; never approve a voice for production."""
+
+    def body() -> int:
+        from .core.voice_audition import DEFAULT_TEXT, audition_sample
+        from .voices import load_registry
+
+        registry = load_registry(get_settings())
+        sample = audition_sample(registry, registry.get(voice_id), text or DEFAULT_TEXT)
+        console.print(f"[yellow]QUARANTINED[/] {sample} ({probe(sample).duration:.2f}s); listening review required")
+        return EXIT_OK
+
+    _guard(body)
 
 
 @voices_app.command("preview")

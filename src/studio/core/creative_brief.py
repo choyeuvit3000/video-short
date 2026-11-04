@@ -21,7 +21,7 @@ class Brief(BaseModel):
     target_seconds: int = Field(default=60, ge=5, le=7200)
     source_policy: Literal["faithful", "summary"] = "faithful"
     narration: Literal["captions_only", "verbatim", "summary"] = "captions_only"
-    voice: str = "vieneu-vi-thaison"
+    voice: str = "omnivoice-vi-thaison"
     background: Literal["keep", "blur", "minecraft"] = "keep"
     subtitles: Literal["none", "sentence", "highlight"] = "none"
     memes: Literal["none", "approved_plan_only"] = "none"
@@ -132,6 +132,10 @@ def inputs(folder, mode):
 def recommendation(folder, mode):
     project = _read(folder / "project.json", {})
     b = Brief().model_dump()
+    from ..voices import load_registry
+    from .config import get_settings
+
+    b["voice"] = load_registry(get_settings()).defaults.get("vi", b["voice"])
     b.update(
         goal="Giữ đúng thông tin nguồn, trình bày rõ và dễ xem",
         audience="Người Việt xem video ngắn",
@@ -140,12 +144,12 @@ def recommendation(folder, mode):
         reference="approved-merged-v1" if mode == "threads" else "",
     )
     if project:
-        b["voice"] = project.get("audio", {}).get("voice_profile") or "vieneu-vi-thaison"
+        b["voice"] = project.get("audio", {}).get("voice_profile") or b["voice"]
         b["subtitles"] = "none" if project.get("video", {}).get("subtitle_mode") == "none" else "sentence"
     from .voice_policy import blocked
 
     if blocked("", b["voice"], {"voice": b["voice"]}):
-        b["voice"] = "vieneu-vi-thaison"
+        b["voice"] = "omnivoice-vi-thaison"
     return b
 
 
@@ -155,7 +159,9 @@ def prepare(folder: Path, answers=None, *, accept_recommendations=False):
     path = folder / "video_brief.json"
     previous = _read(path, {})
     rec = recommendation(folder, mode)
-    values = previous.get("answers", {})
+    values = dict(previous.get("answers", {}))
+    if "voice" not in values:
+        values["voice"] = rec["voice"]
     if accept_recommendations:
         values = {**rec, **values}
     values.update(answers or {})
@@ -319,10 +325,15 @@ def apply_social(folder, cfg):
 
     reg = load_registry(get_settings())
     profile = reg.get(b["voice"])
-    if profile.provider != "vieneu":
-        raise ValidationError("Social mode requires a reviewed local VieNeu voice", code="brief_voice")
-    cfg["tts"]["vieneu"]["voice"] = profile.params["voice"]
-    cfg["tts"]["vieneu"]["speed"] = {"calm": 0.95, "normal": 1.08, "brisk": 1.15}[b["pacing"]]
+    if profile.provider not in {"vieneu", "omnivoice"}:
+        raise ValidationError("Social mode requires a reviewed local voice", code="brief_voice")
+    engine = profile.provider
+    cfg["tts"]["engines"] = [engine]
+    options = cfg["tts"].setdefault(engine, {})
+    options["profile"] = profile.id
+    if engine == "vieneu":
+        options["voice"] = profile.params["voice"]
+    options["speed"] = {"calm": 0.95, "normal": 1.0, "brisk": 1.15}[b["pacing"]]
     cfg["reddit"]["background_family"] = "minecraft" if b["background"] == "minecraft" else "any"
     cfg["reddit"]["jumpscares_enabled"] = b["memes"] != "none"
     if data["mode"] == "reddit" and b["narration"] != "verbatim":
@@ -360,11 +371,15 @@ def finish_render(folder, success, outputs=()):
 
 def begin_social(folder, cfg):
     data = apply_social(folder, cfg)
-    from .voice_policy import assert_social_config
+    from .voice_policy import assert_social_config, signature, social_profile
 
     assert_social_config(cfg["tts"])  # before reading caches or starting work
     key = _hash(
-        [data["approved_fingerprint"], {k: cfg.get(k) for k in ("tts", "video", "story", "reddit", "fonts", "bgm")}]
+        [
+            data["approved_fingerprint"],
+            signature(social_profile(cfg["tts"])[0]),
+            {k: cfg.get(k) for k in ("tts", "video", "story", "reddit", "fonts", "bgm")},
+        ]
     )
     cache = _read(folder / "native_render_cache.json", {})
     items = cache.get("outputs", [])

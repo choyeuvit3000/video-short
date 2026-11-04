@@ -1,0 +1,20 @@
+profiles:
+- id: omnivoice-vi-thaison
+  lang: vi
+  tier: local
+  provider: omnivoice
+  status: experimental
+  location: node:home-gpu
+  license: Code Apache-2.0; pretrained model CC-BY-NC (private noncommercial testing)
+  params:
+    model: k2-fsa/OmniVoice
+    revision: c5fdb5ccb189668d56333f77ba2629f4cd7535f4
+    speaker: Thái Sơn (synthetic reference from local VieNeu audition)
+    ref_audio: local/references/omnivoice-thaison.wav
+    ref_sha256: 3c8d2189a75b0eb744f573706cc5865cd272fe02a1dc729b1686e3e634bed54a
+    ref_text: Chào buổi sáng, hôm nay mình cùng xem nhanh một bài trên Threads. Giữ
+      đúng ý người đăng, đọc rõ từng câu và nghỉ một chút ở dấu chấm.
+    num_step: 32
+    seed: 42
+    speed: 1.0
+  cost_per_1k_chars: 0

@@ -111,8 +111,9 @@ class StoryRenderer:
     def render_beat(self,k,beat,hook):
         import json,hashlib
         from ..core.creative_brief import _sha
-        from ..core.voice_policy import assert_social_config
+        from ..core.voice_policy import assert_social_config, signature, social_profile
         if beat.get("narration"):assert_social_config(self.cfg["tts"])
+        voice_key=signature(social_profile(self.cfg["tts"])[0]) if beat.get("narration") else None
         refs=[]
         kind=beat["kind"];ref=beat["ref"]
         if kind=="post":refs.append(self.dir/self.post["parts"][ref])
@@ -123,7 +124,7 @@ class StoryRenderer:
         if self.bg_video:refs.append(self.bg_video)
         else:refs.append(self.dir/self.bg_still)
         hashes=[(str(p),_sha(p)) for p in refs]
-        fingerprint=hashlib.sha256(json.dumps([beat,hook,self.cfg,hashes],sort_keys=True).encode()).hexdigest()
+        fingerprint=hashlib.sha256(json.dumps([beat,hook,self.cfg,voice_key,hashes],sort_keys=True).encode()).hexdigest()
         output=self.dir/f"{self.tag}_b{k:02d}.mp4";key_file=output.with_suffix(".cache.json")
         if output.is_file() and key_file.is_file():
             cached=json.loads(key_file.read_text())

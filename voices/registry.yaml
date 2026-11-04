@@ -15,7 +15,7 @@
 # A profile with status disabled/planned is never used automatically.
 
 defaults:
-  vi: vieneu-vi-thaison
+  vi: omnivoice-vi-thaison
   en: piper-en-lessac
 
 # When the chosen voice cannot run (offline, node down, missing key), the pipeline

@@ -245,7 +245,7 @@ def _cached(key: str, text: str, out: Path, make) -> list[dict]:
 
 # An engine that fails is skipped for 10 minutes instead of being retried per clip.
 _down_until: dict[str, float] = {}
-ENGINE_NAMES = {"vivibe": "Vivibe", "revid": "revidapi", "edge": "edge-tts", "gtts": "gTTS"}
+ENGINE_NAMES = {"vivibe": "Vivibe", "revid": "revidapi", "edge": "edge-tts", "gtts": "gTTS", "omnivoice": "OmniVoice", "vieneu": "VieNeu"}
 # engines that are called once per ~4000 characters and cut per sentence afterwards
 BATCH_ENGINES = ("vivibe", "revid")
 
@@ -281,6 +281,24 @@ def _synth_once(text: str, out: Path, tcfg: dict, attempts: int) -> list[dict]:
         # a paid engine gets one more try: a single hiccup should not switch voices mid-story
         for attempt in range(2 if engine == "vivibe" else 1):
             try:
+                if engine == "omnivoice":
+                    from dataclasses import replace
+                    from ..core.voice_policy import social_profile
+                    from ..providers.tts import get_provider
+                    from ..voices import VoiceRegistry
+                    profile, root = social_profile(tcfg)
+                    speed = float(tcfg["omnivoice"].get("speed",1.0))
+                    profile = replace(profile,params={**profile.params,"speed":speed})
+                    provider = get_provider("omnivoice",VoiceRegistry(root,{profile.id:profile},{},{}))
+                    def omni():
+                        wav = out.with_suffix(".omnivoice.wav")
+                        try:
+                            provider.synthesize(text,profile,wav)
+                            run([ffmpeg(),"-y","-v","error","-i",str(wav),str(out)])
+                        finally:
+                            wav.unlink(missing_ok=True)
+                        return _spread(text.split(),0.0,media_duration(out))
+                    return _cached("omnivoice|"+json.dumps(profile.params,sort_keys=True),text,out,omni)
                 if engine == "vieneu":
                     from .local_voice import generate
                     v = tcfg['vieneu']
@@ -469,7 +487,9 @@ def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.
     from ..core.voice_policy import assert_social_config
     assert_social_config(tcfg)
 
-    signature = hashlib.sha256(json.dumps([texts, roles, tcfg, gap], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
+    from ..core.voice_policy import signature as voice_signature, social_profile
+    identity = voice_signature(social_profile(tcfg)[0])
+    signature = hashlib.sha256(json.dumps([texts, roles, tcfg, gap, identity], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
     workdir = workdir / signature
     workdir.mkdir(parents=True, exist_ok=True)
     texts = [clean_for_speech(t) or "…" for t in texts]

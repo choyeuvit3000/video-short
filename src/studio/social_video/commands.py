@@ -100,7 +100,8 @@ def threads_post(source: str, narration_file: Path | None = None, plan_file: Pat
         out.parent.mkdir(parents=True,exist_ok=True)
         publish(draft,out,cfg,wd/'credit.png')
         write_json(out.with_suffix('.source.json'),{'url':post['url'],'author':post['author'],
-            'style':'approved-merged-v1','voice':cfg['tts'].get('vieneu',{}).get('voice'),
+            'style':'approved-merged-v1','voice_engine':cfg['tts']['engines'][0],
+            'voice':cfg['tts'].get(cfg['tts']['engines'][0],{}).get('profile') or cfg['tts'].get('vieneu',{}).get('voice'),
             'source_media_sec':[media_duration(wd/m['file']) for m in post.get('media',[]) if m['kind']=='video']})
     except Exception:
         from ..core.creative_brief import finish_render

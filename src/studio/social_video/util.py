@@ -29,8 +29,9 @@ DEFAULT_CONFIG = {
     "video": {"width": 1080, "height": 1920, "fps": 30, "min_segment_sec": 5, "max_segment_sec": 45},
     "tts": {
         "enabled": True,
-        "engines": ["vieneu"],
+        "engines": ["omnivoice"],
         "strict": True,
+        "omnivoice": {"profile": "omnivoice-vi-thaison", "speed": 1.0},
         "vieneu": {
             "python": os.environ.get("STUDIO_VIENEU_PYTHON", "D:/studio-node/tts/vieneu/.venv/Scripts/python.exe"),
             "runner": str(STUDIO_ROOT / "src/studio/providers/tts/vieneu_runner.py"),
@@ -112,7 +113,6 @@ def load_config() -> dict:
     path = ROOT / "config.json"
     user = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
     cfg = _merge(DEFAULT_CONFIG, user)
-    cfg['tts']['engines'] = ['vieneu']
     cfg['tts']['strict'] = True
     return cfg
 

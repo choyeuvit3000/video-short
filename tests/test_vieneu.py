@@ -47,7 +47,7 @@ def test_vieneu_profiles_are_commercial_and_fall_back(settings):
     voices = [p for p in reg.profiles.values() if p.provider == "vieneu"]
     assert len(voices) >= 3 and all(p.location == "node:home-gpu" for p in voices)
     assert all("Apache-2.0" in p.license and not (p.fallback or "").startswith("edge") for p in voices)
-    assert reg.default_for("vi").id == "vieneu-vi-thaison"  # production candidate remains quarantined
+    assert reg.profiles["vieneu-vi-thaison"].usable  # available explicitly, never an automatic fallback
 
 
 def test_vieneu_missing_venv(settings, monkeypatch, tmp_path):

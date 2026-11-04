@@ -10,17 +10,10 @@ import hashlib
 import json
 
 from studio.core.config import get_settings
+from studio.core.voice_audition import DEFAULT_TEXT as TEXT
+from studio.core.voice_audition import audition_sample
 from studio.core.voice_policy import assert_not_blocked, signature
-from studio.providers.tts.vieneu import VieneuTTS
 from studio.voices import load_registry
-
-TEXT = (
-    "Chào buổi sáng, hôm nay mình cùng xem nhanh một bài trên Threads. "
-    "Giữ đúng ý người đăng, đọc rõ từng câu và nghỉ một chút ở dấu chấm. "
-    "Chiếc ví thì muốn nghỉ ngơi, còn công nghệ lại ra mắt mỗi ngày. "
-    "Một trăm hai mươi nghìn đồng, ngày ba mươi mốt tháng mười."
-)
-CANDIDATES = ["vieneu-vi-thaison", "vieneu-vi-ductri", "vieneu-vi-minhtriet"]
 
 
 def sha(p):
@@ -37,8 +30,7 @@ def main():
         parser.add_argument("--" + flag, action="store_true")
     args = parser.parse_args()
     reg = load_registry(get_settings())
-    provider = VieneuTTS(reg)
-    ids = [args.voice] if args.voice else CANDIDATES
+    ids = [args.voice] if args.voice else [reg.default_for("vi").id]
     if args.action == "review" and not args.voice:
         parser.error("Specify one voice to review")
     for vid in ids:
@@ -49,31 +41,7 @@ def main():
         sample = folder / "audition.wav"
         meta = folder / "audition.json"
         if args.action == "audition":
-            old = json.loads(meta.read_text(encoding="utf-8")) if meta.is_file() else {}
-            if not (
-                sample.is_file()
-                and old.get("voice_signature") == signature(profile)
-                and old.get("text") == TEXT
-                and old.get("sha256") == sha(sample)
-            ):
-                provider.audition(TEXT, profile, sample)
-            meta.write_text(
-                json.dumps(
-                    {
-                        "status": "QUARANTINED",
-                        "voice_signature": signature(profile),
-                        "text": TEXT,
-                        "sha256": sha(sample),
-                        "preference": "deep male Southern Vietnamese",
-                        "training": "not started",
-                        "human_listening": "required",
-                    },
-                    ensure_ascii=False,
-                    indent=2,
-                ),
-                encoding="utf-8",
-            )
-            print(str(sample.resolve()), flush=True)
+            print(str(audition_sample(reg, profile, TEXT).resolve()), flush=True)
         else:
             if not all(
                 [

@@ -31,3 +31,13 @@ def test_brief_rejects_blacklist(tmp_path, voice):
     (tmp_path / "posts.json").write_text("[]")
     with pytest.raises(ValidationError):
         prepare(tmp_path, {"voice": voice})
+
+
+def test_new_brief_uses_machine_voice_default(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    (tmp_path / "posts.json").write_text("[]")
+    monkeypatch.setattr(
+        "studio.voices.load_registry", lambda settings: SimpleNamespace(defaults={"vi": "omnivoice-vi-thaison"})
+    )
+    assert prepare(tmp_path)["answers"]["voice"] == "omnivoice-vi-thaison"

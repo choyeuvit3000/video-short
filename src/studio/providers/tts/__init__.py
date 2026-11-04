@@ -4,17 +4,19 @@ from ...core.errors import ProviderUnavailable
 from .base import TTSProvider, TTSResult
 from .edge import EdgeTTS
 from .mock import MockTTS
+from .omnivoice import OmniVoiceTTS
 from .paid import ElevenLabsTTS, OpenAITTS
 from .piper_tts import PiperTTS
 from .vieneu import VieneuTTS
 
 PROVIDERS: dict[str, type[TTSProvider]] = {
-    p.name: p for p in (EdgeTTS, PiperTTS, MockTTS, ElevenLabsTTS, OpenAITTS, VieneuTTS)
+    p.name: p for p in (EdgeTTS, PiperTTS, MockTTS, ElevenLabsTTS, OpenAITTS, VieneuTTS, OmniVoiceTTS)
 }
 
 
 def get_provider(name: str, registry) -> TTSProvider:
     from ...core.voice_policy import assert_not_blocked
+
     assert_not_blocked(name)
     cls = PROVIDERS.get(name)
     if cls is None:

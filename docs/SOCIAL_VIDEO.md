@@ -67,3 +67,8 @@ Before expensive generation, run `studio brief PROJECT --interactive --detailed`
 
 
 Nghe thử giọng nam miền Nam (chưa train mới): `.venv/Scripts/python.exe scripts/voice_lab.py audition`. Mẫu ở `voices/candidates/`, không vào pool production. Chỉ người thực sự nghe và đánh giá được chạy `scripts/voice_lab.py review VOICE_ID --reviewer NAME --confirm-listened --confirm-dissimilar --confirm-pronunciation --confirm-natural --confirm-clean`. Không tự tick thay người nghe.
+
+
+OmniVoice test support: `studio voices audition omnivoice-vi-thaison` creates/reuses a quarantined audio sample. This machine currently selects OmniVoice via `config/local.yaml` and the social config; a saved brief retains its explicitly selected voice, so update and review that brief before switching an existing project. Generic and native Threads/Reddit use the same registry provider and SHA256 admission checks. The test reference is an existing synthetic Thái Sơn clip, not Mai Anh. Model revision and reference hash are pinned; changing either invalidates voice reviews and audio caches. Do not approve listening checks automatically.
+
+Runtime: `scripts/install_omnivoice.ps1` creates `D:/studio-node/tts/omnivoice/.venv` independently of VieNeu. Official API: https://github.com/k2-fsa/OmniVoice ; model/license: https://huggingface.co/k2-fsa/OmniVoice . Code is Apache-2.0; the pretrained model is CC-BY-NC. This setup is for the requested private test. Reference audio stays local in `voices/local/references/`; on another machine, provide a permitted reference, its exact transcript and SHA256 in a new profile, then audition/review.

@@ -43,6 +43,17 @@ def assert_voice_allowed(profile, root=None, *, audition=False):
     assert_not_blocked(profile.provider, profile.id, profile.params)
     if profile.provider == "mock":
         return
+    if profile.provider == "omnivoice":
+        from .paths import find_repo_root
+
+        ref = Path(profile.params.get("ref_audio", "__missing__"))
+        if not ref.is_absolute():
+            ref = (Path(root) if root else find_repo_root() / "voices") / ref
+        assert_not_blocked("", ref.stem)
+        if not ref.is_file() or hashlib.sha256(ref.read_bytes()).hexdigest() != profile.params.get("ref_sha256"):
+            raise ValidationError(
+                "OmniVoice reference missing or changed; audition and review again", code="voice_reference"
+            )
     if audition:
         return  # audition files are quarantined and cannot be selected for production
     if root is None:
@@ -72,27 +83,32 @@ def assert_voice_allowed(profile, root=None, *, audition=False):
 
 
 def social_profile(cfg):
-    v = cfg.get("vieneu", {})
     from ..voices import load_registry
     from .config import get_settings
 
+    engines = cfg.get("engines", [])
+    if len(engines) != 1 or engines[0] not in {"vieneu", "omnivoice"}:
+        raise ValidationError("Select exactly one reviewed local voice engine", code="voice_quality_pending")
+    engine = engines[0]
+    options = cfg.get(engine, {})
     reg = load_registry(get_settings())
-    voice = v.get("voice", "")
+    if options.get("profile"):
+        profile = reg.get(options["profile"])
+        if profile.provider != engine:
+            raise ValidationError("Voice profile and engine differ", code="voice_config")
+        return profile, reg.root
+    voice = options.get("voice", "")
     for profile in reg.profiles.values():
-        if profile.provider == "vieneu" and normalize(profile.params.get("voice")) == normalize(voice):
+        if profile.provider == engine and normalize(profile.params.get("voice")) == normalize(voice):
             return profile, reg.root
     raise ValidationError("Configured local voice is absent from the voice registry", code="unknown_voice")
 
 
 def assert_social_config(cfg):
     engines = cfg.get("engines", [])
-    if not engines or any(normalize(e) in ("edge", "edgetts") for e in engines):
+    if not engines or any(blocked(e) for e in engines):
         raise ValidationError(
             "Remove blacklisted Edge from every primary/fallback engine list", code="voice_blacklisted"
-        )
-    if engines != ["vieneu"]:
-        raise ValidationError(
-            "Only quality-reviewed local voices are enabled in social videos", code="voice_quality_pending"
         )
     profile, root = social_profile(cfg)
     assert_voice_allowed(profile, root)
