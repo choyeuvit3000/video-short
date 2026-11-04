@@ -100,6 +100,7 @@ class _Runner:
 
 
 _runners: dict[tuple, _Runner] = {}
+_runners_lock = threading.Lock()
 
 
 @atexit.register
@@ -116,10 +117,13 @@ def _runner(profile=None) -> _Runner:
         if profile and k in profile.params
     }
     key = (str(py), json.dumps(binding, sort_keys=True))
-    r = _runners.get(key)
-    if r is None or r.proc.poll() is not None:
-        r = _runners[key] = _Runner(py, binding)
-    return r
+    # Native story generation submits several sentences concurrently. Keep model startup
+    # inside the lock too, otherwise each first request loads another copy on the GPU.
+    with _runners_lock:
+        r = _runners.get(key)
+        if r is None or r.proc.poll() is not None:
+            r = _runners[key] = _Runner(py, binding)
+        return r
 
 
 class VieneuTTS(TTSProvider):

@@ -93,6 +93,58 @@ def test_voice_approval_is_bound_to_audio_and_script(folder):
         r.approve(folder, "voice", "approve stale packet")
 
 
+def test_voice_approval_includes_timed_layout_preview(folder):
+    approve_script(folder)
+    make_voice(folder)
+    preview = folder / "work/previews/story.mp4"
+    preview.parent.mkdir(parents=True)
+    preview.write_bytes(b"timed layout preview")
+    packet = r.prepare(folder, "voice")
+    assert any(x["path"] == str(preview.resolve()) for x in packet["payload"]["files"])
+    assert "![story.mp4]" in (folder / "REVIEW_VOICE.md").read_text(encoding="utf-8")
+    r.approve(folder, "voice", "User fixture: narration and timed layout accepted")
+    r.require(folder, "voice")
+    preview.write_bytes(b"different layout preview")
+    with pytest.raises(ManualGateRequired):
+        r.require(folder, "voice")
+
+
+def test_explicit_batch_waiver_is_not_a_fake_listening_approval(folder):
+    r.write(
+        folder / "review_waiver.json",
+        {
+            "reviewer": "user",
+            "project_id": folder.name,
+            "message": "User fixture: finish this batch without further approval requests",
+            "stages": ["script", "voice", "final"],
+        },
+    )
+    assert r.require(folder, "script")["authorization"] == "USER_WAIVED_CHECKPOINT"
+    with pytest.raises(ValidationError):
+        r.require(folder, "voice")  # No actual speech yet.
+    make_voice(folder)
+    assert r.prepare(folder, "voice")["status"] == "USER_REVIEW_WAIVED"
+    r.require(folder, "voice")
+    assert not (folder / "user_reviews.json").exists()
+    with pytest.raises(ValidationError):
+        r.require(folder, "final")  # No technically checked video yet.
+    data = r.read(folder / "review_waiver.json")
+    data["project_id"] = "another-video"
+    r.write(folder / "review_waiver.json", data)
+    with pytest.raises(ManualGateRequired):
+        r.require(folder, "script")
+
+
+def test_voice_packet_accepts_non_numeric_asr_evidence(folder):
+    approve_script(folder)
+    make_voice(folder)
+    r.write(
+        folder / "work/speech_checks/phrase_recheck.json",
+        {"checks": [{"expected": "Có năm người.", "raw_transcript": "Có năm người."}]},
+    )
+    assert r.prepare(folder, "voice")["status"] == "WAITING_USER"
+
+
 def test_three_approvals_limit_and_idempotent_response(folder):
     approve_script(folder)
     r.approve(folder, "script", "same accepted response")

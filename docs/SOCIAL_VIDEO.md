@@ -77,6 +77,8 @@ Edge (all voices/providers), Mai Anh and aliases are permanently forbidden, incl
 
 Before expensive generation, clarify the concrete brief and run `studio preflight PROJECT`. Then follow the three user-owned checkpoints in `studio review`: script plus production choices, voice plus layout/timings, final video after QC. Only record an actual user acceptance with `--action approve --message` containing that response. Never invent it or use Codex/agent approval as a substitute. Edits before acceptance stay within that checkpoint; changed accepted content invalidates its hash. There are at most three accepted review events per video/bundle; do not silently reset or grant a fourth. Full render budget remains separate (default one per approved brief).
 
+If the creator explicitly requests autonomous completion of a named batch, record that real message, project ID and waived stages in each `review_waiver.json`. Reports say `USER_REVIEW_WAIVED`, not a fabricated listening/final approval. The workflow still checks source/script, admitted voice, actual audio and final QC. Agent visual/ASR inspection is separate from user acceptance. Other batches retain the default three checkpoints.
+
 
 Nghe thử giọng nam miền Nam (chưa train mới): `.venv/Scripts/python.exe scripts/voice_lab.py audition`. Mẫu ở `voices/candidates/`, không vào pool production. Chỉ người thực sự nghe và đánh giá được chạy `scripts/voice_lab.py review VOICE_ID --reviewer NAME --confirm-listened --confirm-dissimilar --confirm-pronunciation --confirm-natural --confirm-clean`. Không tự tick thay người nghe.
 

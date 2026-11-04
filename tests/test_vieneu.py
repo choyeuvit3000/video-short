@@ -11,7 +11,7 @@ from studio.voices import load_registry
 
 from .conftest import needs_ffmpeg
 
-FAKE_RUNNER = r'''
+FAKE_RUNNER = r"""
 import json, math, struct, sys, wave
 sys.stdin.reconfigure(encoding="utf-8")
 sys.stdout.reconfigure(encoding="utf-8")
@@ -25,7 +25,7 @@ for line in sys.stdin:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(48000)
         w.writeframes(b"".join(struct.pack("<h", int(8000 * math.sin(i / 20))) for i in range(48000)))
     print(json.dumps({"ok": True, "sec": 1.0, "seed": req["seed"]}), flush=True)
-'''
+"""
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def fake_vieneu(tmp_path, monkeypatch):
     monkeypatch.setenv("STUDIO_VIENEU_PYTHON", sys.executable)
     vieneu._close_all()
     vieneu._runners.clear()
-    monkeypatch.setattr("studio.core.voice_policy.assert_voice_allowed",lambda *a,**k:None)
+    monkeypatch.setattr("studio.core.voice_policy.assert_voice_allowed", lambda *a, **k: None)
     yield
     vieneu._close_all()
     vieneu._runners.clear()
@@ -55,6 +55,36 @@ def test_vieneu_missing_venv(settings, monkeypatch, tmp_path):
     reg = load_registry(settings)
     prov = vieneu.VieneuTTS(reg)
     assert "install_vieneu.ps1" in prov.check(reg.get("vieneu-vi-minhduc"))
+
+
+def test_concurrent_sentences_start_only_one_model(fake_vieneu, monkeypatch):
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+    from types import SimpleNamespace
+
+    created = []
+    start = Barrier(6)
+
+    class SlowRunner:
+        def __init__(self, python, binding):
+            created.append(self)
+            self.proc = SimpleNamespace(poll=lambda: None)
+            time.sleep(0.05)  # Other callers arrive while the model is loading.
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(vieneu, "_Runner", SlowRunner)
+
+    def request(_):
+        start.wait(timeout=5)
+        return vieneu._runner()
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        runners = list(pool.map(request, range(6)))
+    assert len(created) == 1
+    assert all(r is runners[0] for r in runners)
 
 
 @needs_ffmpeg
@@ -77,7 +107,7 @@ def test_vieneu_runner_protocol_and_speed(settings, fake_vieneu, tmp_path):
         with wave.open(str(path), "rb") as wav:
             rate = wav.getframerate()
             samples = np.frombuffer(wav.readframes(wav.getnframes()), dtype="<i2").astype(float)
-        samples = samples[len(samples) // 4:3 * len(samples) // 4]
+        samples = samples[len(samples) // 4 : 3 * len(samples) // 4]
         spectrum = np.abs(np.fft.rfft(samples * np.hanning(len(samples))))
         return rate, np.fft.rfftfreq(len(samples), 1 / rate)[spectrum.argmax()]
 

@@ -34,6 +34,24 @@ def digest(data):
     return hashlib.sha256(json.dumps(data, ensure_ascii=False, sort_keys=True).encode()).hexdigest()
 
 
+def waiver(folder, stage):
+    """A creator can explicitly waive checkpoints for a named project/batch.
+
+    This is prospective authorization to work, never a claim they heard or saw an
+    artifact which did not exist. Technical/content validation still runs below.
+    """
+    folder = Path(folder).resolve()
+    data = read(folder / "review_waiver.json", {})
+    if (
+        data.get("reviewer") == "user"
+        and data.get("project_id") == folder.name
+        and data.get("message", "").strip()
+        and stage in data.get("stages", [])
+    ):
+        return data
+    return None
+
+
 def payload(folder, stage):
     folder = Path(folder).resolve()
     if stage == "script":
@@ -142,7 +160,9 @@ def payload(folder, stage):
         if (folder / "voice_manifest.json").is_file():
             files.append(folder / "voice_manifest.json")
         files += sorted(
-            x for x in (folder / "work/previews").rglob("*") if x.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp"}
+            x
+            for x in (folder / "work/previews").rglob("*")
+            if x.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".mp4", ".wav", ".mp3", ".m4a"}
         )
         files += sorted((folder / "work/speech_checks").glob("*.json"))
         if (folder / "background_plan.json").is_file():
@@ -269,7 +289,7 @@ def prepare(folder, stage):
         "fingerprint": key,
         "payload": data,
         "issues": script_issues(folder) if stage == "script" else [],
-        "status": "WAITING_USER",
+        "status": "USER_REVIEW_WAIVED" if waiver(folder, stage) else "WAITING_USER",
         "editable": (
             "Sửa project.json/vi.json và chuẩn bị lại gói; "
             "duyệt gói đang hiển thị bằng phản hồi của chính người tạo video."
@@ -284,7 +304,11 @@ def prepare(folder, stage):
         "",
         f"Mã bản cần duyệt: {key}",
         "",
-        "Chỉ người dùng được duyệt. Agent không tự duyệt thay.",
+        (
+            "Người dùng đã yêu cầu tự hoàn tất đợt này; không ghi nhận là đã nghe/xem tệp chưa tồn tại."
+            if waiver(folder, stage)
+            else "Chỉ người dùng được duyệt. Agent không tự duyệt thay."
+        ),
         "",
     ]
     if stage == "script":
@@ -335,13 +359,14 @@ def prepare(folder, stage):
             ]
             for item in data["files"]:
                 path = Path(item["path"])
-                if path.suffix.lower() in (".mp3", ".wav", ".m4a"):
+                if path.suffix.lower() in (".mp3", ".wav", ".m4a", ".mp4", ".png", ".jpg", ".jpeg", ".webp"):
                     lines += [f"![{path.name}]({path.as_posix()})", ""]
                 if path.parent.name == "speech_checks":
                     report = read(path, {})
-                    if report.get("checks"):
+                    phrases = [c["phrase"] for c in report.get("checks", []) if c.get("phrase")]
+                    if phrases:
                         lines += [
-                            "Cụm cần nghe kỹ: " + "; ".join(c["phrase"] for c in report["checks"]),
+                            "Cụm cần nghe kỹ: " + "; ".join(phrases),
                             "ASR nguyên gốc: " + report.get("raw_transcript", ""),
                             "",
                         ]
@@ -360,6 +385,20 @@ def require(folder, stage):
     # Prior stages must remain valid, even if a later audio/video is cached.
     if stage != "script":
         require(folder, STAGES[STAGES.index(stage) - 1])
+    authorization = waiver(folder, stage)
+    if authorization:
+        if stage == "script" and script_issues(folder):
+            raise ValidationError("Sửa lỗi kịch bản trước khi tự hoàn tất", code="review_script_issues")
+        # payload validates actual narration assets, source/voice identity, number
+        # audits and final QC; waiving a human checkpoint cannot bypass those.
+        current = payload(folder, stage)
+        return {
+            "stage": stage,
+            "reviewer": "user",
+            "message": authorization["message"],
+            "authorization": "USER_WAIVED_CHECKPOINT",
+            "fingerprint": digest(current),
+        }
     current = digest(payload(folder, stage)) if found else None
     if not found or found.get("fingerprint") != current or found.get("reviewer") != "user":
         raise ManualGateRequired(
