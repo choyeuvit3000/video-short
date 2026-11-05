@@ -1,5 +1,7 @@
 # Chất lượng mặc định cho truyện kinh dị
 
+Quy chuẩn kịch bản sáng tác/phóng tác và ba bổ sung về giác quan, câu mở độc lập, nhịp cao trào: [EAST_ASIAN_HORROR_WRITING.md](EAST_ASIAN_HORROR_WRITING.md). Bản kể trung thành với nguồn không tự thêm tình tiết để đáp ứng quy tắc sáng tác.
+
 Áp dụng cho dự án mới dùng renderer kể chuyện Reddit, kể cả truyện lấy từ Threads theo yêu cầu. Giữ tác giả/nền tảng nguồn thật. Đây là thay đổi pipeline cho video sau, không phải một đợt tạo lại video đã xuất.
 
 ## Kịch bản và thời lượng

@@ -112,6 +112,15 @@ def threads_post(source: str, narration_file: Path | None = None, plan_file: Pat
     return out
 
 def register(app):
+    @app.command('story-draft-review')
+    def story_draft_review(draft: Path, output: Annotated[Path | None, typer.Option('--output')] = None):
+        """Rà độ dài/câu mở/giác quan/nhịp cao trào, không tạo giọng hoặc tự duyệt."""
+        from .story_editorial import write_review
+        path, report = write_review(draft, output)
+        print(f"{report['status']}: {path.resolve()}")
+        for item in report['episodes']:
+            print(f"{item['episode']}: {item['space_separated_units']} units; {len(item['warnings'])} editorial warnings")
+
     @app.command('threads-post')
     def post(source: str, narration_file: Path | None = None, plan_file: Path | None = None):
         """Threads post using the approved merged layout; no story adaptation."""
