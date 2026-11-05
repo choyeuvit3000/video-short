@@ -175,6 +175,11 @@ def payload(folder, stage):
                 )
         if (folder / "voice_manifest.json").is_file():
             files.append(folder / "voice_manifest.json")
+        if (folder / "continuous_voice.json").is_file():
+            files.append(folder / "continuous_voice.json")
+            files += [Path(x["path"]) for x in read(folder / "continuous_voice.json").get("files", [])]
+        if (folder / "named_voice_authorization.json").is_file():
+            files.append(folder / "named_voice_authorization.json")
         files += sorted(
             x
             for x in (folder / "work/previews").rglob("*")
@@ -503,3 +508,43 @@ def approve(folder, stage, message):
             q.update(status="PASS", editorial="APPROVED", reviewer="user", review_note=message, sha256=video["sha256"])
             write(qpath, q)
     return item
+
+
+def revise_voice_choice(folder, message):
+    """A user's replacement choice revises checkpoint two before final acceptance.
+
+    Keep the superseded version and exact messages; this is neither a new stage
+    nor a reset of the three-checkpoint ledger or a claim of listening.
+    """
+    folder = Path(folder).resolve()
+    if not message.strip():
+        raise ValidationError("Cần chỉ dẫn đổi giọng thực tế", code="review_user_message")
+    require(folder, "script")
+    ledger = read(folder / "user_reviews.json", {"approvals": []})
+    if any(item["stage"] == "final" for item in ledger["approvals"]):
+        raise ManualGateRequired("review_revision", "Bản cuối đã được duyệt; cần phạm vi sửa mới.")
+    previous = next((item for item in reversed(ledger["approvals"]) if item["stage"] == "voice"), None)
+    if previous is None:
+        return approve(folder, "voice", message)
+    current = payload(folder, "voice")
+    fingerprint = digest(current)
+    packet = read(folder / "review_voice.json", {})
+    if packet.get("fingerprint") != fingerprint:
+        raise ValidationError("Chuẩn bị gói giọng mới trước khi ghi lựa chọn", code="review_stale")
+    if previous.get("fingerprint") == fingerprint and previous.get("message") == message:
+        return previous
+    history = list(previous.get("revisions", []))
+    history.append({k: v for k, v in previous.items() if k != "revisions"})
+    updated = {
+        "stage": "voice",
+        "reviewer": "user",
+        "message": message,
+        "fingerprint": fingerprint,
+        "approval_number": previous["approval_number"],
+        "revisions": history,
+        "scope": "Explicit replacement voice choice for the already-approved script, before final acceptance",
+        "all_parts_listened_by_user": False,
+    }
+    ledger["approvals"][ledger["approvals"].index(previous)] = updated
+    write(folder / "user_reviews.json", ledger)
+    return updated

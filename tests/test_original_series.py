@@ -33,6 +33,13 @@ def test_episode_cannot_split_a_spoken_group_or_hide_an_overrun():
         partition([["Một."], ["Hai."]], [(None, 90)] * 2, vi={"episode_sentence_ranges": [[0, 2]]})
 
 
+def test_episode_uses_actual_room_when_it_has_no_extra_hook_or_question():
+    vi = {"episode_sentence_ranges": [[0, 1]], "closing_question": False, "hook": "", "part_hooks": [""]}
+    assert len(partition([["Truyện đầy đủ."]], [(None, 74.2)], max_seconds=75, vi=vi)) == 1
+    with pytest.raises(ManualGateRequired):
+        partition([["Truyện quá dài."]], [(None, 74.8)], max_seconds=75, vi=vi)
+
+
 def test_horror_background_uses_longest_reviewed_clip_at_a_random_phase(tmp_path, monkeypatch):
     import random
 

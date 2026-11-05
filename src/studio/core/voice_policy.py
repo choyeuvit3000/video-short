@@ -112,3 +112,45 @@ def assert_social_config(cfg):
         )
     profile, root = social_profile(cfg)
     assert_voice_allowed(profile, root)
+
+
+def assert_project_voice(folder, cfg):
+    """An explicit named choice can authorize this project's cached review render only.
+
+    It never promotes an unheard voice globally, enables random/fallback selection,
+    permits blacklisted voices, or authorizes fresh production synthesis.
+    """
+    try:
+        assert_social_config(cfg["tts"])
+        return
+    except ValidationError as exc:
+        if exc.code != "voice_quality_pending":
+            raise
+    profile, _ = social_profile(cfg["tts"])
+    folder = Path(folder).resolve()
+    authorization = folder / "named_voice_authorization.json"
+    cache_path = folder / "continuous_voice.json"
+    if not authorization.is_file() or not cache_path.is_file():
+        raise ValidationError(
+            "Named voice needs exact project authorization and cached speech", code="voice_quality_pending"
+        )
+    data = json.loads(authorization.read_text(encoding="utf-8"))
+    cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    if (
+        data.get("reviewer") != "user"
+        or not data.get("message", "").strip()
+        or data.get("project_id") != folder.name
+        or data.get("scope") != "render_review_from_existing_speech"
+        or data.get("profile") != profile.id
+        or data.get("voice_signature") != signature(profile)
+        or cache.get("voice_signature") != signature(profile)
+        or not cache.get("files")
+    ):
+        raise ValidationError("Named voice authorization is absent/stale", code="voice_quality_pending")
+    for item in cache["files"]:
+        path = Path(item["path"])
+        if not path.is_file():
+            raise ValidationError("Cached selected speech is missing", code="voice_quality_pending")
+        with path.open("rb") as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() != item["sha256"]:
+                raise ValidationError("Cached selected speech changed", code="voice_quality_pending")

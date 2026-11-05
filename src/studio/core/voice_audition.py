@@ -4,6 +4,7 @@ import hashlib
 import json
 
 from ..providers.tts import get_provider
+from .audio_boundaries import VERSION
 from .errors import ValidationError
 from .voice_policy import assert_voice_allowed, signature
 
@@ -29,6 +30,8 @@ def audition_sample(registry, profile, text=DEFAULT_TEXT):
         sample.is_file()
         and old.get("voice_signature") == signature(profile)
         and old.get("text") == text
+        and old.get("synthesis_params") == profile.params
+        and old.get("processing_version") == VERSION
         and old.get("sha256") == hashlib.sha256(sample.read_bytes()).hexdigest()
     ):
         provider.audition(text, profile, sample)
@@ -39,11 +42,13 @@ def audition_sample(registry, profile, text=DEFAULT_TEXT):
                 "provider": profile.provider,
                 "voice_signature": signature(profile),
                 "text": text,
+                "synthesis_params": profile.params,
+                "processing_version": VERSION,
                 "sha256": hashlib.sha256(sample.read_bytes()).hexdigest(),
                 "preference": (
                     "user-provided knowledge reference cadence"
                     if profile.params.get("target_space_tokens_per_second")
-                    else "deep male Southern Vietnamese"
+                    else f"selected profile: {profile.id}"
                 ),
                 "training": "not started",
                 "human_listening": "required",

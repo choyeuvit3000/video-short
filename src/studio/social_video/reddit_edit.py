@@ -10,6 +10,8 @@ def partition(groups, voiced, max_seconds=180, *, vi=None, target_seconds=90):
     from .reddit import sentences
 
     budget = max_seconds - 12.35  # hook <= 5 s + closing question <= 6 s + end/scare room
+    if vi and vi.get("closing_question") is False and not vi.get("hook") and not any(vi.get("part_hooks", [])):
+        budget = max_seconds - .35  # Opening and final question are already inside the approved body.
     preferred = set()
     if vi:
         paragraphs = vi.get("paragraphs", [])

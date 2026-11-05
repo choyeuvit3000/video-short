@@ -117,6 +117,31 @@ def test_audition_reuses_unchanged_audio(omni_profile, monkeypatch):
     assert calls == ["first", "changed"]
 
 
+def test_audition_speed_change_cannot_reuse_the_old_waveform(omni_profile, monkeypatch):
+    from dataclasses import replace
+
+    from studio.core import voice_audition
+    from studio.core.voice_policy import signature
+
+    reg, profile = omni_profile
+    calls = []
+
+    class FakeProvider:
+        def audition(self, text, voice, out):
+            speed = voice.params.get("speed", 1.0)
+            calls.append(speed)
+            out.write_bytes(str(speed).encode())
+
+    monkeypatch.setattr(voice_audition, "get_provider", lambda *a: FakeProvider())
+    voice_audition.audition_sample(reg, profile, "Cùng một câu.")
+    faster = replace(profile, params={**profile.params, "speed": 1.25})
+    assert signature(faster) == signature(profile)  # Voice identity is unchanged.
+    path = voice_audition.audition_sample(reg, faster, "Cùng một câu.")
+    voice_audition.audition_sample(reg, faster, "Cùng một câu.")
+    assert calls == [1.0, 1.25] and path.read_bytes() == b"1.25"
+    assert json.loads(path.with_suffix(".json").read_text())["status"] == "QUARANTINED"
+
+
 def test_native_route_uses_omni_and_audio_cache(omni_profile, tmp_path, monkeypatch):
     import math
     import struct

@@ -990,8 +990,12 @@ def review_command(project: Path, stage: str = "script", action: str = "prepare"
             result = user_review.prepare(project, stage)
         elif action == "approve":
             result = user_review.approve(project, stage, message)
+        elif action == "revise-voice" and stage == "voice":
+            result = user_review.revise_voice_choice(project, message)
         else:
-            raise ValidationError("action must be prepare or approve", code="review_action")
+            raise ValidationError(
+                "action must be prepare, approve, or revise-voice with stage voice", code="review_action"
+            )
         console.print(result)
         return EXIT_OK
 

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from ..core.creative_brief import apply_social
 from ..core.user_review import digest, prepare, require, write
-from ..core.voice_policy import assert_social_config, signature, social_profile
+from ..core.voice_policy import assert_project_voice, signature, social_profile
 from .util import load_config, read_json
 
 
@@ -119,7 +119,7 @@ def prepare_voice(folder: Path):
     require(folder, "script")
     cfg = load_config()
     apply_social(folder, cfg)
-    assert_social_config(cfg["tts"])
+    assert_project_voice(folder, cfg)
     if (folder / "vi.json").is_file():
         from .reddit import SEAM, H, W, chunks, voice_story
         from .reddit_edit import plan
@@ -130,11 +130,13 @@ def prepare_voice(folder: Path):
         if voiced is None:
             voiced = voice_story(vi["paragraphs"], cfg, vi.get("cast", {}), folder / "audio")
             cache_draft_voice(folder, texts, voiced, cfg)
-        timing_files = []
-        for i, (sentence, (audio, seconds)) in enumerate(
-            zip([s for g in chunks(vi["paragraphs"]) for s in g], voiced, strict=True)
-        ):
-            timing_files.append(align_clip(folder, f"reddit_{i:04d}", audio, seconds, sentence, cfg))
+        from .continuous_voice import cached_timings
+
+        timing_files = cached_timings(folder, texts, cfg)
+        if timing_files is None:
+            timing_files = []
+            for i, (sentence, (audio, seconds)) in enumerate(zip(texts, voiced, strict=True)):
+                timing_files.append(align_clip(folder, f"reddit_{i:04d}", audio, seconds, sentence, cfg))
         from .reddit import voice_free
         from .reddit_edit import hook_texts, partition
 

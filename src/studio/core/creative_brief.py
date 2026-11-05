@@ -427,9 +427,9 @@ def begin_social(folder, cfg):
 
     checkpoint(folder, "script")
     data = apply_social(folder, cfg)
-    from .voice_policy import assert_social_config, signature, social_profile
+    from .voice_policy import assert_project_voice, signature, social_profile
 
-    assert_social_config(cfg["tts"])  # before reading caches or starting work
+    assert_project_voice(folder, cfg)  # before reading caches or starting work
     from .user_review import require
 
     voice_acceptance = require(folder, "voice")
