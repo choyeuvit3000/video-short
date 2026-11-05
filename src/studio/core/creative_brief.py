@@ -22,7 +22,7 @@ class Brief(BaseModel):
     source_policy: Literal["faithful", "summary"] = "faithful"
     narration: Literal["captions_only", "verbatim", "summary"] = "captions_only"
     voice: str = "omnivoice-vi-thaison"
-    background: Literal["keep", "blur", "minecraft", "random"] = "keep"
+    background: Literal["keep", "blur", "minecraft", "random", "horror"] = "keep"
     subtitles: Literal["none", "sentence", "highlight"] = "none"
     memes: Literal["none", "approved_plan_only"] = "none"
     pacing: Literal["calm", "normal", "brisk"] = "normal"
@@ -149,6 +149,11 @@ def recommendation(folder, mode):
         background="blur" if mode == "threads" else "minecraft" if mode == "reddit" else "keep",
         reference="approved-merged-v1" if mode == "threads" else "",
     )
+    if mode == "reddit":
+        from ..social_video.util import load_config
+        rc = load_config()["reddit"]
+        b.update(voice=rc["voice_profile"], speech_speed=rc["speech_speed"], target_seconds=90,
+                 background="horror", subtitles="highlight")
     if project:
         b["voice"] = project.get("audio", {}).get("voice_profile") or b["voice"]
         b["subtitles"] = "none" if project.get("video", {}).get("subtitle_mode") == "none" else "sentence"
@@ -166,6 +171,8 @@ def prepare(folder: Path, answers=None, *, accept_recommendations=False):
     previous = _read(path, {})
     rec = recommendation(folder, mode)
     values = dict(previous.get("answers", {}))
+    if mode == "reddit" and not previous:
+        values.update({k: rec[k] for k in ("voice", "speech_speed", "target_seconds", "background", "subtitles", "narration")})
     if "voice" not in values:
         values["voice"] = rec["voice"]
     if accept_recommendations:
@@ -379,8 +386,9 @@ def apply_social(folder, cfg):
     )
     if b["speech_speed"] is not None:
         cfg["reddit"]["narration_speed"] = 1.0  # apply the creator's exact total speed only once
-    cfg["reddit"]["background_family"] = "minecraft" if b["background"] == "minecraft" else "any"
-    cfg["reddit"]["jumpscares_enabled"] = b["memes"] != "none"
+    cfg["reddit"]["background_family"] = ("minecraft" if b["background"] == "minecraft" else
+                                           "horror" if b["background"] in ("horror", "random") and data["mode"] == "reddit" else "any")
+    cfg["reddit"]["jumpscares_enabled"] = bool(cfg["reddit"].get("jumpscares_enabled", False)) and b["memes"] != "none"
     if data["mode"] == "reddit" and b["narration"] != "verbatim":
         raise ValidationError(
             "Edit and approve vi.json before summarizing; Reddit reads approved text verbatim", code="brief_conflict"
@@ -433,7 +441,8 @@ def begin_social(folder, cfg):
             {k: cfg.get(k) for k in ("tts", "video", "story", "reddit", "fonts", "bgm")},
             {
                 name: _sha(Path(__file__).parents[1] / "social_video" / name)
-                for name in ("post_renderer.py", "subs.py", "reddit.py", "reddit_full.py", "quality.py")
+                for name in ("post_renderer.py", "subs.py", "reddit.py", "reddit_full.py", "quality.py",
+                             "story_cards.py", "story_sound.py", "story_scenes.py", "bgclips.py", "reddit_edit.py")
             },
         ]
     )

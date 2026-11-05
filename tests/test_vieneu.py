@@ -95,9 +95,9 @@ def test_vieneu_runner_protocol_and_speed(settings, fake_vieneu, tmp_path):
     prov = vieneu.VieneuTTS(reg)
     prof = reg.get("vieneu-vi-minhduc")
     res = prov.synthesize("Xin chào.", prof, tmp_path / "a.wav")
-    assert res.words is None and abs(probe(res.audio_path).duration - 1.0) < 0.05
+    assert res.words is None and abs(probe(res.audio_path).duration - 1.225) < 0.05
     fast = prov.synthesize("Xin chào.", with_speed(prof, 1.25), tmp_path / "b.wav")  # atempo, same process
-    assert abs(probe(fast.audio_path).duration - 0.8) < 0.05
+    assert abs(probe(fast.audio_path).duration - 1.025) < 0.05  # speech .8s + protected boundaries
     # A sample-rate trick would also shorten the clip, but raise this tone by 25%. Verify actual pitch.
     import wave
 

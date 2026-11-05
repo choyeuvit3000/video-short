@@ -3,13 +3,12 @@
   fetch      top posts of a subreddit via its RSS feed (Reddit's JSON API blocks scripts)
   translate  Vietnamese title + paragraphs -> vi.json (Claude, or free Google Translate)
   render     each sentence is voiced separately; a Reddit-style card shows the passage
-             with the sentence being read highlighted; parts of <= part_max_sec over a
-             parkour background with a quiet horror drone underneath
+             with compact speech-anchored phrase emphasis and suspense-based parts,
+             over a reviewed night background with a measured music/SFX mix
 """
 from __future__ import annotations
 
 import html
-import math
 import json
 import random
 import re
@@ -21,7 +20,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont
 
-from . import bgclips, horrormusic, images, jumpscare, planner, tts
+from . import bgclips, jumpscare, planner, tts
 from .util import OUTPUT, FINAL_OUTPUT, ROOT, ffmpeg, log, media_duration, read_json, run, write_json
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
@@ -30,10 +29,10 @@ STORE = ROOT / "work" / "reddit"
 DONE = OUTPUT / "reddit" / "done.json"
 
 W, H = 1080, 1920
-CARD_X, CARD_W, CARD_Y = 60, 960, 230
+CARD_X, CARD_W, CARD_Y = 76, 928, 326
 PAD = 40
 SEAM = 960          # scene layout: photo above, gameplay below
-GAP = 0.10            # even pause between sentences (engine silences are trimmed first)
+GAP = 0.10            # legacy non-native join gap; native PCM retains protected boundaries
 FONTS = "C:/Windows/Fonts/"
 COLORS = {"card": (14, 17, 19, 246), "border": (52, 62, 66, 255), "text": (242, 244, 245),
           "dim": (128, 138, 142), "meta": (130, 140, 145), "pill": (36, 44, 48, 255)}
@@ -140,30 +139,36 @@ TRANSLATE_SCHEMA = {
     "type": "object",
     "properties": {"title": {"type": "string"},
                    "paragraphs": {"type": "array", "items": {"type": "string"}},
-                   "character_map": {"type":"object","additionalProperties":{"type":"string"}}},
-    "required": ["title", "paragraphs", "character_map"],
+                   "character_map": {"type":"object","additionalProperties":{"type":"string"}},
+                   "closing_question": {"type":"string"},
+                   "suspense_breaks": {"type":"array","items":{"type":"integer"}}},
+    "required": ["title", "paragraphs", "character_map", "closing_question", "suspense_breaks"],
     "additionalProperties": False,
 }
 
 
 def translate_prompt(story: dict) -> str:
+    from .story_policy import PROMPT
+    from .story_source import credit
     paras = "\n".join(f"[{i}] {p}" for i, p in enumerate(story["paragraphs"]))
-    return f"""Dịch truyện kinh dị dưới đây (r/{story['sub']}, tác giả u/{story['author']}) sang tiếng Việt để
+    return f"""Dịch truyện kinh dị dưới đây ({credit(story)}) sang tiếng Việt để
 làm video đọc truyện. Văn kể chuyện tự nhiên, rùng rợn, ngôi thứ nhất "tôi" (giữ đúng ngôi của bản gốc),
 câu ngắn vừa phải để đọc thành tiếng. Lập character_map cố định cho toàn truyện: tên nhân vật tiếng Anh đổi sang tên Việt ngắn, tự nhiên,
 không trùng nhau (Minh, Lan, Hùng...) hoặc một cách đọc cố định do người dùng duyệt. Thay nhất quán trong mọi đoạn.
 Giữ nguyên địa điểm, sự kiện và bối cảnh nguồn; không tự đổi số khẩn cấp 911 thành số ở Việt Nam.
 Các chi tiết khó Việt hóa phải ghi chú để người dùng duyệt. Viết toàn bộ số và ký hiệu thành chữ dễ đọc.
 Đặc biệt giữ rõ các cụm như "chuột", "cửa sập"; không viết tắt hoặc phiên âm tùy hứng.
-Không tóm tắt, không bỏ đoạn, không thêm lời bình. Bỏ các dòng không phải truyện (lời cảm ơn, link, "edit:").
+Không tóm tắt, không bỏ đoạn, không thêm lời bình vào diễn biến. Câu hỏi cuối là lời biên tập riêng,
+không gán cho tác giả nguồn. Bỏ các dòng không phải truyện (lời cảm ơn, link, "edit:").
 Mỗi đoạn gốc thành một phần tử trong "paragraphs" (đúng thứ tự). "title": tiêu đề dịch, giữ độ gây tò mò.
 
 Tiêu đề: {story['title']}
 
 {paras}
 
-Chỉ trả về JSON {{"title": "...", "character_map": {{"Megan": "Lan"}}, "paragraphs": ["...", ...]}}.
-character_map phải ghi tất cả tên đã đổi trong truyện, để {{}} khi không có tên cần đổi."""
+Chỉ trả về JSON {{"title": "...", "character_map": {{"Megan": "Lan"}}, "paragraphs": ["...", ...], "closing_question": "...", "suspense_breaks": []}}.
+character_map phải ghi tất cả tên đã đổi trong truyện, để {{}} khi không có tên cần đổi.
+{PROMPT}"""
 
 
 def _google(text: str) -> str:
@@ -596,7 +601,7 @@ def voice_story(paragraphs: list[str], cfg: dict, cast: dict,
     from ..core.voice_policy import signature as voice_signature, social_profile
     profile = social_profile(_tcfg(cfg))[0]
     identity = voice_signature(profile)
-    signature = hashlib.sha256(json.dumps([paragraphs, cast, _tcfg(cfg), identity, GAP, "native-pause-v2"], sort_keys=True,
+    signature = hashlib.sha256(json.dumps([paragraphs, cast, _tcfg(cfg), identity, GAP, "protected-pcm-v3"], sort_keys=True,
                                           ensure_ascii=False).encode()).hexdigest()[:16]
     audio_dir = audio_dir / signature
     audio_dir.mkdir(parents=True, exist_ok=True)
@@ -687,10 +692,10 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
     paragraphs = [p for p in vi["paragraphs"] if p.strip()]
     from .reddit_edit import approved_audio, partition, plan
     voiced, hook_assets = approved_audio(d, len(flat))
-    if plan(groups, voiced, float(rc.get("part_max_sec", 75))) != read_json(d / "part_plan.json", {}).get("parts"):
+    if plan(groups, voiced, float(rc.get("part_max_sec", 180)),vi=vi,target_seconds=float(rc.get("part_target_sec",90))) != read_json(d / "part_plan.json", {}).get("parts"):
         from ..core.errors import ManualGateRequired
         raise ManualGateRequired("voice_parts", "Bản chia phần thay đổi; cần chuẩn bị lại gói nghe trước khi dựng.")
-    parts=partition(groups,voiced,float(rc.get("part_max_sec",75)))
+    parts=partition(groups,voiced,float(rc.get("part_max_sec",180)),vi=vi,target_seconds=float(rc.get("part_target_sec",90)))
     n_parts=len(parts)
 
     cards = Cards(story, vi, cfg, d / "cards")
@@ -705,7 +710,9 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
         from ..core.errors import ManualGateRequired
         raise ManualGateRequired("reddit_hook","Câu mở đầu vượt năm giây; chỉnh lời đọc trước khi duyệt.")
     hook = ""
-    endings=[(None,0.0)]*n_parts
+    endings=read_json(d/"voice_manifest.json",{}).get("endings",[None]*n_parts)
+    if len(endings)!=n_parts:
+        raise ValueError("Prepare closing questions for every part before voice review")
     faces, screams, stings = (jumpscare.faces(), jumpscare.screams(), jumpscare.stings()) if rc.get("jumpscares_enabled",True) else ([],[],[])
     rng = random.Random(story_id)
     # vi["scenes"] {"paragraph index": "English photo query"}: the split-screen layout, a photo
@@ -718,8 +725,8 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
             k += len(g)
 
     def photo_for(k0: int) -> Path | None:
-        queries = [q for i, q in scenes if i <= para_of.get(k0, 0)] or [scenes[0][1]]
-        return images.find(queries[-1], d / "img")
+        from .story_scenes import photo
+        return photo(d,para_of.get(k0,0))
 
     day = date.today().isoformat()
     from studio.core.outputs import organized_output
@@ -742,19 +749,40 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
         for i, (g, k0, j) in enumerate(sents):
             wav, dur = voiced[k0 + j]
             photo = photo_for(k0) if scenes else None
-            if photo:   # the sentence as short captions, each on screen for its share of the line
-                caps = caption_chunks(g[j])
-                weights = [len(c) + 4 for c in caps]
-                card = [(cards.scene(f"s{k0:04d}_{j}_{c}", photo, cap), wgt / sum(weights))
-                        for c, (cap, wgt) in enumerate(zip(caps, weights))]
-            else:
-                card = cards.passage(f"c{k0:04d}_{j}", g, j)
+            from ..core.subtitles import load_words
+            from .story_cards import timed_cards
+            manifest=read_json(d/"voice_manifest.json",{})
+            timing_files=manifest.get("timing_files",[])
+            if len(timing_files)!=len(flat):
+                from ..core.errors import ManualGateRequired
+                raise ManualGateRequired("story_timings","Chuẩn bị lại mốc lời nói thật cho phụ đề theo cụm.")
+            words,timing_source=load_words(Path(timing_files[k0+j]))
+            if timing_source not in ("faster_whisper","manual"):
+                raise ValueError("Estimated word timings cannot drive story emphasis")
+            card=timed_cards(story,words,dur,cards.dir,f"c{k0:04d}_{j}",int(rc.get("phrase_words",3)))
+            if photo:
+                # Keep optional scene imagery behind the same compact, speech-anchored card.
+                from PIL import ImageOps
+                backdrop=Image.new("RGBA",(W,H),(0,0,0,0))
+                backdrop.paste(ImageOps.fit(Image.open(photo).convert("RGB"),(W,SEAM)),(0,0))
+                for frame,share in card:
+                    Image.alpha_composite(backdrop,Image.open(frame).convert("RGBA")).save(frame)
             timeline.append((card, wav, dur))
             if i == scare:   # right after the line: flash + face frames, then a beat of quiet
                 scare_at = sum(t for _, _, t in timeline)
                 timeline += [(png, None, t) for png, t in jumpscare.frames(rng.choice(faces))]
                 timeline.append((card[-1][0] if isinstance(card, list) else card, None, 0.25))
-        wav, dur = endings[p]
+        ending=endings[p]
+        if ending:
+            from ..core.subtitles import load_words
+            from .story_cards import timed_cards
+            words,origin=load_words(Path(read_json(d/"voice_manifest.json")["ending_timing_files"][0]))
+            if origin not in ("faster_whisper","manual"):
+                raise ValueError("Closing question needs real speech anchors")
+            wav,dur=Path(ending["path"]),ending["seconds"]
+            card=timed_cards(story,words,dur,cards.dir,f"ending_{p}")
+            timeline.append((card,wav,dur))
+        wav,dur=None,0.0
         end_text = (("Còn tiếp…" if vi.get("continues") else "Hết truyện") if p == n_parts - 1
                     else f"Còn tiếp ở phần {p + 2}…")
         timeline.append((cards.end(f"end_{p}", end_text), wav, dur + 0.35))
@@ -797,7 +825,7 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
         out = outdir / (f"{render_mode}__{story_id}__{slug}_p{p + 1}.mp4" if n_parts > 1
                         else f"{render_mode}__{story_id}__{slug}.mp4")
         # rendered in three runs (picture, sound, mux): one graph with both stalls ffmpeg
-        if total>float(rc.get("part_max_sec",75))+.05:
+        if total>float(rc.get("part_max_sec",180))+.05:
             from ..core.errors import ManualGateRequired
             raise ManualGateRequired("reddit_duration","Phần vượt thời lượng đã duyệt; sửa kế hoạch chia phần trước khi dựng.")
         speed = 1.0  # pacing is applied once in TTS, never a hidden late speed-up
@@ -819,44 +847,19 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
         else:
             v_in += ["-f", "lavfi", "-i", f"color=c=0x101418:s={W}x{H}:r=30"]
             vchain = "[1:v]setsar=1[bg];"
-        vchain += ("[0:v]format=rgba,fps=30[cards];[bg][cards]overlay=0:0:format=auto,format=yuv420p"
+        shade=float(rc.get("vignette_opacity",.18))
+        vchain += (f"[bg]eq=brightness=-{shade/4:.3f}:saturation=0.82,vignette=PI/6[shaded];"
+                   "[0:v]format=rgba,fps=30[cards];[shaded][cards]overlay=0:0:format=auto,format=yuv420p"
                    + (f",setpts=PTS/{speed:.4f}" if speed > 1 else "") + "[v]")
         picture = d / f"{tag}_picture.mp4"
         run([ffmpeg(), "-y", "-hide_banner", "-loglevel", "error", *v_in,
              "-filter_complex", vchain, "-map", "[v]", "-t", f"{length:.3f}", "-an",
              "-c:v", "libx264", "-preset", "veryfast", "-crf", "22", picture.name], cwd=d)
 
-        # sound: 0 narration, 1 music, then the hook sting and the scream
-        a_in = ["-i", narration.name]
-        music = horrormusic.tracks() if rc.get("music_volume", 0) > 0 else []
-        if music:
-            # horror score from a random point, ducked under the voice so every word stays clear
-            track = rng.choice(music)
-            a_in += ["-stream_loop", "-1", "-ss",
-                     f"{rng.uniform(0, max(0.0, media_duration(track) - 20)):.2f}",
-                     "-i", str(track)]
-            mix = (f"[0:a]asplit=2[nar][key];[1:a]volume={rc['music_volume']}[mus];"
-                   "[mus][key]sidechaincompress=threshold=0.015:ratio=5:attack=20:release=450[duck];")
-        else:
-            a_in += ["-stream_loop", "-1", "-i", str(_drone())]
-            mix = f"[1:a]volume={rc['ambience_volume']}[duck];[0:a]anull[nar];"
-        labels = "[nar][duck]"
-        if hook and stings:   # suspense sting under the opening hook
-            a_in += ["-i", str(rng.choice(stings))]
-            t0 = timeline[0][2]
-            mix += (f"[{a_in.count('-i') - 1}:a]atrim=0:{t0:.2f},"
-                    f"afade=out:st={max(0.5, t0 - 0.6):.2f}:d=0.6,volume=0.45[st];")
-            labels += "[st]"
-        if scare_at is not None:
-            a_in += ["-i", str(rng.choice(screams))]
-            mix += f"[{a_in.count('-i') - 1}:a]adelay={int(scare_at * 1000)}:all=1[sc];"
-            labels += "[sc]"
-        mix += (f"{labels}amix=inputs={labels.count('[')}:duration=first:normalize=0"
-                + (f",atempo={speed:.4f}" if speed > 1 else "") + "[a]")
+        # The frozen plan supplies an audible bed and gentle source-matched cues.
+        from .story_sound import mix as mix_story_sound
         sound = d / f"{tag}_sound.wav"
-        run([ffmpeg(), "-y", "-hide_banner", "-loglevel", "error", *a_in,
-             "-filter_complex", mix, "-map", "[a]", "-t", f"{length:.3f}",
-             "-c:a", "pcm_s16le", sound.name], cwd=d)
+        mix_story_sound(d, p + 1, narration, sound, length)
 
         draft = d / f'{tag}_unmastered.mp4'
         run([ffmpeg(), "-y", "-hide_banner", "-loglevel", "error", "-i", picture.name,
@@ -864,6 +867,8 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
              "-b:a", "160k", "-shortest", "-movflags", "+faststart", str(draft)], cwd=d)
         from .quality import publish
         publish(draft, out, cfg)
+        from .story_source import write_asset_credits
+        write_asset_credits(d,out,p+1)
         picture.unlink(missing_ok=True)
         sound.unlink(missing_ok=True)
         made.append(out)

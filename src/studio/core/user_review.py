@@ -82,7 +82,22 @@ def payload(folder, stage):
 
             cfg = load_config()
             data["reddit_choices"] = {
-                k: cfg["reddit"].get(k) for k in ("part_max_sec", "narration_speed", "export_full")
+                k: cfg["reddit"].get(k)
+                for k in (
+                    "part_max_sec",
+                    "part_target_sec",
+                    "voice_profile",
+                    "speech_speed",
+                    "narration_speed",
+                    "export_full",
+                    "caption_mode",
+                    "phrase_words",
+                    "card_max_lines",
+                    "background_family",
+                    "vignette_opacity",
+                    "music_relative_db",
+                    "story_sfx_enabled",
+                )
             }
 
         return data
@@ -108,6 +123,7 @@ def payload(folder, stage):
                 raise ValidationError("Cần gói lời đọc Reddit có danh sách câu đã nghe", code="review_missing_voice")
             files = [Path(x) for x in manifest.get("files", [])]
             files += [Path(x) for x in manifest.get("timing_files", [])]
+            files += [Path(x) for x in manifest.get("ending_timing_files", [])]
             if (folder / "part_plan.json").is_file():
                 files.append(folder / "part_plan.json")
         if has_spoken and (not files or not any(x.suffix.lower() in (".wav", ".mp3") for x in files)):
@@ -168,6 +184,23 @@ def payload(folder, stage):
         if (folder / "background_plan.json").is_file():
             files.append(folder / "background_plan.json")
             files += [Path(x["source"]) for x in read(folder / "background_plan.json", {}).get("slots", {}).values()]
+        if (folder / "scene_plan.json").is_file():
+            files.append(folder / "scene_plan.json")
+            files += [Path(x["path"]) for x in read(folder / "scene_plan.json", {}).values()]
+        if (folder / "sound_plan.json").is_file():
+            files += [
+                Path(__file__).parents[1] / "social_video" / name
+                for name in (
+                    "story_cards.py",
+                    "story_sound.py",
+                    "story_preview.py",
+                    "story_scenes.py",
+                    "reddit.py",
+                    "reddit_full.py",
+                )
+            ]
+            files.append(folder / "sound_plan.json")
+            files += [Path(x["path"]) for x in read(folder / "sound_plan.json", {}).get("assets", [])]
         from .speech_checks import critical_numbers, file_sha, text_sha
 
         if p:

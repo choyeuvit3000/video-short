@@ -60,7 +60,12 @@ def pick(
     seconds: float, rng: random.Random, aspect: float = 9 / 16, family: str = "any"
 ) -> tuple[Path, float, str] | None:
     """(source, start second, crop filter to `aspect`) for one part `seconds` long, or None."""
-    pool = sorted(SOURCES.glob("minecraft*.mp4")) if family == "minecraft" else _sources()
+    if family == "horror":
+        pool = horror_pool()
+        if not pool:
+            raise ValueError("No reviewed 1080p/60fps horror background; run scripts/prepare_horror_assets.py")
+    else:
+        pool = sorted(SOURCES.glob("minecraft*.mp4")) if family == "minecraft" else _sources()
     if family == "minecraft" and not pool:
         raise ValueError("No imported Minecraft background is available")
     if not pool:
@@ -77,6 +82,44 @@ def pick(
     margin = EDGE_SEC if total >= seconds + 2 * EDGE_SEC else 0
     start = rng.uniform(margin, max(margin, total - seconds - margin))
     return src, start, _crop(src, aspect)
+
+
+def horror_pool():
+    """Only reviewed native-quality clips; old lava/minecart footage is never a fallback."""
+    import json
+    from fractions import Fraction
+
+    from .quality import sha256
+
+    entries = read_json(ASSETS / "horror_backgrounds.json", {}).get("clips", [])
+    pool = []
+    for item in entries:
+        path = (ASSETS / item["file"]).resolve()
+        if not path.is_relative_to(ASSETS.resolve()):
+            raise ValueError("Background catalog path leaves the asset library")
+        if not item.get("accepted") or item.get("rejected_features"):
+            continue
+        if not path.is_file() or sha256(path) != item.get("sha256"):
+            raise ValueError("Reviewed horror background missing or changed; rebuild asset library")
+        data = json.loads(
+            run(
+                [
+                    ffprobe(),
+                    "-v",
+                    "error",
+                    "-select_streams",
+                    "v:0",
+                    "-show_entries",
+                    "stream=width,height,r_frame_rate",
+                    "-of",
+                    "json",
+                    str(path),
+                ]
+            ).stdout
+        )["streams"][0]
+        if min(data["width"], data["height"]) >= 1080 and float(Fraction(data["r_frame_rate"])) >= 59.9:
+            pool.append(path)
+    return pool
 
 
 def _visible(folder, part, candidate, seconds):
@@ -130,6 +173,14 @@ def planned(folder: Path, part: int, seconds: float, rng: random.Random, aspect:
             "aspect": aspect,
             "family": family,
             "sha256": sha256(source),
+            "attribution": next(
+                (
+                    {k: x.get(k) for k in ("source", "creator", "license", "source_range")}
+                    for x in read_json(ASSETS / "horror_backgrounds.json", {}).get("clips", [])
+                    if (ASSETS / x["file"]).resolve() == source.resolve()
+                ),
+                {},
+            ),
         }
         write_json(path, plan)
         return chosen

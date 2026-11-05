@@ -269,7 +269,8 @@ def test_full_story_is_recomposed_landscape(tmp_path, monkeypatch):
 
     from studio.core.ffmpeg import run_ffmpeg
     from studio.core.media_probe import probe
-    from studio.social_video import quality, reddit_full
+    from studio.social_video import quality, reddit_full, story_sound
+    from studio.core.subtitles import Word, save_words
 
     from .conftest import HAS_FFMPEG, color_clip
 
@@ -280,7 +281,11 @@ def test_full_story_is_recomposed_landscape(tmp_path, monkeypatch):
     run_ffmpeg(
         ["-f", "lavfi", "-i", "sine=frequency=330:duration=1", "-ar", "48000", "-ac", "2", str(audio)], stage="fixture"
     )
-    monkeypatch.setattr(reddit_full.bgclips, "pick", lambda *args, **kw: (bg, 0, ""))
+    monkeypatch.setattr(reddit_full.bgclips, "planned", lambda *args, **kw: (bg, 0, ""))
+    monkeypatch.setattr(story_sound, "mix", lambda folder, part, src, dst, seconds: shutil.copy2(src, dst))
+    wp = tmp_path / "words.json"
+    save_words(wp, [Word("Một", 100, 250), Word("câu", 250, 500), Word("chuyện.", 500, 850)], source="manual")
+    r.write(tmp_path / "voice_manifest.json", {"timing_files": [str(wp), str(wp)]})
     monkeypatch.setattr(reddit_full, "FINAL_OUTPUT", tmp_path / "output")
     sizes = []
 
@@ -369,7 +374,7 @@ def test_name_map_updates_dialogue_cast(tmp_path):
 
     r.write(
         tmp_path / "vi.json",
-        {"paragraphs": ["Megan nói."], "character_map": {"Megan": "Lan"}, "cast": {"names": {"Megan": "female"}}},
+        {"paragraphs": ["Megan nói."], "closing_question": False, "character_map": {"Megan": "Lan"}, "cast": {"names": {"Megan": "female"}}},
     )
     project_edit(tmp_path)
     vi = r.read(tmp_path / "vi.json")

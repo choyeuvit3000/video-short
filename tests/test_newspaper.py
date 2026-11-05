@@ -170,7 +170,7 @@ def test_trim_silence(tmp_path):
                 "-i", "anullsrc=r=24000:cl=mono:d=1", "-filter_complex", "[0][1][2]concat=n=3:v=0:a=1",
                 str(clip)], stage="fixture")
     cut = trim_silence(clip)
-    assert 400 <= cut <= 470  # 0.5 s minus the 60 ms kept
+    assert 350 <= cut <= 410  # 0.5 s minus the protected 120 ms lead
     assert 1.1 <= probe(clip).duration <= 1.35
     assert trim_silence(clip) <= 20  # already tight: (almost) nothing more to cut
 

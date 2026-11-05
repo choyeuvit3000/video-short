@@ -28,7 +28,7 @@ def test_exact_voice_speed_overrides_legacy_multiplier_once(tmp_path, monkeypatc
     monkeypatch.setattr(cb, "ensure_ready", lambda path: cb.prepare(path))
     cfg = {"tts": {"engines": ["vieneu"], "vieneu": {}}, "reddit": {"narration_speed": 1.1, "wait_for_vivibe": False}}
     cb.apply_social(tmp_path, cfg)
-    assert cfg["reddit"]["background_family"] == "any"
+    assert cfg["reddit"]["background_family"] == "horror"
     assert cfg["reddit"]["narration_speed"] == 1.0
     assert _tcfg(cfg)["vieneu"]["speed"] == pytest.approx(1.25)
 

@@ -15,6 +15,7 @@ from pathlib import Path
 from .util import ROOT, ffmpeg, log, media_duration, run
 
 TTS_CACHE = ROOT / "cache" / "tts"
+_pcm_cache_lock = threading.Lock()
 
 EMOJI_RE = re.compile(
     "[\U0001F000-\U0001FAFF\U00002600-\U000027BF\U0001F900-\U0001F9FF️‍]+")
@@ -381,12 +382,12 @@ def _silences(audio: Path) -> list[tuple[float, float]]:
 
 
 def tidy(src: Path, dst: Path, gap: float) -> None:
-    """Trim the engine's own silence at both ends, then add one even pause, so the gap
-    between sentences no longer depends on which engine (or where a cut) made the clip."""
-    trim = "silenceremove=start_periods=1:start_silence=0.03:start_threshold=-45dB"
-    run([ffmpeg(), "-y", "-hide_banner", "-loglevel", "error", "-i", str(src), "-af",
-         f"aresample=48000,{trim},areverse,{trim},areverse,apad=pad_dur={gap}",
-         "-ac", "2", "-ar", "48000", "-c:a", "pcm_s16le", str(dst)])
+    """Convert to PCM and add boundary protection; never remove quiet consonants."""
+    from ..core.audio_boundaries import protect_pcm
+    tmp = dst.with_suffix('.boundary.wav')
+    run([ffmpeg(), "-y", "-v", "error", "-i", str(src), "-ac", "2", "-ar", "48000", str(tmp)])
+    protect_pcm(tmp, dst)
+    tmp.unlink()
 
 
 def cut_sentences(whole: Path, texts: list[str], wavs: list[Path], workdir: Path,
@@ -491,7 +492,7 @@ def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.
 
     from ..core.voice_policy import signature as voice_signature, social_profile
     identity = voice_signature(social_profile(tcfg)[0])
-    signature = hashlib.sha256(json.dumps([texts, roles, tcfg, gap, identity, "native-pause-v2"], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
+    signature = hashlib.sha256(json.dumps([texts, roles, tcfg, gap, identity, "protected-pcm-v3"], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
     workdir = workdir / signature
     workdir.mkdir(parents=True, exist_ok=True)
     texts = [clean_for_speech(t) or "…" for t in texts]
@@ -502,17 +503,44 @@ def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.
                     role_cfg(tcfg, role), gap)
 
     def one(i: int) -> None:
-        if wavs[i].exists():
-            return
         rcfg = role_cfg(tcfg, roles[i])
         free = {**rcfg, "engines": [e for e in rcfg["engines"] if e not in BATCH_ENGINES]}
+        if wavs[i].exists() and free["engines"] != ["vieneu"]:
+            return
+        if free["engines"] == ["vieneu"]:
+            from .local_voice import generate
+            from ..core.audio_boundaries import protect_pcm
+            key = hashlib.sha256(json.dumps([texts[i], free, identity, "protected-pcm-v3"],
+                                           sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+            cached = TTS_CACHE / "pcm" / (key + ".wav")
+            meta = cached.with_suffix(".json")
+            from .quality import sha256
+            with _pcm_cache_lock:
+                valid = cached.is_file() and meta.is_file()
+                if valid:
+                    try:
+                        valid = json.loads(meta.read_text(encoding="utf-8")).get("sha256") == sha256(cached)
+                    except (ValueError, OSError):
+                        valid = False
+                if valid:
+                    shutil.copy2(cached, wavs[i])
+                    return
+                pcm = workdir / f"{i:04d}.native.wav"
+                stereo = workdir / f"{i:04d}.stereo.wav"
+                generate(texts[i], pcm, free["vieneu"])
+                run([ffmpeg(), "-y", "-v", "error", "-i", str(pcm), "-ar", "48000", "-ac", "2", str(stereo)])
+                protect_pcm(stereo, wavs[i])
+                pcm.unlink()
+                stereo.unlink()
+                cached.parent.mkdir(parents=True, exist_ok=True)
+                partial = cached.with_suffix(".partial.wav")
+                shutil.copy2(wavs[i], partial)
+                partial.replace(cached)
+                meta.write_text(json.dumps({"sha256": sha256(cached), "key": key}), encoding="utf-8")
+            return
         mp3 = workdir / f"{i:04d}.mp3"
         synth(texts[i], mp3, free)
-        if free["engines"] == ["vieneu"]:
-            # Keep the model's breathing and sentence endings instead of replacing them with uniform gaps.
-            run([ffmpeg(), "-y", "-v", "error", "-i", str(mp3), "-ar", "48000", "-ac", "2", str(wavs[i])])
-        else:
-            tidy(mp3, wavs[i], gap)
+        tidy(mp3, wavs[i], gap)
 
     with ThreadPoolExecutor(max_workers=6) as pool:
         list(pool.map(one, range(len(texts))))

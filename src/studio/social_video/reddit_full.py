@@ -2,9 +2,9 @@
 
 import copy
 import random
-import textwrap
+from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 from ..core.outputs import organized_output
 from . import bgclips
@@ -14,49 +14,42 @@ from .util import FINAL_OUTPUT, ffmpeg, media_duration, run
 def export_full(story_id, story, vi, groups, voiced, cfg, folder):
     from .quality import publish
     from .reddit import _join
-    from .story_source import labels, mode
+    from .story_source import mode
 
     work = folder / "full"
     work.mkdir(exist_ok=True)
-    font = ImageFont.truetype("C:/Windows/Fonts/arial.ttf", 42)
-    heading = ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 46)
+    from ..core.subtitles import load_words
+    from .story_cards import timed_cards
+    from .util import read_json
+
+    manifest = read_json(folder / "voice_manifest.json", {})
     lines = []
-    index = 0
-    for g in groups:
-        for current, _sentence in enumerate(g):
-            image = Image.new("RGBA", (1920, 1080), (0, 0, 0, 0))
-            draw = ImageDraw.Draw(image)
-            draw.rounded_rectangle((55, 55, 1060, 1025), radius=28, fill=(15, 22, 32, 250))
-            draw.text(
-                (95, 100),
-                " · ".join(labels(story)),
-                font=font,
-                fill="#B5BDC8",
-            )
-            title = textwrap.wrap(vi.get("shock_title") or vi["title"], 34)
-            draw.multiline_text((95, 190), "\n".join(title[:3]), font=heading, fill="white", spacing=12)
-            y = 430
-            for n, s in enumerate(g):
-                wrapped = textwrap.wrap(s, 40)
-                draw.multiline_text(
-                    (95, y), "\n".join(wrapped), font=font, fill="white" if n == current else "#7F8999", spacing=10
-                )
-                y += len(wrapped) * 56 + 16
-            frame = work / f"card_{index:04d}.png"
-            image.save(frame)
-            lines += ["file '" + frame.name + "'", f"duration {voiced[index][1]:.6f}"]
-            index += 1
-    lines.append("file '" + frame.name + "'")
+    last = None
+    for index, (_wav, seconds) in enumerate(voiced):
+        words, origin = load_words(Path(manifest["timing_files"][index]))
+        if origin not in ("faster_whisper", "manual"):
+            raise ValueError("Full story needs real speech anchors")
+        for j, (frame, share) in enumerate(timed_cards(story, words, seconds, work / "phrase_cards", f"s{index:04d}")):
+            canvas = Image.new("RGBA", (1920, 1080), (0, 0, 0, 0))
+            canvas.paste(Image.open(frame).crop((0, 0, 1080, 1080)), (0, 0))
+            last = work / f"c{index:04d}_{j:03d}.png"
+            canvas.save(last)
+            lines += [f"file '{last.name}'", f"duration {seconds * share:.6f}"]
+    lines.append(f"file '{last.name}'")
     (work / "cards.txt").write_text("ffconcat version 1.0\n" + "\n".join(lines) + "\n", encoding="utf-8")
     narration = work / "narration.wav"
     _join([p for p, t in voiced], narration, 0.0)
     seconds = media_duration(narration)
-    bg = bgclips.pick(
-        seconds, random.Random(story_id), 820 / 1080, family=cfg["reddit"].get("background_family", "any")
+    bg = bgclips.planned(
+        folder, 0, seconds, random.Random(story_id), 820 / 1080, family=cfg["reddit"].get("background_family", "horror")
     )
     if not bg:
         raise RuntimeError("No background available for full landscape video")
     src, start, crop = bg
+    from .story_sound import mix
+
+    sound = work / "sound.wav"
+    mix(folder, "full", narration, sound, seconds)
     draft = work / "full_unmastered.mp4"
     run(
         [
@@ -77,9 +70,9 @@ def export_full(story_id, story, vi, groups, voiced, cfg, folder):
             "-i",
             str(src.resolve()),
             "-i",
-            str(narration.resolve()),
+            str(sound.resolve()),
             "-filter_complex",
-            f"[1:v]{crop}scale=820:1080,fps=30,setsar=1,pad=1920:1080:1100:0:color=0x101822[bg];[bg][0:v]overlay=0:0:format=auto,format=yuv420p[v]",
+            f"[1:v]{crop}scale=820:1080,fps=30,setsar=1,eq=brightness=-0.045:saturation=.82,vignette=PI/6,pad=1920:1080:1100:0:color=0x101822[bg];[bg][0:v]overlay=0:0:format=auto,format=yuv420p[v]",
             "-map",
             "[v]",
             "-map",
@@ -108,4 +101,7 @@ def export_full(story_id, story, vi, groups, voiced, cfg, folder):
     wide = copy.deepcopy(cfg)
     wide["video"].update(width=1920, height=1080)
     publish(draft, out, wide)
+    from .story_source import write_asset_credits
+
+    write_asset_credits(folder, out, "full")
     return out

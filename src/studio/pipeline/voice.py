@@ -35,15 +35,15 @@ log = get_logger()
 def _text_hash(text: str, profile: VoiceProfile, trim: bool = False) -> str:
     return hashlib.sha256(
         json.dumps(
-            [text, profile.id, profile.params, *(["trim"] if trim else [])], sort_keys=True, ensure_ascii=False
+            [text, profile.id, profile.params, "protected-pcm-v3", *(["trim"] if trim else [])], sort_keys=True, ensure_ascii=False
         ).encode()
     ).hexdigest()[:16]
 
 
-SILENCE_DB = -45
+SILENCE_DB = -50
 
 
-def trim_silence(path: Path, *, scene_id: str | None = None, keep_lead_ms: int = 60, keep_tail_ms: int = 150) -> int:
+def trim_silence(path: Path, *, scene_id: str | None = None, keep_lead_ms: int = 120, keep_tail_ms: int = 125) -> int:
     """Cut the silence before the first and after the last sound of a generated clip, in place (edge-tts adds
     ~0.2 s / ~0.75 s). Returns the milliseconds removed at the start, to shift word timings."""
     err = run_ffmpeg(

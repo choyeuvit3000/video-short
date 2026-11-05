@@ -168,8 +168,14 @@ class VieneuTTS(TTSProvider):
         if not resp.get("ok"):
             raise ProviderUnavailable(f"VieNeu failed: {resp.get('error')}", code="tts_unavailable")
         speed = float(p.get("speed", 1.0))
-        if abs(speed - 1.0) > 1e-3:  # VieNeu has no pace control: time-stretch, pitch kept
-            tmp = out_path.with_name(f"{out_path.stem}.speed{out_path.suffix}")
-            run_ffmpeg(["-i", str(out_path), "-af", f"atempo={speed:.4f}", str(tmp)], stage="voice")
-            tmp.replace(out_path)
+        # Protect the onset BEFORE time stretching, then keep at least 100/125 ms
+        # at the output boundaries. Adding padding after a lost consonant cannot fix it.
+        from ...core.audio_boundaries import LEAD_MS, protect_pcm
+
+        tmp = out_path.with_name(f"{out_path.stem}.speed{out_path.suffix}")
+        filters=f"adelay={round(LEAD_MS * speed)}:all=1" + (f",atempo={speed:.4f}" if abs(speed-1)>1e-3 else "")
+        run_ffmpeg(["-i", str(out_path), "-af", filters,
+                    "-c:a", "pcm_s16le", str(tmp)], stage="voice")
+        protect_pcm(tmp, out_path)
+        tmp.unlink()
         return TTSResult(out_path, None)  # no word timings: the voice stage aligns with faster-whisper

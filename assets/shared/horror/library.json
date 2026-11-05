@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-11-05",
+  "background": {
+    "url": "https://www.youtube.com/watch?v=d-WLU4tr4hs",
+    "creator": "Governare - No Copyright Gameplay",
+    "license": "CC BY (YouTube metadata); explicit permission for Shorts and TikTok in source description",
+    "format": "299",
+    "source_name": "horror_rain_parkour_Governare.mp4",
+    "source_sha256": "887fe8c9e73db9c221afdc61854b2e2458fc9df61efb969731f2b640129aa108",
+    "mood": "night / rain / cool shader parkour",
+    "review_method": "Agent inspected source contact sheets at 3-second intervals in selected ranges; not creator approval",
+    "ranges": [
+      [
+        8,
+        28
+      ],
+      [
+        28,
+        48
+      ],
+      [
+        48,
+        68
+      ]
+    ],
+    "rejected_features": []
+  },
+  "sfx": [
+    {
+      "file": "ambience-thunder-04.mp3",
+      "url": "https://sfxmint.com/dl/ambience-thunder-04.mp3",
+      "source": "https://sfxmint.com/sets/horror-game",
+      "license": "CC0",
+      "sha256": "4d057c2b7c1a3cbe0f5c9ee4e320339aac961c4e23b8d91afa852c29f5200f88"
+    },
+    {
+      "file": "door-creak-13.mp3",
+      "url": "https://sfxmint.com/dl/door-creak-13.mp3",
+      "source": "https://sfxmint.com/sets/horror-game",
+      "license": "CC0",
+      "sha256": "7ce2fd328e340f57d15d10567df28136a1c7ed8141e403762346d073f4b7040d"
+    },
+    {
+      "file": "female_laughter_source.mp3",
+      "url": "https://assets.mixkit.co/active_storage/sfx/416/416-preview.mp3",
+      "source": "https://mixkit.co/free-sound-effects/voices/",
+      "license": "https://mixkit.co/license/#sfxFree",
+      "sha256": "887306c3ca1c0583f7cb02719b4c422411f11feae19d8fc0ab22860f9c9ebec6"
+    },
+    {
+      "file": "footsteps-concrete-64.mp3",
+      "url": "https://sfxmint.com/dl/footsteps-concrete-64.mp3",
+      "source": "https://sfxmint.com/sets/horror-game",
+      "license": "CC0",
+      "sha256": "46b79402291a2b43b8b4388b9bb370f8b24ebe1bcddbff0bfad6e699a888d849"
+    },
+    {
+      "file": "horror-ambience-dark-81.mp3",
+      "url": "https://sfxmint.com/dl/horror-ambience-dark-81.mp3",
+      "source": "https://sfxmint.com/sets/horror-game",
+      "license": "CC0",
+      "sha256": "7ea9adae432a5c4feb573489897eac1fc1d708335227d4da18084ef7842aa74f"
+    },
+    {
+      "file": "horror-creak-61.mp3",
+      "url": "https://sfxmint.com/dl/horror-creak-61.mp3",
+      "source": "https://sfxmint.com/sets/horror-game",
+      "license": "CC0",
+      "sha256": "ec040605eeb7641d860e142ac4d0f30d19adfe63e27335f6b452768df254df65"
+    },
+    {
+      "file": "horror-heartbeat-73.mp3",
+      "url": "https://sfxmint.com/dl/horror-heartbeat-73.mp3",
+      "source": "https://sfxmint.com/sets/horror-game",
+      "license": "CC0",
+      "sha256": "2fdd738114a247e36ea7445f4ff9275c35c345b049eca7742e36f66882316be4"
+    },
+    {
+      "file": "horror-stinger-54.mp3",
+      "url": "https://sfxmint.com/dl/horror-stinger-54.mp3",
+      "source": "https://sfxmint.com/sets/horror-game",
+      "license": "CC0",
+      "sha256": "4ff80db50e3d20ad87dd6461f8c88ec1a47574cd41277c84fed86c479e6315bc"
+    },
+    {
+      "file": "horror-wind-whisper-56.mp3",
+      "url": "https://sfxmint.com/dl/horror-wind-whisper-56.mp3",
+      "source": "https://sfxmint.com/sets/horror-game",
+      "license": "CC0",
+      "sha256": "1629e2f85fec983a4b6ab4de99b5ab92994cad7d90574b0d704fd6ae0d2a2cd5"
+    }
+  ]
+}

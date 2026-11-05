@@ -149,7 +149,11 @@ def project_edit(folder):
                 p.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
             return
         d = json.loads(p.read_text(encoding="utf-8-sig"))
+        from ..social_video.story_policy import editorial_defaults
+        d = editorial_defaults(d)
         lex = {**d.get("character_map", {}), **d.get("speech_lexicon", {})}
+        if d.get("closing_question"):
+            d["closing_question"] = normalize(d["closing_question"], lexicon=lex, slash=d.get("ratio_reading", "trên"))
         d["paragraphs"] = [
             normalize(t, lexicon=lex, slash=d.get("ratio_reading", "trên")) for t in d.get("paragraphs", [])
         ]
