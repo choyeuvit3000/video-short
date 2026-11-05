@@ -19,8 +19,12 @@ SFX = {
     "footsteps": "footsteps-concrete-64.mp3",
     "door": "door-creak-13.mp3",
     "whisper": "horror-wind-whisper-56.mp3",
+    "drip": "water-drip-03.wav",
+    "splash": "water-splash-25.wav",
 }
 RULES = [
+    ("drip", r"tong tỏng|nhỏ nước|nước nhỏ"),
+    ("splash", r"rơi xuống nước|ngã xuống nước"),
     ("laugh", r"cười|khúc khích"),
     ("footsteps", r"tiếng chân|bước chân|kéo lê"),
     ("door", r"gõ cửa|cửa kêu|cửa mở"),
@@ -72,6 +76,7 @@ def prepare_plan(folder, cfg):
         for event in events:
             asset = _asset(ASSETS / "horror_sfx" / SFX[event["kind"]])
             event.update(asset)
+            event["asset_offset"] = {"drip": 0.48, "splash": 0.5}.get(event["kind"], 0)
             result["assets"].append(asset)
         result["parts"][key] = {
             "music": music,
@@ -127,8 +132,9 @@ def mix(folder, part, narration, output, seconds):
         args += ["-i", event["path"]]
         event_gain = voice_i + event["relative_db"] - loudness(Path(event["path"]))
         name = f"fx{i}"
+        offset = float(event.get("asset_offset", 0))
         filters.append(
-            f"[{i}:a]atrim=0:{event['duration']},asetpts=PTS-STARTPTS,highpass=f=120,lowpass=f=3500,"
+            f"[{i}:a]atrim={offset}:{offset + event['duration']},asetpts=PTS-STARTPTS,highpass=f=120,lowpass=f=3500,"
             f"afade=t=in:d=0.04,afade=t=out:st={event['duration'] - 0.16}:d=0.16,"
             f"volume={event_gain:.3f}dB,adelay={round(event['at'] * 1000)}:all=1[{name}]"
         )

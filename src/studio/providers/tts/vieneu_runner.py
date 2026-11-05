@@ -82,7 +82,9 @@ def main() -> int:
                 if actual != req["preset_sha256"]:
                     raise ValueError("Voice preset changed; audition and review again")
             torch.manual_seed(int(req.get("seed", 0)))
-            audio = tts.infer(req["text"], voice=req.get("voice"), temperature=float(req.get("temperature", 0.7)))
+            audio = tts.infer(
+                req["text"], voice=req.get("voice"), temperature=float(req.get("temperature", 0.7)), batch_size=1
+            )
             tts.save(audio, req["out"])
             resp = {"ok": True, "sec": round(len(audio) / rate, 3)}
         except Exception as e:  # noqa: BLE001

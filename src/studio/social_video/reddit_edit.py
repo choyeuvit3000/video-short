@@ -28,6 +28,36 @@ def partition(groups, voiced, max_seconds=180, *, vi=None, target_seconds=90):
             )
         items.append((group, index, seconds))
         index += len(group)
+    explicit = vi.get("episode_sentence_ranges") if vi else None
+    if explicit is not None:
+        result, cursor = [], 0
+        for span in explicit:
+            if (
+                not isinstance(span, list)
+                or len(span) != 2
+                or any(type(x) is not int for x in span)
+                or span[0] != cursor
+                or not cursor < span[1] <= index
+            ):
+                raise ManualGateRequired("episode_ranges", "Ranh giới tập đã duyệt không hợp lệ; không tự chia lại.")
+            selected = [(g, k, t) for g, k, t in items if span[0] <= k < span[1]]
+            if (
+                not selected
+                or sum(len(g) for g, k, t in selected) != span[1] - span[0]
+                or any(k + len(g) > span[1] for g, k, t in selected)
+            ):
+                raise ManualGateRequired(
+                    "episode_ranges", "Điểm ngắt cắt giữa nhóm lời đọc; chuẩn bị lại kế hoạch tập."
+                )
+            if sum(t for g, k, t in selected) > budget:
+                raise ManualGateRequired(
+                    "episode_duration", "Tập vượt giới hạn đã chọn; không tự tăng tốc hoặc chia khác bản duyệt."
+                )
+            result.append([(g, k) for g, k, t in selected])
+            cursor = span[1]
+        if cursor != index or not result:
+            raise ManualGateRequired("episode_ranges", "Ranh giới tập chưa phủ toàn bộ lời đọc đã duyệt.")
+        return result
     parts = []
     while items:
         if sum(x[2] for x in items) <= budget:

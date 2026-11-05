@@ -35,7 +35,8 @@ log = get_logger()
 def _text_hash(text: str, profile: VoiceProfile, trim: bool = False) -> str:
     return hashlib.sha256(
         json.dumps(
-            [text, profile.id, profile.params, "protected-pcm-v3", *(["trim"] if trim else [])], sort_keys=True, ensure_ascii=False
+            [text, profile.id, profile.params, "protected-pcm-v4-sequential", *(["trim"] if trim else [])],
+            sort_keys=True, ensure_ascii=False,
         ).encode()
     ).hexdigest()[:16]
 

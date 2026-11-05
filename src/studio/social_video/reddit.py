@@ -601,8 +601,10 @@ def voice_story(paragraphs: list[str], cfg: dict, cast: dict,
     from ..core.voice_policy import signature as voice_signature, social_profile
     profile = social_profile(_tcfg(cfg))[0]
     identity = voice_signature(profile)
-    signature = hashlib.sha256(json.dumps([paragraphs, cast, _tcfg(cfg), identity, GAP, "protected-pcm-v3"], sort_keys=True,
-                                          ensure_ascii=False).encode()).hexdigest()[:16]
+    signature = hashlib.sha256(json.dumps(
+        [paragraphs, cast, _tcfg(cfg), identity, GAP, "protected-pcm-v4-sequential"],
+        sort_keys=True, ensure_ascii=False,
+    ).encode()).hexdigest()[:16]
     audio_dir = audio_dir / signature
     audio_dir.mkdir(parents=True, exist_ok=True)
     narrator = cast.get("narrator", "narrator_female")
@@ -847,8 +849,7 @@ def _render_approved(story_id: str, cfg: dict) -> list[Path]:
         else:
             v_in += ["-f", "lavfi", "-i", f"color=c=0x101418:s={W}x{H}:r=30"]
             vchain = "[1:v]setsar=1[bg];"
-        shade=float(rc.get("vignette_opacity",.18))
-        vchain += (f"[bg]eq=brightness=-{shade/4:.3f}:saturation=0.82,vignette=PI/6[shaded];"
+        vchain += (f"[bg]{bgclips.horror_grade(cfg)}[shaded];"
                    "[0:v]format=rgba,fps=30[cards];[shaded][cards]overlay=0:0:format=auto,format=yuv420p"
                    + (f",setpts=PTS/{speed:.4f}" if speed > 1 else "") + "[v]")
         picture = d / f"{tag}_picture.mp4"

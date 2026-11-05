@@ -63,18 +63,15 @@ def draw_card(story, texts, lines, active):
         (X, Y, X + WIDTH, Y + height), radius=40, fill=(17, 20, 23, 246), outline=(255, 255, 255, 31), width=2
     )
     preview = story.get("development_preview", False)
-    platform = (
-        "Mẫu kiểm tra"
-        if preview
-        else "Threads"
-        if story.get("platform") == "threads"
-        else "r/" + story.get("sub", "nosleep")
-    )
+    from .story_source import labels
+
+    platform, author = labels(story)
+    if preview:
+        platform, author = "Mẫu kiểm tra", story.get("author", "")
     d.ellipse((X + PAD, Y + 31, X + PAD + 53, Y + 84), fill=(37, 42, 47, 255))
     d.text((X + PAD + 8, Y + 31), "@", font=bold, fill=(241, 242, 244, 255))
     d.text((X + PAD + 73, Y + 25), platform, font=bold, fill=(245, 245, 246, 255))
-    prefix = "" if preview else "@" if story.get("platform") == "threads" else "u/"
-    d.text((X + PAD + 73, Y + 70), prefix + story.get("author", "").lstrip("@"), font=meta, fill=(180, 186, 192, 255))
+    d.text((X + PAD + 73, Y + 70), author, font=meta, fill=(180, 186, 192, 255))
     space = d.textlength(" ", font=font)
     for j, line in enumerate(lines):
         x = X + PAD
@@ -86,7 +83,13 @@ def draw_card(story, texts, lines, active):
             d.text((x, y), texts[i], font=font, fill=(255, 237, 209, 255) if i in active else (182, 188, 194, 255))
             x += length + space
     _icons(d, Y + height - 42)
-    label = "Kiểm tra kỹ thuật" if preview else "Kể lại từ nguồn"
+    label = (
+        "Kiểm tra kỹ thuật"
+        if preview
+        else "Truyện hư cấu"
+        if story.get("platform") == "original_fiction"
+        else "Kể lại từ nguồn"
+    )
     tw = d.textlength(label, font=meta)
     d.text((X + WIDTH - PAD - tw, Y + height - 57), label, font=meta, fill=(151, 159, 169, 255))
     return image

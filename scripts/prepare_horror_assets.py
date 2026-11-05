@@ -73,7 +73,11 @@ def main():
     for i, (start, end) in enumerate(spec["ranges"], 1):
         output = backgrounds / f"horror_rain_reviewed_{i:02d}.mp4"
         relative = output.relative_to(ASSETS).as_posix()
-        if not output.is_file() or previous.get(relative, {}).get("sha256") != sha256(output):
+        if (
+            not output.is_file()
+            or previous.get(relative, {}).get("sha256") != sha256(output)
+            or previous.get(relative, {}).get("source_range") != [start, end]
+        ):
             partial = output.with_suffix(".partial.mp4")
             run_ffmpeg(
                 [
@@ -114,6 +118,50 @@ def main():
                 "mood": spec["mood"],
                 "review_method": spec["review_method"],
                 "rejected_features": [],
+            }
+        )
+    if len(clips) > 1 and spec.get("concat_reviewed_ranges"):
+        combined = backgrounds / "horror_rain_reviewed_continuous.mp4"
+        combined_rel = combined.relative_to(ASSETS).as_posix()
+        components = [x["sha256"] for x in clips]
+        if (
+            not combined.is_file()
+            or previous.get(combined_rel, {}).get("sha256") != sha256(combined)
+            or previous.get(combined_rel, {}).get("component_sha256") != components
+        ):
+            listing = backgrounds / "horror_reviewed_concat.txt"
+            listing.write_text(
+                "ffconcat version 1.0\n" + "\n".join(f"file '{Path(x['file']).name}'" for x in clips) + "\n",
+                encoding="utf-8",
+            )
+            partial = combined.with_suffix(".partial.mp4")
+            run_ffmpeg(
+                [
+                    "-f",
+                    "concat",
+                    "-safe",
+                    "0",
+                    "-i",
+                    str(listing),
+                    "-an",
+                    "-c:v",
+                    "copy",
+                    "-movflags",
+                    "+faststart",
+                    str(partial),
+                ],
+                stage="horror-assets-join",
+            )
+            partial.replace(combined)
+        clips.append(
+            {
+                **clips[0],
+                "file": combined_rel,
+                "sha256": sha256(combined),
+                "source_range": [spec["ranges"][0][0], spec["ranges"][-1][1]],
+                "source_ranges": spec["ranges"],
+                "component_sha256": components,
+                "review_method": "Join of reviewed visible cool native 1080p60 ranges, with no interpolation",
             }
         )
     write_json(ASSETS / "horror_backgrounds.json", {"version": 1, "clips": clips})

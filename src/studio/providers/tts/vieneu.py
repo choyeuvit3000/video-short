@@ -48,6 +48,9 @@ class _Runner:
             "HF_HOME": str(_conf().get("hf_home") or DEFAULT_HF_HOME),
             "HF_HUB_DISABLE_SYMLINKS_WARNING": "1",
             "PYTHONIOENCODING": "utf-8",
+            # The single-sequence path preserves short-word onsets more reliably
+            # than the SDK's fused CUDA graph on the pinned worker installation.
+            "VIENEU_FUSED_FRAME": "0",
         }
         self.proc = subprocess.Popen(
             [str(python), "-I", str(RUNNER), "--binding", json.dumps(binding)],
@@ -167,15 +170,36 @@ class VieneuTTS(TTSProvider):
         )
         if not resp.get("ok"):
             raise ProviderUnavailable(f"VieNeu failed: {resp.get('error')}", code="tts_unavailable")
+        # Keep the unpaced waveform: timing repairs must not require another model call.
+        import shutil
+
+        source = out_path.with_name(out_path.stem + ".source.wav")
+        shutil.copy2(out_path, source)
+        from ...core.speech_checks import file_sha, text_sha
+        from ...core.user_review import write
+        from ...core.voice_policy import signature
+
+        write(
+            source.with_suffix(".json"),
+            {
+                "sha256": file_sha(source),
+                "text_sha256": text_sha(text),
+                "voice_signature": signature(profile),
+                "seed": seed,
+                "temperature": float(p.get("temperature", 0.7)),
+                "speed_applied": 1.0,
+                "runtime": "sequential-v4",
+                "creator_approved": False,
+            },
+        )
         speed = float(p.get("speed", 1.0))
         # Protect the onset BEFORE time stretching, then keep at least 100/125 ms
         # at the output boundaries. Adding padding after a lost consonant cannot fix it.
         from ...core.audio_boundaries import LEAD_MS, protect_pcm
 
         tmp = out_path.with_name(f"{out_path.stem}.speed{out_path.suffix}")
-        filters=f"adelay={round(LEAD_MS * speed)}:all=1" + (f",atempo={speed:.4f}" if abs(speed-1)>1e-3 else "")
-        run_ffmpeg(["-i", str(out_path), "-af", filters,
-                    "-c:a", "pcm_s16le", str(tmp)], stage="voice")
+        filters = f"adelay={round(LEAD_MS * speed)}:all=1" + (f",atempo={speed:.4f}" if abs(speed - 1) > 1e-3 else "")
+        run_ffmpeg(["-i", str(out_path), "-af", filters, "-c:a", "pcm_s16le", str(tmp)], stage="voice")
         protect_pcm(tmp, out_path)
         tmp.unlink()
         return TTSResult(out_path, None)  # no word timings: the voice stage aligns with faster-whisper

@@ -72,7 +72,8 @@ def export_full(story_id, story, vi, groups, voiced, cfg, folder):
             "-i",
             str(sound.resolve()),
             "-filter_complex",
-            f"[1:v]{crop}scale=820:1080,fps=30,setsar=1,eq=brightness=-0.045:saturation=.82,vignette=PI/6,pad=1920:1080:1100:0:color=0x101822[bg];[bg][0:v]overlay=0:0:format=auto,format=yuv420p[v]",
+            f"[1:v]{crop}scale=820:1080,fps=30,setsar=1,{bgclips.horror_grade(cfg)},"
+            "pad=1920:1080:1100:0:color=0x101822[bg];[bg][0:v]overlay=0:0:format=auto,format=yuv420p[v]",
             "-map",
             "[v]",
             "-map",

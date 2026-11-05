@@ -5,7 +5,7 @@ from pathlib import Path
 
 import numpy as np
 
-VERSION = "protected-pcm-v3"
+VERSION = "protected-pcm-v4-sequential"
 LEAD_MS = 100
 TAIL_MS = 125  # lead + previous tail = 225 ms minimum sentence boundary
 

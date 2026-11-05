@@ -15,6 +15,12 @@ USAGE = ROOT / "cache" / "bg_usage.json"
 EDGE_SEC = 8  # skip the first and last seconds of a recording (menus, fades)
 
 
+def horror_grade(cfg):
+    """Preserve detail in night footage; previews and final encodes share this grade."""
+    shade = float(cfg["reddit"].get("vignette_opacity", 0.18))
+    return f"eq=brightness=-{shade / 12:.3f}:saturation=.82:gamma=1.3,vignette=PI/10"
+
+
 @lru_cache(maxsize=4096)
 def _cached_duration(path, mtime_ns, size):
     return media_duration(Path(path))
@@ -74,13 +80,20 @@ def pick(
     long_enough = [p for p in pool if _duration(p) >= seconds]
     if long_enough:
         pool = long_enough
+    elif family == "horror":
+        longest = max(_duration(p) for p in pool)
+        pool = [p for p in pool if _duration(p) >= longest - 0.05]
     low = min(usage.get(p.name, 0) for p in pool)
     src = rng.choice([p for p in pool if usage.get(p.name, 0) == low])
     usage[src.name] = usage.get(src.name, 0) + 1
     write_json(USAGE, usage)
     total = _duration(src)
     margin = EDGE_SEC if total >= seconds + 2 * EDGE_SEC else 0
-    start = rng.uniform(margin, max(margin, total - seconds - margin))
+    start = (
+        rng.uniform(0, max(0, total - 0.1))
+        if family == "horror" and total < seconds
+        else rng.uniform(margin, max(margin, total - seconds - margin))
+    )
     return src, start, _crop(src, aspect)
 
 
@@ -175,7 +188,7 @@ def planned(folder: Path, part: int, seconds: float, rng: random.Random, aspect:
             "sha256": sha256(source),
             "attribution": next(
                 (
-                    {k: x.get(k) for k in ("source", "creator", "license", "source_range")}
+                    {k: x.get(k) for k in ("source", "creator", "license", "source_range", "source_ranges")}
                     for x in read_json(ASSETS / "horror_backgrounds.json", {}).get("clips", [])
                     if (ASSETS / x["file"]).resolve() == source.resolve()
                 ),

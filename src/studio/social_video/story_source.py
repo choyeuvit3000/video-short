@@ -2,6 +2,8 @@
 
 
 def labels(story):
+    if story.get("platform") == "original_fiction":
+        return "Truyện kỳ dị", "Sáng tác lấy cảm hứng dân gian"
     author = story.get("author", "").lstrip("@")
     if story.get("platform") == "threads":
         return "Threads", "@" + author
@@ -9,11 +11,16 @@ def labels(story):
 
 
 def credit(story):
+    if story.get("platform") == "original_fiction":
+        works = "; ".join(x["work"] for x in story.get("inspirations", []))
+        return f"Truyện hư cấu: {story.get('title', '')}. Lấy cảm hứng: {works}"
     platform, author = labels(story)
     return f"Nguồn: {platform} · {author} · {story.get('url', '')}"
 
 
 def mode(story):
+    if story.get("platform") == "original_fiction":
+        return "original_story"
     return "threads_story" if story.get("platform") == "threads" else "reddit"
 
 

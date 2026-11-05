@@ -8,6 +8,47 @@ from ..core.voice_policy import assert_social_config, signature, social_profile
 from .util import load_config, read_json
 
 
+def cache_draft_voice(folder, texts, voiced, cfg):
+    """Write-ahead audio cache, not an approval; keep valid takes across alignment retries."""
+    from .quality import sha256
+
+    profile, _ = social_profile(cfg["tts"])
+    write(
+        folder / "voice_draft_manifest.json",
+        {
+            "texts": digest(texts),
+            "voice_signature": signature(profile),
+            "choices": digest({"tts": cfg["tts"], "speed": cfg["reddit"].get("narration_speed", 1.0)}),
+            "body": [
+                {"path": str(path.resolve()), "seconds": seconds, "sha256": sha256(path)} for path, seconds in voiced
+            ],
+            "creator_approved": False,
+        },
+    )
+
+
+def cached_draft_voice(folder, texts, cfg):
+    from .quality import sha256
+    from .util import media_duration
+
+    data = read_json(folder / "voice_draft_manifest.json", {})
+    profile, _ = social_profile(cfg["tts"])
+    if (
+        data.get("texts") != digest(texts)
+        or data.get("voice_signature") != signature(profile)
+        or data.get("choices") != digest({"tts": cfg["tts"], "speed": cfg["reddit"].get("narration_speed", 1.0)})
+        or len(data.get("body", [])) != len(texts)
+    ):
+        return None
+    result = []
+    for item in data["body"]:
+        path = Path(item["path"])
+        if not path.is_file() or sha256(path) != item["sha256"] or abs(media_duration(path) - item["seconds"]) > 0.05:
+            return None
+        result.append((path, item["seconds"]))
+    return result
+
+
 def align_clip(folder, key, audio, seconds, text, cfg):
     """Reuse raw ASR only when audio, text and recognizer identities still match."""
     from ..core.speech_checks import file_sha, save_audit, text_sha
@@ -15,28 +56,59 @@ def align_clip(folder, key, audio, seconds, text, cfg):
     from ..providers.align import faster_whisper_words, map_onto_text
 
     model = cfg["reddit"].get("word_timing_model", "large-v3-turbo")
-    identity = {"audio": file_sha(audio), "text": text_sha(text), "model": model, "version": 1}
+    allowed_models = {model, "large-v3"} if model == "large-v3-turbo" else {model}
+    identity = {"audio": file_sha(audio), "text": text_sha(text), "version": 1}
     raw = folder / "subtitles" / f"{key}.raw.words.json"
     metadata = raw.with_suffix(".cache.json")
-    if raw.is_file() and read_json(metadata, {}) == {**identity, "raw_sha256": file_sha(raw)}:
+    cached = read_json(metadata, {})
+    provenance = cached.get("provenance", [])
+    proof_valid = all(Path(x["path"]).is_file() and file_sha(Path(x["path"])) == x["sha256"] for x in provenance)
+    if (
+        raw.is_file()
+        and all(cached.get(k) == v for k, v in identity.items())
+        and cached.get("model") in allowed_models
+        and cached.get("raw_sha256") == file_sha(raw)
+        and proof_valid
+    ):
         recognized, _ = load_words(raw)
+        recognition_source = cached.get("recognition_source", "faster_whisper")
+        actual_model = cached["model"]
     else:
         recognized = faster_whisper_words(audio, "vi", model=model, device="cpu", compute_type="int8")
         save_words(raw, recognized, source="faster_whisper")
-        write(metadata, {**identity, "raw_sha256": file_sha(raw)})
-    audit = save_audit(folder, key, audio, text, recognized)
+        write(metadata, {**identity, "model": model, "raw_sha256": file_sha(raw)})
+        recognition_source = "faster_whisper"
+        actual_model = model
+    audit = save_audit(folder, key, audio, text, recognized, source=recognition_source)
     import re
 
     from ..core.errors import ManualGateRequired
     from ..core.speech_edit import normalize
+    from .speech_spelling import REFERENCE, REGIONAL_REFERENCE, SOUTHERN_PROFILES, for_alignment
+
+    profile = social_profile(cfg["tts"])[0] if cfg.get("tts") else None
+    aligned_input, ambiguities = for_alignment(
+        text, recognized, southern=getattr(profile, "id", None) in SOUTHERN_PROFILES
+    )
+    audit["recognizer_model"] = actual_model
+    audit["recognizer_runtime"] = cached.get("recognizer_runtime", {}) if actual_model == cached.get("model") else {}
+    audit["spelling_ambiguities"] = ambiguities
+    if ambiguities:
+        audit["spelling_status"] = "SOUTHERN_SPELLING_CREATOR_LISTENING_PENDING"
+        audit["spelling_references"] = [REFERENCE, REGIONAL_REFERENCE]
 
     expected = re.findall(r"\w+", text.casefold())[:2]
-    actual = re.findall(r"\w+", normalize(" ".join(w.text for w in recognized)).casefold())[:2]
-    audit["onset"] = {"expected": expected, "recognized": actual, "matched": expected == actual}
+    actual = re.findall(r"\w+", normalize(" ".join(w.text for w in aligned_input)).casefold())[:2]
+    audit["onset"] = {
+        "expected": expected,
+        "recognized": actual,
+        "matched": expected == actual,
+        "raw_recognized": [w.text for w in recognized[:2]],
+    }
     write(folder / "work/speech_checks" / f"{key}.json", audit)
     if expected != actual:
         raise ManualGateRequired("speech_onset", "ASR chưa khớp cụm mở đầu; nghe và sửa/căn lại trước khi duyệt giọng.")
-    words = map_onto_text(text, recognized, round(seconds * 1000), strict=True)
+    words = map_onto_text(text, aligned_input, round(seconds * 1000), strict=True)
     path = folder / "subtitles" / f"{key}.words.json"
     save_words(path, words, source="faster_whisper")
     return str(path.resolve())
@@ -53,7 +125,11 @@ def prepare_voice(folder: Path):
         from .reddit_edit import plan
 
         vi = read_json(folder / "vi.json")
-        voiced = voice_story(vi["paragraphs"], cfg, vi.get("cast", {}), folder / "audio")
+        texts = [s for g in chunks(vi["paragraphs"]) for s in g]
+        voiced = cached_draft_voice(folder, texts, cfg)
+        if voiced is None:
+            voiced = voice_story(vi["paragraphs"], cfg, vi.get("cast", {}), folder / "audio")
+            cache_draft_voice(folder, texts, voiced, cfg)
         timing_files = []
         for i, (sentence, (audio, seconds)) in enumerate(
             zip([s for g in chunks(vi["paragraphs"]) for s in g], voiced, strict=True)
@@ -196,6 +272,10 @@ def prepare_voice(folder: Path):
         from .story_scenes import prepare as prepare_scenes
 
         prepare_scenes(folder, vi)
+        if vi.get("episode_sentence_ranges") and vi.get("episode_editorial"):
+            from .series_timing import audit
+
+            audit(folder)
         from .story_preview import prepare_previews
 
         prepare_previews(folder, cfg)

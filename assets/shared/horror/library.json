@@ -9,22 +9,31 @@
     "source_name": "horror_rain_parkour_Governare.mp4",
     "source_sha256": "887fe8c9e73db9c221afdc61854b2e2458fc9df61efb969731f2b640129aa108",
     "mood": "night / rain / cool shader parkour",
-    "review_method": "Agent inspected source contact sheets at 3-second intervals in selected ranges; not creator approval",
+    "review_method": "Agent inspected cool-scene contact sheets and one-second visibility/warm-pixel samples; excluded dark shafts, lava and warm glare; not creator approval",
     "ranges": [
       [
-        8,
-        28
+        290,
+        298
       ],
       [
-        28,
-        48
+        300,
+        309
       ],
       [
-        48,
-        68
+        312,
+        320
+      ],
+      [
+        322,
+        328
+      ],
+      [
+        361,
+        366
       ]
     ],
-    "rejected_features": []
+    "rejected_features": [],
+    "concat_reviewed_ranges": true
   },
   "sfx": [
     {
@@ -89,6 +98,24 @@
       "source": "https://sfxmint.com/sets/horror-game",
       "license": "CC0",
       "sha256": "1629e2f85fec983a4b6ab4de99b5ab92994cad7d90574b0d704fd6ae0d2a2cd5"
+    },
+    {
+      "file": "water-drip-03.wav",
+      "url": "https://sfxmint.com/dl/water-drip-03.wav",
+      "source": "https://sfxmint.com/sounds/water-drip-03",
+      "license": "CC0-1.0",
+      "sha256": "5e99bbc6bfc8d17a3c13d15d23abc7d8e50ba2ebcdbaef02c69774a0c5a23606",
+      "onset_ms": 480,
+      "role": "drip"
+    },
+    {
+      "file": "water-splash-25.wav",
+      "url": "https://sfxmint.com/dl/water-splash-25.wav",
+      "source": "https://sfxmint.com/sounds/water-splash-25",
+      "license": "CC0-1.0",
+      "sha256": "86b906ea98667cb776bbe8f1a8b4b2b3f93272075b8918b80de5e28f05053473",
+      "onset_ms": 500,
+      "role": "splash"
     }
   ]
 }

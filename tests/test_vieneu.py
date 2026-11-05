@@ -98,6 +98,15 @@ def test_vieneu_runner_protocol_and_speed(settings, fake_vieneu, tmp_path):
     assert res.words is None and abs(probe(res.audio_path).duration - 1.225) < 0.05
     fast = prov.synthesize("Xin chào.", with_speed(prof, 1.25), tmp_path / "b.wav")  # atempo, same process
     assert abs(probe(fast.audio_path).duration - 1.025) < 0.05  # speech .8s + protected boundaries
+    import json
+
+    from studio.core.speech_checks import file_sha
+
+    raw = tmp_path / "b.source.wav"
+    evidence = json.loads(raw.with_suffix(".json").read_text(encoding="utf-8"))
+    assert abs(probe(raw).duration - 1.0) < .001
+    assert evidence["sha256"] == file_sha(raw) and evidence["speed_applied"] == 1.0
+    assert evidence["creator_approved"] is False
     # A sample-rate trick would also shorten the clip, but raise this tone by 25%. Verify actual pitch.
     import wave
 

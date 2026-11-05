@@ -492,7 +492,10 @@ def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.
 
     from ..core.voice_policy import signature as voice_signature, social_profile
     identity = voice_signature(social_profile(tcfg)[0])
-    signature = hashlib.sha256(json.dumps([texts, roles, tcfg, gap, identity, "protected-pcm-v3"], sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
+    signature = hashlib.sha256(json.dumps(
+        [texts, roles, tcfg, gap, identity, "protected-pcm-v4-sequential"],
+        sort_keys=True, ensure_ascii=False,
+    ).encode()).hexdigest()[:16]
     workdir = workdir / signature
     workdir.mkdir(parents=True, exist_ok=True)
     texts = [clean_for_speech(t) or "…" for t in texts]
@@ -510,7 +513,7 @@ def voice_sentences(texts: list[str], workdir: Path, tcfg: dict, gap: float = 0.
         if free["engines"] == ["vieneu"]:
             from .local_voice import generate
             from ..core.audio_boundaries import protect_pcm
-            key = hashlib.sha256(json.dumps([texts[i], free, identity, "protected-pcm-v3"],
+            key = hashlib.sha256(json.dumps([texts[i], free, identity, "protected-pcm-v4-sequential"],
                                            sort_keys=True, ensure_ascii=False).encode()).hexdigest()
             cached = TTS_CACHE / "pcm" / (key + ".wav")
             meta = cached.with_suffix(".json")
