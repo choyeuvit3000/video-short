@@ -5,16 +5,19 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from ..core.errors import ManualGateRequired
 from ..core.subtitles import Word, group_words, load_words
 from ..core.user_review import digest, payload, require
+from .camera_motion import MOTION_VERSION, encode_scene
 from .quality import inspect, sha256
 from .util import ffmpeg, read_json, run, write_json
 
-VERSION = "illustrated-full-1"
+VERSION = "illustrated-full-2"
 FPS = 30
 
 
@@ -116,18 +119,51 @@ def audio_hash(video: Path, *, decoded: bool = False) -> str:
 
 def scene_signature(shot: dict, image_sha256: str, caption_sha256: str) -> str:
     """Unrelated illustration edits must not re-encode an unchanged scene."""
-    values = {"version": VERSION, "image": image_sha256, "captions": caption_sha256,
+    values = {"version": VERSION, "motion": MOTION_VERSION, "image": image_sha256, "captions": caption_sha256,
               "first_frame": shot["first_frame"], "frames": shot["frames"], "crop": shot.get("crop")}
     return hashlib.sha256(json.dumps(values, sort_keys=True).encode()).hexdigest()
+
+
+def frozen_motion_inputs(plan: dict) -> dict:
+    """A stabilization request cannot change artwork, narration, cuts or framing."""
+    return {"script": plan["script_sha256"], "voice": plan["source_voice_review_fingerprint"],
+            "source": plan["source_video_sha256"], "duration": plan["duration_seconds"],
+            "style": plan["style_selected"], "shots": [
+                {k: s.get(k) for k in ("asset_key", "start_seconds", "end_seconds", "crop")}
+                for s in plan["shots"]]}
+
+
+def motion_repair_authorization(folder: Path, plan: dict, work: Path, output: Path) -> dict:
+    accepted = require(folder, "final")
+    auth = read_json(work / "technical_repair_authorization.json", {})
+    if (not auth.get("message") or auth.get("allowed_changes") != ["camera_motion"]
+            or auth.get("approved_fingerprint") != accepted["fingerprint"]):
+        raise ManualGateRequired("visual_revision", "Cần chỉ dẫn sửa kỹ thuật gắn với bản đã duyệt.")
+    current = payload(folder, "final")["videos"]
+    if not any(x["sha256"] == auth.get("approved_video_sha256")
+               and Path(x["path"]).resolve() == Path(auth["approved_video_path"]).resolve() for x in current):
+        raise ValueError("Motion repair does not identify the accepted source")
+    if (str(output.resolve()) != auth.get("output_path")
+            or output.resolve() in {Path(x["path"]).resolve() for x in current}):
+        raise ValueError("Preserve the accepted video; stabilization must use a separate result path")
+    baseline = Path(auth["approved_plan_path"])
+    if sha256(baseline) != auth["approved_plan_sha256"]:
+        raise ValueError("Accepted camera baseline changed")
+    if frozen_motion_inputs(plan) != frozen_motion_inputs(read_json(baseline)):
+        raise ValueError("A motion-only correction cannot change content, cuts, or framing")
+    if sha256(work / "image_manifest.json") != auth["image_manifest_sha256"]:
+        raise ValueError("A motion-only correction cannot change the illustration manifest")
+    return auth
 
 
 def render_revision(folder: Path, plan_path: Path, source: Path, output: Path) -> Path:
     """One user-requested visual revision; never synthesize or re-encode speech."""
     require(folder, "voice")
-    ledger = read_json(folder / "user_reviews.json")
-    if any(x["stage"] == "final" for x in ledger.get("approvals", [])):
-        raise ManualGateRequired("visual_revision", "Bản cuối đã duyệt; cần chỉ dẫn sửa mới.")
     plan = read_json(plan_path)
+    work = plan_path.parent
+    ledger = read_json(folder / "user_reviews.json")
+    repair = (motion_repair_authorization(folder, plan, work, output)
+              if any(x["stage"] == "final" for x in ledger.get("approvals", [])) else None)
     if not plan.get("selection_message") or plan.get("style_selected") not in ("A", "B"):
         raise ValueError("Creator's actual art-direction selection is required")
     if sha256(folder / "vi.json") != plan["script_sha256"]:
@@ -136,7 +172,6 @@ def render_revision(folder: Path, plan_path: Path, source: Path, output: Path) -
         raise ValueError("The accepted source video changed")
     if digest(payload(folder, "voice")) != plan["source_voice_review_fingerprint"]:
         raise ValueError("The accepted voice packet changed during visual revision")
-    work = plan_path.parent
     images = read_json(work / "image_manifest.json")["images"]
     by_key = {x["asset_key"]: x for x in images}
     seconds = float(plan["duration_seconds"])
@@ -146,6 +181,8 @@ def render_revision(folder: Path, plan_path: Path, source: Path, output: Path) -
         if sha256(Path(asset["path"])) != asset["sha256"]:
             raise ValueError("Illustration changed after inspection")
     caption_report = captions(folder, work, seconds)
+    if repair and caption_report["ass_sha256"] != repair["caption_sha256"]:
+        raise ValueError("A motion-only correction cannot change the accepted subtitles")
     source_hash = sha256(source)
     source_audio = audio_hash(source)
     source_pcm = audio_hash(source, decoded=True)
@@ -176,27 +213,23 @@ def render_revision(folder: Path, plan_path: Path, source: Path, output: Path) -
         write_json(budget_path, budget)
     segments = work / "segments"
     segments.mkdir(exist_ok=True)
-    paths = []
-    for i, shot in enumerate(shots):
+    def render_one(item):
+        i, shot = item
         asset = by_key[shot["asset_key"]]
         clip = segments / f"shot_{i + 1:02d}.mp4"
         key = scene_signature(shot, asset["sha256"], caption_report["ass_sha256"])
         state = read_json(clip.with_suffix(".json"), {})
         if not clip.exists() or state.get("key") != key or state.get("sha256") != sha256(clip):
             n = shot["frames"]
-            start = shot["first_frame"] / FPS
-            zoom = f"1+0.045*on/{max(1, n - 1)}" if i % 2 == 0 else f"1.045-0.045*on/{max(1, n - 1)}"
-            crop = shot.get("crop")
-            framing = f"crop={crop['w']}:{crop['h']}:{crop['x']}:{crop['y']}," if crop else ""
-            vf = (framing + "scale=2304:1296:force_original_aspect_ratio=increase,crop=2304:1296,"
-                  f"zoompan=z='{zoom}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d={n}:s=1920x1080:fps=30,"
-                  f"setpts=PTS+{start:.8f}/TB,ass=filename='captions.ass',setpts=PTS-STARTPTS,setsar=1")
-            run([ffmpeg(), "-y", "-v", "error", "-i", asset["path"], "-vf", vf,
-                 "-frames:v", str(n), "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
-                 "-threads", "4", "-pix_fmt", "yuv420p", str(clip.resolve())], cwd=work)
+            encode_scene(Path(asset["path"]), clip, frames=n, first_frame=shot["first_frame"],
+                         zoom_in=i % 2 == 0, crop=shot.get("crop"), work=work)
             write_json(clip.with_suffix(".json"), {"key": key, "sha256": sha256(clip), "frames": n})
-        paths.append(clip)
         print(f"Illustrated scene {i + 1}/{len(shots)}: {shot['asset_key']}", flush=True)
+        return clip
+
+    workers = min(3, max(1, (os.cpu_count() or 1) // 4))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        paths = list(pool.map(render_one, enumerate(shots)))
     listing = work / "scenes.ffconcat"
     listing.write_text("ffconcat version 1.0\n" + "\n".join(
         f"file '{p.resolve().as_posix()}'" for p in paths) + "\n", encoding="utf-8")
@@ -222,6 +255,9 @@ def render_revision(folder: Path, plan_path: Path, source: Path, output: Path) -
     report["visual_revision"] = {"style": plan["style_selected"], "shots": len(shots),
                                  "source_audio_sha256": source_audio, "decoded_audio_sha256": source_pcm,
                                  "audio_identical": True, "plan_sha256": sha256(plan_path)}
+    report["motion_profile"] = MOTION_VERSION
+    if repair:
+        report["requested_technical_correction"] = repair
     write_json(output.with_suffix(".qc.json"), report)
     candidate.with_suffix(".qc.json").unlink(missing_ok=True)
     prior.update(status="COMPLETE", output=str(output), output_sha256=sha256(output))

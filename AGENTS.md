@@ -19,6 +19,11 @@ For an explicitly requested illustrated landscape story, use `docs/ILLUSTRATED_F
 reuse accepted narration without new TTS, verify identical AAC and decoded PCM, and prepare
 the existing final checkpoint again. Cồn Mù's selected hand-drawn stick figures are a scoped
 visual revision, not a new default for every story. Fix changed scenes using their own cache keys.
+Illustrated camera motion uses `camera_motion` subpixel sampling from the original still,
+a locked focal point and smooth endpoint easing. Composite captions after camera movement.
+Verify a decoded marker fixture and a real before/after clip before replacing a zoom recipe.
+For a requested correction after final acceptance, preserve the accepted original and its
+three-checkpoint ledger; bind the motion-only request and frozen inputs to a separate result.
 
 
 All modes share `D:/Video-maker/video-short/output/YYYY-MM-DD/MODE/`. Date uses Asia/Bangkok and stays fixed for resume/QC. QC, captions and metadata sit beside the video with the same basename; `_history` holds older revisions. Project work folders contain intermediates only.
