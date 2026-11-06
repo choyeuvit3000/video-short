@@ -61,6 +61,17 @@ lưu prompt, ảnh đầu, nguồn tải, model, số tín dụng và hash của
 xem đầu/giữa/cuối để bắt rung máy, đổi nhân vật, đạo cụ và lỗi biến dạng.
 Không xóa watermark hay tự thay giọng đã duyệt bằng âm thanh từ Flow.
 
+Trước khi tốn lượt tạo clip, kiểm tra ảnh đầu ở kích thước lớn: thân người phải nối đủ
+qua hông, đầu gối, cẳng chân tới bàn chân; người đứng phải đặt chân trên sàn và có khoảng
+trống dưới bàn chân. Ống quần cụt ngang trên nền không phải là tư thế đứng hợp lệ.
+Nếu lỗi đã có trong ảnh đầu, sửa ảnh trước; thêm câu cấm trong prompt video không đủ.
+Kiểm tra lại phần thân dưới trong suốt cử động và tại các mốc chuyển động tay mạnh nhất.
+Gắn hash ảnh sửa trong `options.keyframe_overrides` để lần chuẩn bị lại không lấy nhầm ảnh lỗi.
+Nếu người tạo đã chỉ ra lỗi ở clip, ghi hash clip đó trong `options.rejected_clip_sha256`
+theo scene ID; gate phải chặn dùng lại file bị từ chối dù codec và thời lượng vẫn hợp lệ.
+Khi Flow yêu cầu xác minh hoặc báo hoạt động bất thường, chuyển bước gửi/tạo cho người dùng.
+Ảnh sửa phải được chọn làm khung hình đầu; chỉ dán lại prompt không bảo đảm tham chiếu đúng ảnh.
+
 Thử nghiệm Cồn Mù dùng lại ảnh đã có, ba cảnh tám giây, máy quay cố định.
 Theo phản hồi của người tạo, mỗi cảnh có một động tác nhân vật rõ ràng
 (ngẩng đầu, thu chân, chỉ di ảnh); chỉ thêm sương/khói là chưa đạt mục tiêu.

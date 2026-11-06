@@ -51,7 +51,9 @@ SHOTS = [
         "and points toward the framed portrait, then holds the gesture. Keep the same thin "
         "drawn arm, one hand with normal anatomy, no extra limbs or photorealistic fingers. "
         "The man stays still. Very thin incense smoke rises slowly. The portrait must remain "
-        "a completely static drawing. Keep the single shoe, cloth bag, room and morning light intact."
+        "a completely static drawing. Keep the single shoe, cloth bag, room and morning light intact. "
+        "Both figures retain complete full-length legs and two visible feet each, planted on top "
+        "of the floor throughout. No body shortening, buried legs or cropped feet."
     )),
 ]
 
@@ -108,7 +110,7 @@ def main(flow_url: str = "") -> None:
                 "user_request": "thử nghiệm luồng bán thủ công video AI đi",
                 "provider_choice": "Google Flow (đề xuất)",
                 "human_approval_created": False,
-                "planned_attempts": 4, "automatic_retry": False,
+                "planned_attempts": ctx.project.options.get("flow_generation_budget", 4), "automatic_retry": False,
                 "revision_request": "cho nhân vật chuyển động cơ bản đi mới xứng đáng hơn ảnh tĩnh chứ",
                 "revision_note": "One environment-only baseline plus three character-action shots", "shots": []}
     sheet = Image.new("RGB", (960, 3 * 304), "#eee5d7")
@@ -124,8 +126,10 @@ def main(flow_url: str = "") -> None:
              "Giữ watermark nếu có. Tải bản gốc, lưu đúng đường dẫn clip bên dưới.", ""]
     for i, (key, title, _) in enumerate(SHOTS, 1):
         scene = ctx.project.scene(f"scene_{i:02d}")
-        source = ART / f"{key}.png"
-        if sha(source) != by_key[key]["sha256"]:
+        override = ctx.project.options.get("keyframe_overrides", {}).get(scene.scene_id)
+        source = ctx.resolve(override["path"]) if override else ART / f"{key}.png"
+        expected_sha = override["sha256"] if override else by_key[key]["sha256"]
+        if sha(source) != expected_sha:
             raise RuntimeError(f"Approved source hash changed: {source}")
         image = bundle / f"{scene.scene_id}.png"
         shutil.copy2(source, image)

@@ -47,10 +47,16 @@ def main(imports: list[str]) -> None:
         duration = float(video["duration"])
         # Preserve native duration; do not turn an eight-second request into a padded freeze.
         scene.duration_sec = duration
+        override = ctx.project.options.get("keyframe_overrides", {}).get(sid)
+        keyframe = ctx.resolve(override["path"]) if override else ctx.dir / "images" / f"{sid}.png"
+        keyframe_sha = sha(keyframe)
+        if override and keyframe_sha != override["sha256"]:
+            raise RuntimeError(f"Corrected keyframe changed: {keyframe}")
         records[sid] = {"source_file": str(source), "local_clip": str(target), "sha256": sha(target),
                         "native_width": info.width, "native_height": info.height, "native_fps": info.fps,
                         "video_duration_sec": duration, "whole_video_decode": "PASS",
                         "provider": "Google Flow web", "source_audio_kept_in_import": info.has_audio,
+                        "declared_keyframe": str(keyframe), "declared_keyframe_sha256": keyframe_sha,
                         "trial_audio": "omitted; no replacement of accepted narration",
                         "creator_approved": False}
     ctx.save()
@@ -86,9 +92,12 @@ def main(imports: list[str]) -> None:
     if abs(result.duration - expected) > 2 / fps:
         raise RuntimeError("Assembled duration differs from imported video streams")
     if final.exists() and sha(final) != sha(temp):
-        history = output / "_history" / "con_mu_character_motion_trial"
+        history = output / "_history" / "con_mu_character_motion_trial" / sha(final)[:12]
         history.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(final, history / f"{sha(final)[:12]}.mp4")
+        for old in (final, final.with_suffix(".qc.json"), final.with_suffix(".metadata.md"),
+                    final.with_suffix(".sheet.jpg")):
+            if old.is_file():
+                shutil.copy2(old, history / old.name)
     shutil.copy2(temp, final)
     font = ImageFont.truetype("C:/Windows/Fonts/arial.ttf", 19)
     sheet = Image.new("RGB", (960, 3 * 208), "#eee5d7")

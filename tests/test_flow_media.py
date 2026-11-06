@@ -104,6 +104,21 @@ def test_corrupt_clip_returns_repair_gate(tmp_path, settings, monkeypatch):
     assert "cannot decode" in check_imported_clip(ctx, ctx.project.scenes[0])
 
 
+def test_creator_rejected_clip_cannot_resume_as_valid_media(tmp_path, settings, monkeypatch):
+    import hashlib
+
+    ctx = project(tmp_path, settings)
+    path = ctx.resolve(ctx.project.scenes[0].visual.path)
+    path.write_bytes(b"rejected-old-clip")
+    ctx.project.options["rejected_clip_sha256"] = {"scene_01": [hashlib.sha256(path.read_bytes()).hexdigest()]}
+    monkeypatch.setattr("studio.workflows.flow_media.probe", lambda *a, **kw: clip_info())
+    with pytest.raises(ManualGateRequired) as caught:
+        stage_media(ctx, {})
+    assert "rejected by creator" in caught.value.instructions
+    path.write_bytes(b"new-replacement-clip")
+    assert "all media present" in stage_media(ctx, {})
+
+
 @needs_ffmpeg
 @pytest.mark.ffmpeg
 def test_actual_mp4_does_not_hide_short_video_with_long_audio(tmp_path, settings):

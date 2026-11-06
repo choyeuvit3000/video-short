@@ -35,6 +35,10 @@ downloaded clip hashes. Require actual clips with `require_video_clips: true`, d
 and enable strict clip validation. Handle native Windows Save As dialogs when browser downloads wait.
 Inspect decoded action frames for anatomy, identity, props and camera drift; technical QC alone does
 not approve generated acting. Keep silent visual trials separate from production narration/acceptance.
+Inspect the keyframe at native size before generation: standing figures need complete hips/knees/calves,
+two visible planted feet and coherent floor contact. Truncated trouser stumps are an image defect,
+not valid staging. Correct the still before animating and hash-bind keyframe overrides so resume
+cannot restore the defective source; check lower bodies again during the gesture.
 
 
 ## Voice admission and generation planning

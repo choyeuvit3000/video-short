@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import math
 from fractions import Fraction
 
@@ -18,8 +19,14 @@ def check_imported_clip(ctx: ProjectContext, scene: Scene) -> str | None:
     crop/pad/last-frame policy. Prefer VIDEO duration: a long audio stream cannot
     conceal missing video frames. Editorial motion/identity checks remain manual.
     """
+    path = ctx.resolve(scene.visual.path)
+    rejected = ctx.project.options.get("rejected_clip_sha256", {}).get(scene.scene_id, [])
+    if rejected and path.is_file():
+        with path.open("rb") as source:
+            if hashlib.file_digest(source, "sha256").hexdigest() in rejected:
+                return "clip rejected by creator; replace this scene instead of resuming the rejected file"
     try:
-        info = probe(ctx.resolve(scene.visual.path), scene_id=scene.scene_id)
+        info = probe(path, scene_id=scene.scene_id)
     except StudioError as exc:
         return str(exc)
     if not info.has_video or info.fps <= 0:
