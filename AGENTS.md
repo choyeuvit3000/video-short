@@ -39,6 +39,11 @@ Inspect the keyframe at native size before generation: standing figures need com
 two visible planted feet and coherent floor contact. Truncated trouser stumps are an image defect,
 not valid staging. Correct the still before animating and hash-bind keyframe overrides so resume
 cannot restore the defective source; check lower bodies again during the gesture.
+For a complete hybrid version requested after the Flow trial, use `studio.social_video.hybrid_full`
+and `docs/ILLUSTRATED_FULL.md`: record the creator's hybrid choice, reuse the exact approved AAC,
+validate both AAC/PCM and the unchanged creator ledger, and render to a separate dated output.
+Reuse verified illustration caches; burn captions after AI-clip normalization. Small visual-only
+retiming needs an explicit plan and a six-percent ceiling; never stretch narration or pad a long freeze.
 
 
 ## Voice admission and generation planning
