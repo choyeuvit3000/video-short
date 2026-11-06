@@ -1,0 +1,47 @@
+{
+  "id": "music:takaya/horror-2",
+  "title": "Horror-#2",
+  "creator": "takaya",
+  "mood": "horror",
+  "tags": [
+    "horror",
+    "suspense",
+    "mystery",
+    "piano",
+    "music_box",
+    "kinh_di"
+  ],
+  "source_url": "https://audiostock.jp/audio/100596",
+  "creator_url": "https://audiostock.jp/artists/16057",
+  "download_url": "https://cf-audiostock-public-files.audiostock.jp/audio-sample-128kbps/100596-f4d64b69a27057f3ba5539d23e501743481ccf44.mp3",
+  "catalog_id": "100596",
+  "identity_evidence": "Official Audiostock item title Horror-#2 and creator takaya; exact creator selected by user",
+  "user_selection": "takaya — Horror-#2",
+  "added_at": "2026-11-06T03:46:41.658431+00:00",
+  "duration_seconds": 189.352948,
+  "source_audio": {
+    "file": "horror_2_takaya_preview.mp3",
+    "sha256": "82e164d88f570c5c737638c5b98f6b11956504f5a5d3ae6033acb56a0fc904c7",
+    "codec": "mp3",
+    "sample_rate": "44100",
+    "channels": 2,
+    "bit_rate": "128000"
+  },
+  "download_kind": "official_preview",
+  "license": "Audiostock commercial license required for production; no license purchased or supplied in this task",
+  "license_url": "https://audiostock.jp/help/license",
+  "license_status": "PREVIEW_ONLY",
+  "production_eligible": false,
+  "automatic_selection": false,
+  "technical_decode": "PASS",
+  "human_listening": "NOT_CLAIMED",
+  "usage": {
+    "recommended_for": [
+      "horror videos after licensed source import"
+    ],
+    "preview_only": true,
+    "may_contain_audio_watermark": true,
+    "keep_out_of_production_pool": true,
+    "next_step": "Replace with the licensed original from Audiostock and record license evidence before production use."
+  }
+}

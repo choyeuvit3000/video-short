@@ -800,6 +800,59 @@
       "source_sha256": "efee1536487f35f35fc8abb6952d5291ba9a818ed3e9a407156cee173bf9203c",
       "license": "user-supplied; filename claim is not independently verified",
       "source_url": null
+    },
+    {
+      "id": "music:kevin-macleod/monkeys-spinning-monkeys",
+      "title": "Monkeys Spinning Monkeys",
+      "creator": "Kevin MacLeod",
+      "path": "shared/music/comedy/monkeys_spinning_monkeys/monkeys_spinning_monkeys_kevin_macleod.wav",
+      "kind": "music",
+      "tags": [
+        "comedy",
+        "humorous",
+        "playful",
+        "light",
+        "instrumental",
+        "loopable",
+        "hai_huoc"
+      ],
+      "mood": "comedy",
+      "duration": 125.0743,
+      "sha256": "716c9b12b680139830a43040f797fbc6f106b074325d66c57c96fa81de8c5dec",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "source_url": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400011",
+      "metadata_path": "shared/music/comedy/monkeys_spinning_monkeys/source.json",
+      "status": "READY_WITH_ATTRIBUTION",
+      "production_eligible": true,
+      "automatic_selection": false,
+      "attribution": "Monkeys Spinning Monkeys — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+      "id": "music:takaya/horror-2",
+      "title": "Horror-#2",
+      "creator": "takaya",
+      "path": "shared/music/_previews/horror/takaya_horror_2/horror_2_takaya_preview.mp3",
+      "kind": "music_preview",
+      "tags": [
+        "horror",
+        "suspense",
+        "mystery",
+        "piano",
+        "music_box",
+        "kinh_di"
+      ],
+      "mood": "horror",
+      "duration": 189.352948,
+      "sha256": "82e164d88f570c5c737638c5b98f6b11956504f5a5d3ae6033acb56a0fc904c7",
+      "license": "Audiostock commercial license required for production; no license purchased or supplied in this task",
+      "license_url": "https://audiostock.jp/help/license",
+      "source_url": "https://audiostock.jp/audio/100596",
+      "metadata_path": "shared/music/_previews/horror/takaya_horror_2/source.json",
+      "status": "PREVIEW_ONLY",
+      "production_eligible": false,
+      "automatic_selection": false,
+      "attribution": "Horror-#2 — takaya. Audiostock item 100596; license not yet supplied."
     }
   ]
 }

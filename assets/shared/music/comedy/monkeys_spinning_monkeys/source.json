@@ -1,0 +1,55 @@
+{
+  "id": "music:kevin-macleod/monkeys-spinning-monkeys",
+  "title": "Monkeys Spinning Monkeys",
+  "creator": "Kevin MacLeod",
+  "mood": "comedy",
+  "tags": [
+    "comedy",
+    "humorous",
+    "playful",
+    "light",
+    "instrumental",
+    "loopable",
+    "hai_huoc"
+  ],
+  "source_url": "https://incompetech.com/music/royalty-free/index.html?isrc=USUAN1400011",
+  "download_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Monkeys%20Spinning%20Monkeys.mp3",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "attribution": "Monkeys Spinning Monkeys — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/",
+  "license_evidence_url": "https://static.incompetech.com/music/royalty-free/index.html?Search=Search&isrc=USUAN1400011",
+  "isrc": "USUAN1400011",
+  "added_at": "2026-11-06T03:45:21.219001+00:00",
+  "duration_seconds": 125.0743,
+  "source_audio": {
+    "file": "monkeys_spinning_monkeys_kevin_macleod.mp3",
+    "sha256": "a5bb345c23849ad0786aa0bc5157a9f2d4039660fe00282e55754d475f36dc14",
+    "codec": "mp3",
+    "sample_rate": "44100",
+    "channels": 2
+  },
+  "working_audio": {
+    "file": "monkeys_spinning_monkeys_kevin_macleod.wav",
+    "sha256": "716c9b12b680139830a43040f797fbc6f106b074325d66c57c96fa81de8c5dec",
+    "sample_rate": 48000,
+    "channels": 2,
+    "codec": "pcm_s16le",
+    "processing": "Decode and resample only; no gain, trim or tempo changes"
+  },
+  "technical_decode": "PASS",
+  "human_listening": "NOT_CLAIMED",
+  "usage": {
+    "recommended_for": [
+      "humorous videos",
+      "light comic commentary"
+    ],
+    "avoid": [
+      "horror narration",
+      "tragedy",
+      "accidents",
+      "illness",
+      "disputes"
+    ],
+    "credit_required": true
+  }
+}
