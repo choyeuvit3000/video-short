@@ -3,7 +3,7 @@
   "tool": "built-in image_gen",
   "style": "A — Người que vẽ tay",
   "creator_selection": "A — Người que vẽ tay",
-  "creator_final_approved": false,
+  "creator_final_approved": true,
   "images": [
     {
       "asset_key": "ferry_night",
@@ -777,5 +777,11 @@
     }
   ],
   "original_rejected_variants_retained": true,
-  "metadata_note": "Sentence-index labels corrected from actual unchanged frame cut times; rendered input is preserved as storyboard.v1.json."
+  "metadata_note": "Sentence-index labels corrected from actual unchanged frame cut times; rendered input is preserved as storyboard.v1.json.",
+  "creator_final_acceptance": {
+    "date": "2026-11-06",
+    "message": "duyệt",
+    "video_sha256": "3c5ca6720770f6f47ab19403b7424ff224979993c69801d7b55b8d2bc9a1dbec",
+    "scope": "Only used final-video framing; raw/rejected variants and global defaults are not approved."
+  }
 }
