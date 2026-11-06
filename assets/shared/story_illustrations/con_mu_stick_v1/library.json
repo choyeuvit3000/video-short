@@ -1,0 +1,781 @@
+{
+  "version": 2,
+  "tool": "built-in image_gen",
+  "style": "A — Người que vẽ tay",
+  "creator_selection": "A — Người que vẽ tay",
+  "creator_final_approved": false,
+  "images": [
+    {
+      "asset_key": "ferry_night",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\ferry_night.png",
+      "sha256": "5b9cb0788c598d846d7ca8ada010a26d49c835687b08c24bfe5b8392b6d2b7f7",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. Create ONE finished landscape 16:9 video background illustration, 1920x1080 composition, full bleed, no panel borders, no writing. Reference image role: art direction only, use ONLY the TOP 'A — Người que vẽ tay' panel, ignore bottom B entirely. Match its sober hand-drawn stick-figure characters with small round pale paper faces, simple dot eyes and pen strokes, thin limbs, rough black pencil outlines, sparse watercolor clothes on warm aged paper; richly drawn but restrained environment in muted blue-grey and ochre. Not photorealism, not 3D, not realistic adult faces. Scene: last ferry at Cồn Mù in the rural Mekong Delta at nine at night. An, a Vietnamese twenty-seven-year-old man with messy short black hair, plain dark-blue work shirt and dark trousers, stands on the left of a small worn wooden motor ferry. Hạnh sits right on a bench, brown long-sleeved áo bà ba, black trousers, muted yellow plastic sandals, black hair in low loose bun, quiet sad face, small beige cloth bag held on her lap. Her brown hem drips to wooden planks though no rain. Misty river, water hyacinths, nipa palms, modest timber jetty and distant thatch hut with one warm lamp. Wide cinematic framing, characters in central seventy percent, background clearly readable, leave unobtrusive lower fifteen percent for later subtitles. Emotion: eerie quiet, no gore, no monsters, no funny grins, no exaggerated cartoon eyes, no labels, no logos, no text or watermark. Keep Hạnh a human-looking mother, not a zombie. Render a complete SINGLE SCENE, not a comparison board.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "pier_hut",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\pier_hut.png",
+      "sha256": "864a0b3e6bcaf32aceb63a9c78534471789253b123e5a813f1dfd74555b15dc8",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. An: 27-year-old Vietnamese man, messy short black hair, dark-blue mechanic shirt, dark trousers. Hạnh: slim Vietnamese mother around 30, loose low black bun, brown áo bà ba with black trousers and muted yellow plastic sandals, human-looking solemn face. Adoptive mother: around 55, low black-grey bun, muted plum áo bà ba and black trousers. Bà Bảy: around 80, petite, white hair in bun, faded olive blouse. Flashbacks are 26 years earlier: adoptive mother about 29 with black hair, Bà Bảy younger; Hạnh unchanged. Keep exact character identities. The infant shoes are rough beige cloth, blue embroidery 'An', small red button on strap; LEFT shoe from Hạnh’s beige cloth bag is wet, RIGHT shoe kept in adoptive mother’s folded cloth is dry. Never show extra shoes or supernatural monsters. Do not invent action beyond the described scene. Keep key story elements within central 85 percent, leave lower 15 percent unobtrusive for later subtitles. Environment is southern Vietnam, Mekong Delta: nipa palms, water hyacinth, timber ferries, modest houses, no Chinese temples or lanterns, no urban props unless specified. No gore or corpses.\nSCENE: A wide establishing shot of Cồn Mù riverbank at night, no rain. Same tiny worn timber motor ferry moored below a modest thatch-roof mechanic hut on wooden posts. An stands on the jetty holding a small tool bag. Water hyacinth and distant nipa palms, one amber hut lamp, mist over river; ferry cabin bench empty in this establishing frame. Lonely but legible landscape.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "yellow_sandals",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\yellow_sandals.png",
+      "sha256": "4a03d8a725847c5e722f702e0c53e65edb82c00589a6eada1febacb963189534",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. An: 27-year-old Vietnamese man, messy short black hair, dark-blue mechanic shirt, dark trousers. Hạnh: slim Vietnamese mother around 30, loose low black bun, brown áo bà ba with black trousers and muted yellow plastic sandals, human-looking solemn face. Adoptive mother: around 55, low black-grey bun, muted plum áo bà ba and black trousers. Bà Bảy: around 80, petite, white hair in bun, faded olive blouse. Flashbacks are 26 years earlier: adoptive mother about 29 with black hair, Bà Bảy younger; Hạnh unchanged. Keep exact character identities. The infant shoes are rough beige cloth, blue embroidery 'An', small red button on strap; LEFT shoe from Hạnh’s beige cloth bag is wet, RIGHT shoe kept in adoptive mother’s folded cloth is dry. Never show extra shoes or supernatural monsters. Do not invent action beyond the described scene. Keep key story elements within central 85 percent, leave lower 15 percent unobtrusive for later subtitles. Environment is southern Vietnam, Mekong Delta: nipa palms, water hyacinth, timber ferries, modest houses, no Chinese temples or lanterns, no urban props unless specified. No gore or corpses.\nSCENE: Low close-up inside the same wooden ferry. Only Hạnh's black-trousered ankles and faded yellow plastic slip-on sandals below the hem of her brown áo bà ba. The hem drips clear river water into a small dark puddle on the dry weathered plank floor. Corner of her small beige cloth bag visible above her knees. No rain, no other footwear, no bare bloody feet. Warm paper ink illustration in the master's style even in the detail.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "life_jacket",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\life_jacket.png",
+      "sha256": "5a568e3f86d74314c7ad0b1d761d0d8f6a4a64970743711857a4544101674942",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. An: 27-year-old Vietnamese man, messy short black hair, dark-blue mechanic shirt, dark trousers. Hạnh: slim Vietnamese mother around 30, loose low black bun, brown áo bà ba with black trousers and muted yellow plastic sandals, human-looking solemn face. Adoptive mother: around 55, low black-grey bun, muted plum áo bà ba and black trousers. Bà Bảy: around 80, petite, white hair in bun, faded olive blouse. Flashbacks are 26 years earlier: adoptive mother about 29 with black hair, Bà Bảy younger; Hạnh unchanged. Keep exact character identities. The infant shoes are rough beige cloth, blue embroidery 'An', small red button on strap; LEFT shoe from Hạnh’s beige cloth bag is wet, RIGHT shoe kept in adoptive mother’s folded cloth is dry. Never show extra shoes or supernatural monsters. Do not invent action beyond the described scene. Keep key story elements within central 85 percent, leave lower 15 percent unobtrusive for later subtitles. Environment is southern Vietnam, Mekong Delta: nipa palms, water hyacinth, timber ferries, modest houses, no Chinese temples or lanterns, no urban props unless specified. No gore or corpses.\nSCENE: Medium intimate shot on the ferry: An in blue extends an orange foam life jacket to Hạnh on the right bench; their fingertips just touch. Hạnh's face is quiet and human, brown áo bà ba sleeve and pale-paper thin drawn fingers. Cloth bag lies on bench beside her. River mist behind them, no rain. Show complete understandable hands, not extra arms, coldness suggested by pose and sparse blue wash rather than magic glow.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "empty_ferry",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\empty_ferry.png",
+      "sha256": "6f390d61c748a2dbd623bb5a8d311e55b6ff6c9f7c3d22cfde3ce78c59ebdaa1",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. An: 27-year-old Vietnamese man, messy short black hair, dark-blue mechanic shirt, dark trousers. Hạnh: slim Vietnamese mother around 30, loose low black bun, brown áo bà ba with black trousers and muted yellow plastic sandals, human-looking solemn face. Adoptive mother: around 55, low black-grey bun, muted plum áo bà ba and black trousers. Bà Bảy: around 80, petite, white hair in bun, faded olive blouse. Flashbacks are 26 years earlier: adoptive mother about 29 with black hair, Bà Bảy younger; Hạnh unchanged. Keep exact character identities. The infant shoes are rough beige cloth, blue embroidery 'An', small red button on strap; LEFT shoe from Hạnh’s beige cloth bag is wet, RIGHT shoe kept in adoptive mother’s folded cloth is dry. Never show extra shoes or supernatural monsters. Do not invent action beyond the described scene. Keep key story elements within central 85 percent, leave lower 15 percent unobtrusive for later subtitles. Environment is southern Vietnam, Mekong Delta: nipa palms, water hyacinth, timber ferries, modest houses, no Chinese temples or lanterns, no urban props unless specified. No gore or corpses.\nSCENE: Same night ferry and camera world as reference, but the passenger bench is EMPTY: Hạnh has disappeared. An turns back from a mooring rope with a small flashlight toward the bench. ONLY an orange foam life jacket and a damp beige cloth bag remain side by side on the wooden bench, a tiny puddle beneath. Jetty and banana shadows beyond, dry weather. No ghost silhouette in background, no hidden face.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "left_shoe_house",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\left_shoe_house.png",
+      "sha256": "12dea7149abe67d0ec692167d1054c3915583e2c2f754104bfdf9194292818fe",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. An: 27-year-old Vietnamese man, messy short black hair, dark-blue mechanic shirt, dark trousers. Hạnh: slim Vietnamese mother around 30, loose low black bun, brown áo bà ba with black trousers and muted yellow plastic sandals, human-looking solemn face. Adoptive mother: around 55, low black-grey bun, muted plum áo bà ba and black trousers. Bà Bảy: around 80, petite, white hair in bun, faded olive blouse. Flashbacks are 26 years earlier: adoptive mother about 29 with black hair, Bà Bảy younger; Hạnh unchanged. Keep exact character identities. The infant shoes are rough beige cloth, blue embroidery 'An', small red button on strap; LEFT shoe from Hạnh’s beige cloth bag is wet, RIGHT shoe kept in adoptive mother’s folded cloth is dry. Never show extra shoes or supernatural monsters. Do not invent action beyond the described scene. Keep key story elements within central 85 percent, leave lower 15 percent unobtrusive for later subtitles. Environment is southern Vietnam, Mekong Delta: nipa palms, water hyacinth, timber ferries, modest houses, no Chinese temples or lanterns, no urban props unless specified. No gore or corpses.\nSCENE: Morning in Bà Bảy's humble southern Vietnamese timber house, plum tree visible by open doorway. Tiny white-haired Bà Bảy in olive blouse opens a damp beige cloth bag on a low table; worried An in blue watches. ONE LEFT infant cloth shoe lies beside bag, coarse beige fabric, small blue 'An' stitching and one red strap button. Warm dusty light, visibly old family interior, no right shoe yet.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "hanh_altar",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\hanh_altar.png",
+      "sha256": "e4f658414a3285cf98eba1db8afa0706f9032af09d32bb53ff0f2aed34b6317e",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Edit the first reference image only: change time of day outside its house from night to MORNING. Replace the moon and dark night sky visible through the door/window with soft pale-blue morning sky and gently lit green river plants. Use soft daylight entering house while retaining the quiet dark indoor altar. Preserve An, elderly Bà Bảy, the exact portrait of Hạnh, the single wet infant shoe, beige bag, all altar props, composition and hand-drawn rounded stick-figure style. No new people, no extra shoes, no other narrative changes. Full bleed wide 16:9, no labels or captions. Second reference provides character style only.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "mother_baby_photo",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\mother_baby_photo.png",
+      "sha256": "9ddd65119724fda83b2adc1d3bc2182fdf1affc7d66019acc75a260d844bf88c",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Edit target: first referenced image is the existing hand-drawn framed portrait scene. Supporting reference: second image provides the stick-figure design for Hạnh in brown and the overall drawing medium. Correct only narrative errors. Keep same aged paper, thin ink strokes, rounded simple faces, watercolor palette and old rectangular photograph held by elderly hands, but make the visible old photograph contain EXACTLY TWO PEOPLE TOTAL: Hạnh, the black-haired Vietnamese mother in brown áo bà ba seated holding her living infant son. REMOVE BOTH extra adult women from the photograph entirely and restore a plain humble wall behind the mother. No adult standing behind, no elderly woman inside photo. Baby wears ONE small BEIGE CLOSED-TOE CLOTH SHOE with red strap button on his anatomical RIGHT FOOT (image LEFT for front-facing baby); his left foot is BARE against mother's abdomen. Shoe is NOT a yellow plastic sandal. Outside photograph, setting is MORNING inside an elderly woman's house with cool soft daylight through a small window, no moon or night sky, no lit oil lamp. Keep both elderly hands holding the photo, no extra hands. Wide 16:9 single scene, full bleed. No text, captions, panel borders, dates, gore or watermarks. Keep the same mother’s rounded face and bun as master, never photorealistic.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "ferry_storm",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\ferry_storm.png",
+      "sha256": "d9fbf0be74f6e31b15d536ed72561a7a47bacec0e12bd0c14bbbcad4299f3bc1",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood.  Show ONLY people explicitly requested in the SCENE. Reference supplies drawing style and An/Hạnh identity only: do NOT copy its night river setting into a daytime or indoor scene. Rural southern Vietnam, nipa palms and water hyacinth where appropriate; no Chinese architecture. An is the young man in blue from reference. Hạnh is the mother in brown, yellow plastic sandals and low black bun from reference. Do not add either person when scene does not name them. Closed-toe baby shoes are coarse BEIGE CLOTH with blue 'An' stitching and one red button, NOT yellow sandals. No extra people in any photograph. \nSCENE: A distant FLASHBACK to 26 years earlier: small timber ferry tilts severely in a violent river squall at night, rain strokes and dark waves, water hyacinth. Figures only suggested as tiny silhouettes, nobody shown dead, no body or drowning infant visible, no violence close-up. Sparse hand-drawn pen and watercolor, ominous wide space; no rescue shown yet, no supernatural figure.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "framing_note": "Final camera crop excludes an adult blue-shirted ferryman to avoid confusing him with infant An."
+    },
+    {
+      "asset_key": "phone_shoe",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\phone_shoe.png",
+      "sha256": "31852c0337116fce6736115879987fa6f7278f2b463a814baae34133ee82f6e3",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood.  Show ONLY people explicitly requested in the SCENE. Reference supplies drawing style and An/Hạnh identity only: do NOT copy its night river setting into a daytime or indoor scene. Rural southern Vietnam, nipa palms and water hyacinth where appropriate; no Chinese architecture. An is the young man in blue from reference. Hạnh is the mother in brown, yellow plastic sandals and low black bun from reference. Do not add either person when scene does not name them. Closed-toe baby shoes are coarse BEIGE CLOTH with blue 'An' stitching and one red button, NOT yellow sandals. No extra people in any photograph. \nSCENE: Present-day morning inside Bà Bảy's house. Over An's blue-shirted shoulder, he holds a smartphone displaying a plain photograph of ONE small LEFT beige cloth baby shoe with blue 'An' embroidery and red button on a bare wooden table. No face, woman or portrait in the phone image, no messages, no invented interface text. Real matching shoe and damp beige bag on actual table. Another hand presses phone to ear only if anatomically coherent. Readable simple ink illustration, focus on shoe-only image.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "framing_note": "Final camera crops exclude the extra phone and ferry context; focus on shoe photograph and table."
+    },
+    {
+      "asset_key": "wardrobe_right_shoe",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\wardrobe_right_shoe.png",
+      "sha256": "dd95be173ba310e7c7e5e7efc1779e2ae6e607c7d42786a2e89d908a960ece73",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood.  Show ONLY people explicitly requested in the SCENE. Reference supplies drawing style and An/Hạnh identity only: do NOT copy its night river setting into a daytime or indoor scene. Rural southern Vietnam, nipa palms and water hyacinth where appropriate; no Chinese architecture. An is the young man in blue from reference. Hạnh is the mother in brown, yellow plastic sandals and low black bun from reference. Do not add either person when scene does not name them. Closed-toe baby shoes are coarse BEIGE CLOTH with blue 'An' stitching and one red button, NOT yellow sandals. No extra people in any photograph. \nSCENE: A quiet memory still life: open old Vietnamese wooden wardrobe, at the bottom an unfolded small old cream handkerchief holds ONE DRY RIGHT infant cloth shoe, rough beige cloth, blue embroidered 'An' on toe, red button strap. No left shoe, no human inside closet, no wet puddle. Small folds of clothes and a mothball sachet to suggest camphor. Aged-paper hand-drawn ink, restrained warm dusty interior.\nReference is ONLY hand-drawn style and prop appearance; no people outside those explicitly named. Entirely inside a modest room, not on a ferry. ",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "hut_confrontation",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\hut_confrontation.png",
+      "sha256": "d863b029af614ac66f2d254dc670bda9b67c1111961bacb3cec25c2b64b69d9b",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood.  Show ONLY people explicitly requested in the SCENE. Reference supplies drawing style and An/Hạnh identity only: do NOT copy its night river setting into a daytime or indoor scene. Rural southern Vietnam, nipa palms and water hyacinth where appropriate; no Chinese architecture. An is the young man in blue from reference. Hạnh is the mother in brown, yellow plastic sandals and low black bun from reference. Do not add either person when scene does not name them. Closed-toe baby shoes are coarse BEIGE CLOTH with blue 'An' stitching and one red button, NOT yellow sandals. No extra people in any photograph. \nSCENE: Present-day afternoon inside the small river mechanic hut. An in his blue shirt faces his adoptive mother, around 55, low black-grey bun, muted plum áo bà ba, seated upset on a bamboo bed. Her open handkerchief and one dry right baby shoe rest on wooden table, damp beige bag nearby. An holds an old family photograph. Orange life jacket hangs behind the door; cold wood stove in background. Nobody burning shoes; mother turns half away with tears, An gently touches her shoulder, not aggression.\nReference is ONLY hand-drawn style and prop appearance; no people outside those explicitly named. Entirely inside a modest room, not on a ferry. ",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "framing_note": "Final camera crop excludes the incorrectly populated small photograph; focus on adoptive mother and supporting hand."
+    },
+    {
+      "asset_key": "shoe_pair_table",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\shoe_pair_table.png",
+      "sha256": "19dc9706a982c304d3237a989cd2095b6e1f25580f2a8b8b46e0854ae7e35248",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood.  Show ONLY people explicitly requested in the SCENE. Reference supplies drawing style and An/Hạnh identity only: do NOT copy its night river setting into a daytime or indoor scene. Rural southern Vietnam, nipa palms and water hyacinth where appropriate; no Chinese architecture. An is the young man in blue from reference. Hạnh is the mother in brown, yellow plastic sandals and low black bun from reference. Do not add either person when scene does not name them. Closed-toe baby shoes are coarse BEIGE CLOTH with blue 'An' stitching and one red button, NOT yellow sandals. No extra people in any photograph. \nSCENE: Close overhead view of a low weathered wooden table: exactly TWO matching infant shoes form ONE LEFT-RIGHT PAIR, coarse beige cloth, tiny blue embroidered 'An' on both toes, small red buttons on each strap. They must be mirrored left and right shoes, not two left shoes. LEFT shoe darker from damp and leaves a small wet trace on table; RIGHT shoe dry on half-unfolded cream handkerchief. Beige cloth bag beside them. No adult shoes, no extra pair, no long text. Same sparse hand-ink and watercolor style, legible prop evidence.\nReference is ONLY hand-drawn style and prop appearance; no people outside those explicitly named. Entirely inside a modest room, not on a ferry. Exactly one mirrored LEFT-RIGHT PAIR, toe labels both blue 'An', one red button each. No people.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "baby_rescue_flashback",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\baby_rescue_flashback.png",
+      "sha256": "a63e3875a18dc5b9cdbfbc600b2a6d8c48413d20fe5548737f22fb7bf3559337",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nUse reference only for pen-and-watercolor medium and explicitly named character designs. No unrequested characters. No invented photographs or readable writing. SCENE: FLASHBACK, heavy rain at night 26 years earlier. Adoptive mother now about 29, black low bun, muted plum blouse, kneels in reeds at a riverbank and lifts a LIVING infant from a small wooden plank floating safely among water hyacinth. A strip of brown áo bà ba fabric secures infant to plank and is being loosened by her. Baby's ANATOMICAL RIGHT FOOT still has one small beige shoe with red button, LEFT FOOT bare. No blood, no corpse, no sinking baby, no white ghost hands. Human compassionate rescue in simple stick-figure ink and watercolor.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "folded_notice",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\folded_notice.png",
+      "sha256": "4b0cc9b1f9407229f606799ac584caf93658d029d337c3ee62c048abb1095350",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nUse reference only for pen-and-watercolor medium and explicitly named character designs. No unrequested characters. No invented photographs or readable writing. SCENE: Close-up inside mechanic hut: An's thin drawn hands unfold an old fragile sheet of cream paper, folded into quarters, from a cream handkerchief. Beside it is the DRY RIGHT small beige child shoe. On paper: a small line drawing of a baby shoe and faint abstract purple pen lines, intentionally illegible blank writing areas. DO NOT invent readable names, dates, numbers, or sentences. Adoptive mother's plum sleeve and clenched hands softly visible behind. Quiet forensic prop closeup, aged-paper style.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "framing_note": "Final camera crop excludes an inconsistent generated foreground hair design; show hands and notice only."
+    },
+    {
+      "asset_key": "brick_kiln_memory",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\brick_kiln_memory.png",
+      "sha256": "5ea8d86f79774bef601bfedc120343dfe55b4df153d1c2171fcb32ab015d7782",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nUse reference only for pen-and-watercolor medium and explicitly named character designs. No unrequested characters. No invented photographs or readable writing. SCENE: FLASHBACK 26 years earlier in rural Mekong Delta: humble brick kiln courtyard, stacks of reddish handmade bricks. Young Hạnh with same round stick face, black low bun, brown áo bà ba and muted yellow plastic sandals carries a shallow woven basket of banana-leaf bánh ít to workers. The future adoptive mother, age29 with black bun and muted plum work blouse, stands among workers receiving a cake. Warm dusty afternoon, modest clothes, no modern machinery or supernatural hints.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "mother_holding_baby",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\mother_holding_baby.png",
+      "sha256": "94018cd8d92473c8045c9a767d943afeb7c9389348cc64ab56d0c2aa8e039565",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nOnly persons named in SCENE, no unrequested photographs. Exactly ONE young adult woman in plum with a black bun, and ONE infant. No other adults.\nSCENE: FLASHBACK in a small worker's room near brick kiln. Adoptive mother at29, black hair in low bun, muted plum blouse, cradles a living feverish nearly-one-year-old baby who clutches her collar with a tiny hand. Folded travel bundle on floor suggests a postponed trip. Concern and attachment, no medical gore, no frightening face on baby, no thermometer text. Sparse hand-drawn round faces and thin arms, gentle lamplight over ochre paper.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "hanh_return_ferry",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\hanh_return_ferry.png",
+      "sha256": "bc351479b8e033a19f5e0077aa0048811b2aa77adc08ca63742941815e13d436",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nOnly persons named in SCENE, no unrequested photographs. An is a 27-year-old MAN, short messy black hair, blue mechanic shirt. Older adoptive mother has grey-black low bun, plum blouse. Hạnh brown blouse and yellow sandals as reference.\nSCENE: Present-day evening AFTER rain, no falling rain. At same wooden ferry tied to jetty, An in blue carefully steps onto a narrow boarding plank. His older adoptive mother in muted plum follows on shore, hand lightly gripping his shirt hem. Hạnh in brown sits quietly at the far passenger bench of boat, BOTH hands resting flat on her knees, no bag on her lap now. An carries the closed beige cloth bag containing two shoes. Wet jetty, mist and one amber lamp, suspense, no one falling yet.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "slipping_plank",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\slipping_plank.png",
+      "sha256": "f9475eefbd2a8762ba8f3b34c7c0031293371f987dd725b1d92e47449beafdb3",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nOnly persons named in SCENE, no unrequested photographs. An is a 27-year-old MAN, short messy black hair, blue mechanic shirt. Older adoptive mother has grey-black low bun, plum blouse. Hạnh brown blouse and yellow sandals as reference.\nSCENE: Tense but non-graphic present-day moment at same jetty. The narrow boarding plank has slipped off shore. An in blue lies prone ON the wooden ferry bow, reaching down; beige cloth bag fallen on boat floor. Adoptive mother in plum is in river with head ABOVE water, one arm reaching up. At the WATERLINE a pale thin human hand grips her wrist; keep its owner underwater and not revealed, do not show pulling either direction, no claw or monster. Respectful ink and watercolor illustration, no gore.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "framing_note": "Final camera crop excludes a premature Hạnh figure on the boat; her underwater identity remains unrevealed."
+    },
+    {
+      "asset_key": "hanh_rescue",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\hanh_rescue.png",
+      "sha256": "0f8583ee08d25bbda451fa3ff1cbb1858b4ec00cd1e20d49faf59bde26ff34ff",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nOnly people explicitly named in SCENE. An is the same young MAN with short messy black hair and blue mechanic shirt. Adoptive mother is older, grey-black low bun, plum blouse. Hạnh is a DIFFERENT woman, brown áo bà ba, wet loose BLACK hair, rounded simple human face. EXACTLY ONE HẠNH, located ONLY IN THE WATER: no second copy seated or standing on boat, no ghost clone. No child or infant in present-day scenes. No photographs. Clear compassionate rescue, same jetty after rain at night. Hạnh, same round stick-figure face, black wet hair and brown áo bà ba, is in the river beside ferry. One hand supports adoptive mother's UPPER BACK upward; the other lifts mother's wrist TOWARD An on ferry. Mother in plum has head above water. An in blue leans down holding an orange foam life jacket; two modest helpers on shore shine flashlights and reach out. All motion is visibly UPWARD TO SAFETY, never dragging mother down. Non-graphic story illustration, legible arms, minimal persons.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "mother_on_bank",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\mother_on_bank.png",
+      "sha256": "8bb4a98c6acb7eedcca64a24f0105ff9458c9604052eefd75604c0352580ff6e",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nOnly people explicitly named in SCENE. An is the same young MAN with short messy black hair and blue mechanic shirt. Adoptive mother is older, grey-black low bun, plum blouse. Hạnh is a DIFFERENT woman, brown áo bà ba, wet loose BLACK hair, rounded simple human face. EXACTLY ONE HẠNH, located ONLY IN THE WATER: no second copy seated or standing on boat, no ghost clone. No child or infant in present-day scenes. No photographs. Same night immediately after rescue. Older adoptive mother in plum sits safely on damp grassy bank, coughing into hand, clinging to An's trouser leg. An blue shirt kneels beside her and looks toward ferry. In middle-distance Hạnh in brown is still upright in water alongside boat, river up to her shoulders, wet black hair loose at her collar; calm human face. Two helpers with lamps behind. No one dead, no horror wounds, stick-figure watercolor emotion.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "hanh_in_water",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\hanh_in_water.png",
+      "sha256": "5f8d26175d886ff85b91c1d0d45c703ff4086aa5ffba22a8bfda8c49bc478bed",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nOnly people explicitly named in SCENE. An is the same young MAN with short messy black hair and blue mechanic shirt. Adoptive mother is older, grey-black low bun, plum blouse. Hạnh is a DIFFERENT woman, brown áo bà ba, wet loose BLACK hair, rounded simple human face. EXACTLY ONE HẠNH, located ONLY IN THE WATER: no second copy seated or standing on boat, no ghost clone. No child or infant in present-day scenes. No photographs. Medium landscape view from An's perspective on ferry: Hạnh's simple round human face and wet loose black hair, brown áo bà ba visible at shoulders, river at shoulder level. She looks gently toward a beige cloth bag fallen on boat bow and then toward viewer. Water hyacinths circle near a timber mooring post, faint warm light from hut. Her expression maternal and sad, not evil. Empty negative space at left for later cut-in; no text, no speech bubble.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "family_reunion",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\family_reunion.png",
+      "sha256": "a4dce4fb80161f85240dfc0bea0ab23c0201876a644370152cdc066cd546d1b5",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nReference style and explicitly named designs only. Exactly THREE adults in the room: An, a young MAN in blue with short messy black hair, adoptive mother in plum grey-black bun, elderly Bà Bảy white bun olive blouse. Any photograph must show ONLY Hạnh with ONE INFANT, like the last reference, no third person inside photo. No ghost in room.\nSCENE: Following MORNING inside Bà Bảy's plum-tree house. Three simple rounded stick-figure people: An in blue seated central, his older adoptive mother in plum beside him, petite elderly Bà Bảy with white bun and olive blouse holds An's hand in both hands and compares his face to an old small photograph. Warm early daylight, tears but no melodramatic exaggeration. Plum tree visible outside the door. Respectful Vietnamese home, no ghost standing inside.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "shoe_pair_altar",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\shoe_pair_altar.png",
+      "sha256": "6540f34ecb23a604b19e21d5c9ddd23c0d4fe07a05a4eafbfec290663ae75a5f",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nReference style and explicitly named designs only. Only An may appear in person, Hạnh only INSIDE the framed portrait. ONE matching left-right pair on altar must match second reference exactly, blue 'An', red buttons, left damp and right dry.\nSCENE: Warm close landscape composition of the small Vietnamese ancestral altar in Bà Bảy's house. ONE framed portrait of Hạnh showing EXACT master's simple round face, black bun and brown áo bà ba. Beneath are exactly ONE LEFT-RIGHT PAIR of tiny rough beige cloth shoes, blue 'An' stitching, red buttons; left shoe slightly darker damp, right dry. One glowing incense stick in a simple pot, fine smoke, modest flowers. At edge An in blue seen in profile with a thin stick hand holding incense, quietly calling mother. Catharsis, warm ochre paper and muted blue shadows, no extra ghost or giant religious figures.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    },
+    {
+      "asset_key": "night_doorway",
+      "path": "D:\\Video-maker\\video-short\\assets\\shared\\story_illustrations\\con_mu_stick_v1\\night_doorway.png",
+      "sha256": "acf80e37747115507014b95a2a1d9b8c2ba377be0b601cff21ce9ca56416c55e",
+      "width": 1672,
+      "height": 941,
+      "tool": "built-in image_gen",
+      "prompt": "Use case: illustration-story. ONE complete wide 16:9 landscape video illustration, full bleed, no frame or panel, no labels or watermark, no subtitles. Reference image is the approved master for visual identity and setting, not an edit target. Match its HAND-DRAWN STICK-FIGURE style: small round warm-paper faces, dot/short-stroke eyes, thin limbs, sketchy black pen contours, flat modest watercolor clothing, textured aged paper and detailed pencil/watercolor surroundings. No realistic faces, no photorealism, no 3D, no comic smiles or big anime eyes. Palette muted blue-grey, tan paper, ochre, faint warm lamp light; readable midtones, quiet uncanny Vietnamese rural mood. \nReference style and explicitly named designs only. Only Hạnh outside this house, NO An or adoptive mother present. Brown áo bà ba, yellow plastic sandals and black bun. NOT a modern city or Chinese temple.\nSCENE: FLASHBACK TO THE PREVIOUS EVENING after rain: outside Bà Bảy's humble timber house under a plum tree. Hạnh alone in brown áo bà ba, yellow plastic sandals, low black bun, gently knocks once on closed wooden door. Warm light through the seam and an elderly white-haired silhouette inside, no An or adoptive mother anywhere outside or inside the visible frame. Wet earth, small rain drops hanging on plum leaves but no falling rain. The same mother from master, simple stick drawing with emotional quiet, not monster.",
+      "inspection": "Agent visually inspected generated output for selected style and narrative clues; final framing still requires video inspection.",
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION"
+    }
+  ],
+  "used_framing": [
+    {
+      "shot": 1,
+      "sentence_range": [
+        0,
+        2
+      ],
+      "start_seconds": 0.0,
+      "end_seconds": 4.68,
+      "asset_key": "ferry_night",
+      "title": "Người khách trên đò",
+      "scene": "Người đàn bà áo nâu ngồi trên ghế, túi vải trên đùi; sàn ướt. Không mưa, không lộ giải thích.",
+      "opening_text_anchor": "Khách đi đò của tôi đã chết hai mươi sáu năm."
+    },
+    {
+      "shot": 2,
+      "sentence_range": [
+        2,
+        6
+      ],
+      "start_seconds": 4.68,
+      "end_seconds": 12.66,
+      "asset_key": "pier_hut",
+      "title": "Bến đò và chòi thợ máy",
+      "scene": "Bến sông miền Tây, ghe gỗ và căn chòi sát nước, An mặc áo thợ màu xanh đậm.",
+      "opening_text_anchor": "Đêm đó tôi chạy chuyến cuối ở bến Cồn Mù."
+    },
+    {
+      "shot": 3,
+      "sentence_range": [
+        6,
+        11
+      ],
+      "start_seconds": 12.66,
+      "end_seconds": 21.03,
+      "asset_key": "yellow_sandals",
+      "title": "Dép vàng và nước nhỏ",
+      "scene": "Cận đôi dép nhựa vàng đục, vạt áo nâu nhỏ nước trên ván ghe; túi vải cùng thiết kế.",
+      "opening_text_anchor": "Gần chín giờ, người đàn bà mặc áo bà ba nâu bước xuống."
+    },
+    {
+      "shot": 4,
+      "sentence_range": [
+        11,
+        15
+      ],
+      "start_seconds": 21.03,
+      "end_seconds": 29.44,
+      "asset_key": "life_jacket",
+      "title": "Cái chạm lạnh buốt",
+      "scene": "Bàn tay người đàn bà chạm tay An khi nhận áo phao; gương mặt bình thường, im lặng.",
+      "opening_text_anchor": "Tôi đưa áo phao."
+    },
+    {
+      "shot": 5,
+      "sentence_range": [
+        15,
+        20
+      ],
+      "start_seconds": 29.44,
+      "end_seconds": 37.88,
+      "asset_key": "ferry_night",
+      "title": "Lời nhờ mang túi",
+      "scene": "Đổi khung trung/cận trên cùng bối cảnh đò; Hạnh đặt túi vải xuống ghế, An quay buộc dây.",
+      "opening_text_anchor": "Cô đặt túi xuống ghế."
+    },
+    {
+      "shot": 6,
+      "sentence_range": [
+        20,
+        25
+      ],
+      "start_seconds": 37.88,
+      "end_seconds": 46.04,
+      "asset_key": "empty_ferry",
+      "title": "Khoang đò trống",
+      "scene": "Ghe không còn hành khách; áo phao và túi vẫn nằm trên ghế. Đèn pin soi lối bụi chuối.",
+      "opening_text_anchor": "Chỉ vài giây sau, khoang đò đã trống trơn."
+    },
+    {
+      "shot": 7,
+      "sentence_range": [
+        25,
+        31
+      ],
+      "start_seconds": 46.04,
+      "end_seconds": 58.68,
+      "asset_key": "left_shoe_house",
+      "title": "Chiếc giày bên trái",
+      "scene": "Ban ngày dưới nhà có cây mận; bà Bảy mở túi, chiếc giày vải trẻ con bên trái.",
+      "opening_text_anchor": "Sáng ra, tôi tìm tới căn nhà có cây mận. Bà cụ mở túi."
+    },
+    {
+      "shot": 8,
+      "sentence_range": [
+        31,
+        38
+      ],
+      "start_seconds": 58.68,
+      "end_seconds": 71.88,
+      "asset_key": "hanh_altar",
+      "title": "Di ảnh trên bàn thờ",
+      "scene": "Di ảnh đúng gương mặt Hạnh, nhang mờ, ánh mắt An và bà Bảy. Chưa đưa lời giải muộn vào ảnh.",
+      "opening_text_anchor": "Giữa khói nhang là tấm ảnh người khách tối qua."
+    },
+    {
+      "shot": 9,
+      "sentence_range": [
+        38,
+        42
+      ],
+      "start_seconds": 71.88,
+      "end_seconds": 78.62,
+      "asset_key": "mother_baby_photo",
+      "title": "Tấm ảnh cũ",
+      "scene": "Ảnh cũ Hạnh bế bé An gần một tuổi; chỉ chân phải mang giày, chân trái để trần.",
+      "opening_text_anchor": "Bà lấy dưới chân lư hương một tấm ảnh ố vàng."
+    },
+    {
+      "shot": 10,
+      "sentence_range": [
+        42,
+        50
+      ],
+      "start_seconds": 78.62,
+      "end_seconds": 92.17,
+      "asset_key": "ferry_storm",
+      "title": "Chuyến đò năm xưa",
+      "scene": "Hồi tưởng đò lật trong gió mưa, xa và không trực diện thi thể; bé vẫn mất tích, không vẽ bé chết.",
+      "opening_text_anchor": "Bà kể đêm đó Hạnh bế con sang thăm ngoại thì gặp gió lốc.",
+      "crop": {
+        "x": 600,
+        "y": 150,
+        "w": 1060,
+        "h": 596
+      }
+    },
+    {
+      "shot": 11,
+      "sentence_range": [
+        50,
+        57
+      ],
+      "start_seconds": 92.17,
+      "end_seconds": 103.23,
+      "asset_key": "phone_shoe",
+      "title": "Cuộc gọi của má",
+      "scene": "An cầm điện thoại chụp riêng chiếc giày; màn hình chỉ có giày trên bàn, không có ảnh Hạnh.",
+      "opening_text_anchor": "Tôi chụp riêng chiếc giày gửi cho má.",
+      "crop": {
+        "x": 620,
+        "y": 260,
+        "w": 1024,
+        "h": 576
+      }
+    },
+    {
+      "shot": 12,
+      "sentence_range": [
+        57,
+        64
+      ],
+      "start_seconds": 103.23,
+      "end_seconds": 116.1,
+      "asset_key": "phone_shoe",
+      "title": "Chiếc ảnh không có người",
+      "scene": "Khung cận hơn trên cùng ảnh điện thoại; nền nhà bà Bảy, không thêm dữ kiện ngoài lời đọc.",
+      "opening_text_anchor": "Tôi nhìn lại bức hình vừa gửi.",
+      "crop": {
+        "x": 620,
+        "y": 260,
+        "w": 1024,
+        "h": 576
+      }
+    },
+    {
+      "shot": 13,
+      "sentence_range": [
+        64,
+        70
+      ],
+      "start_seconds": 116.1,
+      "end_seconds": 126.547,
+      "asset_key": "wardrobe_right_shoe",
+      "title": "Chiếc giày trong tủ",
+      "scene": "Hồi ức chiếc giày bên phải được bọc bằng khăn trong tủ gỗ; có nút đỏ.",
+      "opening_text_anchor": "Trước lúc ra sân, tôi nhìn tấm ảnh thêm lần nữa."
+    },
+    {
+      "shot": 14,
+      "sentence_range": [
+        70,
+        76
+      ],
+      "start_seconds": 126.547,
+      "end_seconds": 137.807,
+      "asset_key": "hut_confrontation",
+      "title": "Má tới căn chòi",
+      "scene": "Má nuôi trung niên mở khăn, cầm túi đi về bếp củi; An giữ tay, chưa có lửa cháy đôi giày.",
+      "opening_text_anchor": "Má mang theo chiếc giày của đứa trẻ mất tích.",
+      "crop": {
+        "x": 720,
+        "y": 60,
+        "w": 940,
+        "h": 529
+      }
+    },
+    {
+      "shot": 15,
+      "sentence_range": [
+        76,
+        85
+      ],
+      "start_seconds": 137.807,
+      "end_seconds": 153.067,
+      "asset_key": "shoe_pair_table",
+      "title": "Hai chiếc giày thành đôi",
+      "scene": "Giày trái ẩm, giày phải khô cạnh khăn; cùng vải cũ, chỉ xanh và nút đỏ, phân biệt trái phải.",
+      "opening_text_anchor": "Hai chiếc giày đặt cạnh nhau vừa thành một đôi."
+    },
+    {
+      "shot": 16,
+      "sentence_range": [
+        85,
+        90
+      ],
+      "start_seconds": 153.067,
+      "end_seconds": 162.587,
+      "asset_key": "hut_confrontation",
+      "title": "Câu hỏi về thân phận",
+      "scene": "Đổi cận cảnh hai người và tấm ảnh; má ngồi giường tre nhìn áo phao sau cửa.",
+      "opening_text_anchor": "Tôi đưa tấm ảnh bà Bảy cho má nhìn.",
+      "crop": {
+        "x": 720,
+        "y": 60,
+        "w": 940,
+        "h": 529
+      }
+    },
+    {
+      "shot": 17,
+      "sentence_range": [
+        90,
+        95
+      ],
+      "start_seconds": 162.587,
+      "end_seconds": 174.267,
+      "asset_key": "baby_rescue_flashback",
+      "title": "Đứa bé trong lục bình",
+      "scene": "Hồi tưởng má nuôi trẻ hơn cứu bé được buộc trên ván bằng vạt áo nâu; bé còn sống, chân phải mang giày.",
+      "opening_text_anchor": "Bà kể đêm đò lật, mưa lớn."
+    },
+    {
+      "shot": 18,
+      "sentence_range": [
+        95,
+        105
+      ],
+      "start_seconds": 174.267,
+      "end_seconds": 188.589,
+      "asset_key": "hut_confrontation",
+      "title": "Lời thú nhận đầu tiên",
+      "scene": "Trở lại chòi hiện tại, má quay vào vách rồi bật khóc; cùng nhân dạng, ánh sáng chiều.",
+      "opening_text_anchor": "Tôi hỏi sao không tìm người nhà.",
+      "crop": {
+        "x": 720,
+        "y": 60,
+        "w": 940,
+        "h": 529
+      }
+    },
+    {
+      "shot": 19,
+      "sentence_range": [
+        105,
+        113
+      ],
+      "start_seconds": 188.589,
+      "end_seconds": 203.519,
+      "asset_key": "folded_notice",
+      "title": "Tờ giấy tìm con",
+      "scene": "Cận tờ giấy gấp tư từ khăn tay; chữ cần đọc được sẽ ghép bằng font, không tin chữ bịa do ảnh sinh.",
+      "opening_text_anchor": "Má tôi giữ giấy tìm người mất tích mang tên tôi.",
+      "crop": {
+        "x": 60,
+        "y": 150,
+        "w": 1136,
+        "h": 639
+      }
+    },
+    {
+      "shot": 20,
+      "sentence_range": [
+        113,
+        119
+      ],
+      "start_seconds": 203.519,
+      "end_seconds": 215.369,
+      "asset_key": "brick_kiln_memory",
+      "title": "Ký ức lò gạch",
+      "scene": "Hồi tưởng Hạnh áo nâu dép vàng mang bánh ít xuống lò gạch; má nuôi còn trẻ làm thợ.",
+      "opening_text_anchor": "Má nhìn thấy tôi đọc."
+    },
+    {
+      "shot": 21,
+      "sentence_range": [
+        119,
+        125
+      ],
+      "start_seconds": 215.369,
+      "end_seconds": 229.579,
+      "asset_key": "mother_holding_baby",
+      "title": "Nỗi sợ mất con",
+      "scene": "Má nuôi ôm bé bệnh, bé bấu cổ áo; sau đó lấy khung trở về bà cúi đầu hiện tại, không thêm nguyên nhân.",
+      "opening_text_anchor": "Má đã xếp đồ để sáng hôm sau bế tôi sang."
+    },
+    {
+      "shot": 22,
+      "sentence_range": [
+        125,
+        132
+      ],
+      "start_seconds": 229.579,
+      "end_seconds": 240.799,
+      "asset_key": "hanh_return_ferry",
+      "title": "Người khách ở ghế cuối",
+      "scene": "Sau cơn mưa, bến ướt; An bước lên ván, Hạnh ngồi cuối đò, hai tay trên gối, má níu áo sau lưng.",
+      "opening_text_anchor": "Tôi bỏ đôi giày vào túi, đi tìm bà Bảy."
+    },
+    {
+      "shot": 23,
+      "sentence_range": [
+        132,
+        142
+      ],
+      "start_seconds": 240.799,
+      "end_seconds": 258.794,
+      "asset_key": "slipping_plank",
+      "title": "Tấm ván trượt",
+      "scene": "Má rơi khỏi ván, An nằm rạp trên mạn, túi rơi sàn; tay trắng giữ cổ tay dưới nước, chưa lộ kéo hay đỡ.",
+      "opening_text_anchor": "Má hét lên sau lưng tôi.",
+      "crop": {
+        "x": 0,
+        "y": 170,
+        "w": 1120,
+        "h": 630
+      }
+    },
+    {
+      "shot": 24,
+      "sentence_range": [
+        142,
+        146
+      ],
+      "start_seconds": 258.794,
+      "end_seconds": 267.714,
+      "asset_key": "hanh_rescue",
+      "title": "Người chết cứu người sống",
+      "scene": "Hạnh nâng tay và đỡ lưng má nuôi lên mặt nước, An quàng áo phao, đèn pin từ bờ. Không vẽ Hạnh kéo chìm.",
+      "opening_text_anchor": "Người chết đang giữ cổ tay má tôi dưới sông."
+    },
+    {
+      "shot": 25,
+      "sentence_range": [
+        146,
+        152
+      ],
+      "start_seconds": 267.714,
+      "end_seconds": 278.294,
+      "asset_key": "mother_on_bank",
+      "title": "Trên bờ sau cứu nạn",
+      "scene": "Má nuôi nằm trên cỏ còn tỉnh, An nhìn Hạnh đứng cạnh mạn, nước ngang vai; tránh bạo lực trực diện.",
+      "opening_text_anchor": "Má nằm trên cỏ, ho sặc nước, tay vẫn bấu ống quần tôi."
+    },
+    {
+      "shot": 26,
+      "sentence_range": [
+        152,
+        156
+      ],
+      "start_seconds": 278.294,
+      "end_seconds": 284.574,
+      "asset_key": "hanh_in_water",
+      "title": "Lời nhắn về ngoại",
+      "scene": "Hạnh bên ghe nói với An; cuối cảnh chuyển crop mặt nước/lục bình trống, không đổi lời thoại.",
+      "opening_text_anchor": "“Đem về cho ngoại."
+    },
+    {
+      "shot": 27,
+      "sentence_range": [
+        156,
+        158
+      ],
+      "start_seconds": 284.574,
+      "end_seconds": 287.884,
+      "asset_key": "hanh_in_water",
+      "title": "Chỉ còn lục bình",
+      "scene": "Mặt sông trống sau khi đèn pin quét lại; không còn Hạnh trong khung.",
+      "opening_text_anchor": "“Đem về cho ngoại.",
+      "crop": {
+        "x": 0,
+        "y": 40,
+        "w": 1024,
+        "h": 576
+      }
+    },
+    {
+      "shot": 28,
+      "sentence_range": [
+        158,
+        164
+      ],
+      "start_seconds": 287.884,
+      "end_seconds": 300.113,
+      "asset_key": "family_reunion",
+      "title": "Trở về nhà có cây mận",
+      "scene": "Sáng, bà Bảy nắm tay An bên má nuôi; biểu cảm xúc động, tấm ảnh cũ trong tay bà.",
+      "opening_text_anchor": "Sáng hôm sau, tôi dìu má tới nhà có cây mận."
+    },
+    {
+      "shot": 29,
+      "sentence_range": [
+        164,
+        168
+      ],
+      "start_seconds": 300.113,
+      "end_seconds": 307.074,
+      "asset_key": "shoe_pair_altar",
+      "title": "Đôi giày trên bàn thờ",
+      "scene": "Hai chiếc giày đã cạnh nhau trên bàn thờ Hạnh, trái vương nước và phải khô; ánh sáng ấm dịu.",
+      "opening_text_anchor": "Tôi đặt đôi giày lên bàn thờ Hạnh."
+    },
+    {
+      "shot": 30,
+      "sentence_range": [
+        168,
+        173
+      ],
+      "start_seconds": 307.074,
+      "end_seconds": 317.334,
+      "asset_key": "night_doorway",
+      "title": "Tiếng gõ cửa đêm trước",
+      "scene": "Hồi tưởng cửa nhà dưới gốc mận sau mưa, Hạnh ở ngưỡng cửa; An và má chưa tới, không vẽ họ trong cảnh này.",
+      "opening_text_anchor": "Chập tối, ngoại đứng rất lâu dưới cây mận."
+    },
+    {
+      "shot": 31,
+      "sentence_range": [
+        173,
+        176
+      ],
+      "start_seconds": 317.334,
+      "end_seconds": 324.489,
+      "asset_key": "shoe_pair_altar",
+      "title": "Một nén nhang gọi mẹ",
+      "scene": "Trở về An châm nhang trước di ảnh đúng Hạnh; kết ấm, câu hỏi nằm trong phụ đề, không thêm chuyện.",
+      "opening_text_anchor": "Tôi quay vào bàn thờ, châm một nén nhang.",
+      "crop": {
+        "x": 480,
+        "y": 50,
+        "w": 1088,
+        "h": 612
+      }
+    }
+  ],
+  "original_rejected_variants_retained": true,
+  "metadata_note": "Sentence-index labels corrected from actual unchanged frame cut times; rendered input is preserved as storyboard.v1.json."
+}

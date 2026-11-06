@@ -853,6 +853,481 @@
       "production_eligible": false,
       "automatic_selection": false,
       "attribution": "Horror-#2 — takaya. Audiostock item 100596; license not yet supplied."
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/ferry_night.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "5b9cb0788c598d846d7ca8ada010a26d49c835687b08c24bfe5b8392b6d2b7f7",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/pier_hut.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "864a0b3e6bcaf32aceb63a9c78534471789253b123e5a813f1dfd74555b15dc8",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/yellow_sandals.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "4a03d8a725847c5e722f702e0c53e65edb82c00589a6eada1febacb963189534",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/life_jacket.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "5a568e3f86d74314c7ad0b1d761d0d8f6a4a64970743711857a4544101674942",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/empty_ferry.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "6f390d61c748a2dbd623bb5a8d311e55b6ff6c9f7c3d22cfde3ce78c59ebdaa1",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/left_shoe_house.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "12dea7149abe67d0ec692167d1054c3915583e2c2f754104bfdf9194292818fe",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/hanh_altar.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "e4f658414a3285cf98eba1db8afa0706f9032af09d32bb53ff0f2aed34b6317e",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/mother_baby_photo.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "9ddd65119724fda83b2adc1d3bc2182fdf1affc7d66019acc75a260d844bf88c",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/ferry_storm.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "d9fbf0be74f6e31b15d536ed72561a7a47bacec0e12bd0c14bbbcad4299f3bc1",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/phone_shoe.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "31852c0337116fce6736115879987fa6f7278f2b463a814baae34133ee82f6e3",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/wardrobe_right_shoe.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "dd95be173ba310e7c7e5e7efc1779e2ae6e607c7d42786a2e89d908a960ece73",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/hut_confrontation.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "d863b029af614ac66f2d254dc670bda9b67c1111961bacb3cec25c2b64b69d9b",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/shoe_pair_table.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "19dc9706a982c304d3237a989cd2095b6e1f25580f2a8b8b46e0854ae7e35248",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/baby_rescue_flashback.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "a63e3875a18dc5b9cdbfbc600b2a6d8c48413d20fe5548737f22fb7bf3559337",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/folded_notice.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "4b0cc9b1f9407229f606799ac584caf93658d029d337c3ee62c048abb1095350",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/brick_kiln_memory.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "5ea8d86f79774bef601bfedc120343dfe55b4df153d1c2171fcb32ab015d7782",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/mother_holding_baby.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "94018cd8d92473c8045c9a767d943afeb7c9389348cc64ab56d0c2aa8e039565",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/hanh_return_ferry.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "bc351479b8e033a19f5e0077aa0048811b2aa77adc08ca63742941815e13d436",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/slipping_plank.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "f9475eefbd2a8762ba8f3b34c7c0031293371f987dd725b1d92e47449beafdb3",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "USE_APPROVED_FRAMING_ONLY",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/hanh_rescue.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "0f8583ee08d25bbda451fa3ff1cbb1858b4ec00cd1e20d49faf59bde26ff34ff",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/mother_on_bank.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "8bb4a98c6acb7eedcca64a24f0105ff9458c9604052eefd75604c0352580ff6e",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/hanh_in_water.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "5f8d26175d886ff85b91c1d0d45c703ff4086aa5ffba22a8bfda8c49bc478bed",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/family_reunion.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "a4dce4fb80161f85240dfc0bea0ab23c0201876a644370152cdc066cd546d1b5",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/shoe_pair_altar.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "6540f34ecb23a604b19e21d5c9ddd23c0d4fe07a05a4eafbfec290663ae75a5f",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
+    },
+    {
+      "path": "shared/story_illustrations/con_mu_stick_v1/night_doorway.png",
+      "kind": "story_illustration",
+      "tags": [
+        "con_mu",
+        "stick_figure",
+        "hand_drawn",
+        "horror",
+        "original_fiction"
+      ],
+      "sha256": "acf80e37747115507014b95a2a1d9b8c2ba377be0b601cff21ce9ca56416c55e",
+      "source_url": null,
+      "license": "Generated with built-in image_gen for this project",
+      "selection_scope": "original_con_mu_20261105_v3",
+      "automatic_selection": false,
+      "creator_final_approved": false,
+      "reuse_status": "STORY_SPECIFIC_ILLUSTRATION",
+      "metadata_path": "shared/story_illustrations/con_mu_stick_v1/library.json"
     }
   ]
 }

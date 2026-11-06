@@ -14,6 +14,12 @@ Fix and re-render failed output. Keep the previous good version on failure.
 See `.agents/skills/threadreel/SKILL.md` and `docs/SOCIAL_VIDEO.md`.
 All data is under `projects/social_video`; the old Downloads folder is retired.
 
+For an explicitly requested illustrated landscape story, use `docs/ILLUSTRATED_FULL.md` and
+`studio.social_video.illustrated_full`: record the creator's actual art-direction choice,
+reuse accepted narration without new TTS, verify identical AAC and decoded PCM, and prepare
+the existing final checkpoint again. Cồn Mù's selected hand-drawn stick figures are a scoped
+visual revision, not a new default for every story. Fix changed scenes using their own cache keys.
+
 
 All modes share `D:/Video-maker/video-short/output/YYYY-MM-DD/MODE/`. Date uses Asia/Bangkok and stays fixed for resume/QC. QC, captions and metadata sit beside the video with the same basename; `_history` holds older revisions. Project work folders contain intermediates only.
 
