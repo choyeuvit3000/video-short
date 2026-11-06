@@ -58,6 +58,8 @@ Thumbs.db
 
 # Migrated local social-video data, models and private configuration
 projects/social_video/
+# Local Flow experiments and browser-generation evidence
+projects/flow_trials/
 tools/ffmpeg/
 
 # Final deliverables and local migration evidence

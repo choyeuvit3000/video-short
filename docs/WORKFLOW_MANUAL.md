@@ -31,7 +31,8 @@ Khi đã có file `response.json`, tool **luôn dùng file đó** và không g�
 
 - Tạo ảnh theo đúng tỉ lệ format: 9:16 cho short, 16:9 cho long.
 - Lưu thành `images/<scene_id>.png` (hoặc `.jpg` / `.webp`).
-- Khi chỉ có ảnh mà chưa có clip, ảnh được dùng tạm với hiệu ứng Ken Burns, nên đã render được bản xem trước.
+- Khi `options.allow_still_fallback: true`, ảnh chưa có clip được dùng tạm với Ken Burns.
+  Đây là bản xem trước từ ảnh, không phải clip AI đã tạo xong.
 
 ## 3. Clip video (Google Flow)
 
@@ -39,6 +40,42 @@ Khi đã có file `response.json`, tool **luôn dùng file đó** và không g�
 - Tải clip về và lưu **đúng tên** `clips/<scene_id>.mp4`. Tool không đổi tên hay ghi đè file của bạn.
 - Clip ngắn hơn cảnh → frame cuối được giữ lại. Clip dài hơn → bị cắt. Clip sai tỉ lệ → crop, hoặc pad nếu `fit_mode: pad`.
 - Watermark của nền tảng (nếu có) được giữ nguyên.
+
+Khi thử nghiệm clip AI thật, đặt trong `options`:
+
+```json
+{
+  "allow_still_fallback": false,
+  "require_video_clips": true,
+  "strict_clip_validation": true,
+  "clip_min_short_side": 720
+}
+```
+
+Stage `media` dừng nếu thiếu clip, còn scene kiểu `still` từ lần fallback trước,
+file hỏng/không có video, video ngắn hơn cảnh, sai tỷ lệ hoặc độ phân giải gốc quá thấp.
+Thời lượng lấy từ luồng hình; track âm thanh dài hơn không che được thiếu hình.
+Chế độ này không tự giữ đứng frame cuối hoặc crop clip sai tỷ lệ để cho qua.
+Kiểm tra kỹ thuật không chứng minh nguồn AI hay chất lượng chuyển động:
+lưu prompt, ảnh đầu, nguồn tải, model, số tín dụng và hash của clip;
+xem đầu/giữa/cuối để bắt rung máy, đổi nhân vật, đạo cụ và lỗi biến dạng.
+Không xóa watermark hay tự thay giọng đã duyệt bằng âm thanh từ Flow.
+
+Thử nghiệm Cồn Mù dùng lại ảnh đã có, ba cảnh tám giây, máy quay cố định.
+Theo phản hồi của người tạo, mỗi cảnh có một động tác nhân vật rõ ràng
+(ngẩng đầu, thu chân, chỉ di ảnh); chỉ thêm sương/khói là chưa đạt mục tiêu.
+`scripts/prepare_con_mu_flow_trial.py` tạo project và gói ảnh/prompt trong `work/flow_handoff/`.
+Script không gọi model, tạo TTS, ghi nhận phê duyệt hoặc thay video cũ.
+Chạy `studio preflight PROJECT` trước khi gửi prompt tạo clip.
+Tạo mỗi cảnh một lần, kiểm tra trước khi thử lại; không tự mua tín dụng hoặc đổi gói.
+
+Sau khi tải clip thật, dùng `scripts/finish_con_mu_flow_trial.py --clip scene_01=ABSOLUTE_FILE`
+(lặp `--clip` cho từng cảnh). Script kiểm tra giải mã toàn bộ luồng hình, giữ độ dài gốc,
+lưu hash/nguồn tải và bản nhập cũ rồi chạy lại gate `media`.
+Khi đủ ba cảnh, bản ghép kiểm tra không tiếng và contact sheet nằm trong
+`output/YYYY-MM-DD/flow_trials/`, giữ nguyên độ phân giải/khung hình gốc và watermark.
+Xem bản ghép để đánh giá diễn xuất, biến dạng và độ rung trước khi dùng clip cho bản chính.
+Đây là mẫu kiểm tra hình ảnh, không phải lần duyệt giọng hay bản thay thế video đã được chấp nhận.
 
 ## 4. Giọng tự thu
 

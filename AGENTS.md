@@ -28,6 +28,14 @@ three-checkpoint ledger; bind the motion-only request and frozen inputs to a sep
 
 All modes share `D:/Video-maker/video-short/output/YYYY-MM-DD/MODE/`. Date uses Asia/Bangkok and stays fixed for resume/QC. QC, captions and metadata sit beside the video with the same basename; `_history` holds older revisions. Project work folders contain intermediates only.
 
+For requested semi-manual AI-video trials, use the Google Flow handoff in `docs/WORKFLOW_MANUAL.md`.
+Prefer one meaningful basic character action per shot with a locked camera; fog or camera zoom alone
+does not satisfy character animation. Keep keyframes, submitted prompts, displayed credit costs and
+downloaded clip hashes. Require actual clips with `require_video_clips: true`, disable still fallback,
+and enable strict clip validation. Handle native Windows Save As dialogs when browser downloads wait.
+Inspect decoded action frames for anatomy, identity, props and camera drift; technical QC alone does
+not approve generated acting. Keep silent visual trials separate from production narration/acceptance.
+
 
 ## Voice admission and generation planning
 

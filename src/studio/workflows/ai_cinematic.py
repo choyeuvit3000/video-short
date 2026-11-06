@@ -82,15 +82,26 @@ def stage_storyboard(ctx: ProjectContext, opts: dict) -> str:
 
 def stage_media(ctx: ProjectContext, opts: dict) -> str:
     p = ctx.project
+    fallback_allowed = p.options.get("allow_still_fallback", True) and not p.options.get("require_video_clips", False)
     missing = []
+    invalid = []
     switched = 0
     for s in p.scenes:
         v = s.visual
+        if p.options.get("require_video_clips", False) and (v.type != "clip" or not v.path):
+            invalid.append((s, "this trial requires a clip; set visual.type=clip and its clips/ path"))
+            continue
         if v.type not in ("clip", "still") or not v.path:
             continue
         if ctx.resolve(v.path).is_file():
+            if v.type == "clip" and p.options.get("strict_clip_validation", False):
+                from .flow_media import check_imported_clip
+
+                problem = check_imported_clip(ctx, s)
+                if problem:
+                    invalid.append((s, problem))
             continue
-        if v.type == "clip" and p.options.get("allow_still_fallback", True):
+        if v.type == "clip" and fallback_allowed:
             still = next((ctx.dir / "images" / f"{s.scene_id}{e}" for e in IMAGE_EXT
                           if (ctx.dir / "images" / f"{s.scene_id}{e}").is_file()), None)
             if still:
@@ -102,18 +113,24 @@ def stage_media(ctx: ProjectContext, opts: dict) -> str:
         missing.append(s)
     if switched:
         ctx.save()
-    if not missing:
+    if not missing and not invalid:
         return f"all media present ({switched} still fallback(s))"
-    lines = [f"### Media ({len(missing)} missing)", "",
+    lines = [f"### Media ({len(missing)} missing, {len(invalid)} invalid)", "",
              "Create each file by hand (ChatGPT image -> Google Flow clip), save it at the path shown, "
-             "then re-run `studio run`. A `images/<scene_id>.png` alone is enough for a Ken Burns fallback.", ""]
+             "then re-run `studio run`.", ""]
+    if fallback_allowed:
+        lines += ["An `images/<scene_id>.png` alone is enough for a Ken Burns fallback.", ""]
+    else:
+        lines += ["Still fallback is disabled: keyframe images do not complete this video-clip gate.", ""]
+    for s, problem in invalid:
+        lines += [f"- [ ] **{s.scene_id}** -> `{s.visual.path}`: {problem}"]
     for s in missing:
         lines += [f"- [ ] **{s.scene_id}** -> `{s.visual.path}` ({s.duration_sec or '?'}s)"]
         if s.image_prompt:
             lines.append(f"  - image prompt: {s.image_prompt}")
         if s.video_prompt:
             lines.append(f"  - video prompt: {s.video_prompt}")
-    if not any(s.image_prompt or s.video_prompt for s in missing):
+    if missing and not any(s.image_prompt or s.video_prompt for s in missing):
         lines.append("\n(no prompts in project.json - write them or run the storyboard stage)")
     raise ManualGateRequired("media", "\n".join(lines) + "\n")
 
