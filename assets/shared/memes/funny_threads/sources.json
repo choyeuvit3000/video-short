@@ -193,6 +193,40 @@
         "vietnamese-meme",
         "pewpew"
       ]
+    },
+    {
+      "slug": "thay-giao-ba-cuoi",
+      "name": "Thầy Giáo Ba — bật cười",
+      "provider": "makeagif",
+      "page": "https://makeagif.com/gif/thay-giao-ba-cuoi-MFNY-u",
+      "media": "https://i.makeagif.com/media/12-05-2018/MFNY-u.gif",
+      "poster_at": 0.9,
+      "use_when": "Câu chốt làm người nghe bật cười",
+      "avoid_when": "Không chèn vào bài có người gặp nạn hoặc nội dung nghiêm túc.",
+      "sound_names": [],
+      "reference_match": "Vietnamese reaction from a publicly available GIF",
+      "tags": [
+        "vietnamese-meme",
+        "thay-giao-ba",
+        "vietnam-expansion-2"
+      ]
+    },
+    {
+      "slug": "double2t-a-loi",
+      "name": "À lôi — Double2T",
+      "provider": "tenor",
+      "page": "https://tenor.com/view/a-loi-aloi-%C3%A0-l%C3%B4i-2t-tuti-gif-13079157060145859159",
+      "media": "https://media1.tenor.com/m/tYKADMOJSlcAAAAd/a-loi-aloi.gif",
+      "poster_at": 2.1,
+      "use_when": "Ngạc nhiên hoặc tán thưởng một cú bẻ lái",
+      "avoid_when": "Không chèn vào bài có người gặp nạn hoặc nội dung nghiêm túc.",
+      "sound_names": [],
+      "reference_match": "Vietnamese reaction from a publicly available GIF",
+      "tags": [
+        "vietnamese-meme",
+        "double2t",
+        "vietnam-expansion-2"
+      ]
     }
   ],
   "imgflip_ids": [
@@ -496,13 +530,91 @@
         "mock-angry"
       ],
       "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/am-thanh-meme-tat-ahh-ban-goc",
+      "name": "Tát Ahh",
+      "provider": "tiengdong",
+      "use_when": "Chèn một nhịp va chạm hài khi câu chốt có cú hụt hoặc gắt đùa",
+      "language": "vi",
+      "tags": [
+        "vietnamese-meme",
+        "slap-reaction",
+        "vietnam-expansion-2"
+      ],
+      "avoid_when": "Giữ trọn nhịp chốt. Với bản dài, chọn một câu hoặc một hiệu ứng đúng mốc, tránh phủ lời đọc."
+    },
+    {
+      "page": "https://tiengdong.com/a-may-chet-may-chet-tao-mach-me",
+      "name": "Á mày chết, tao mách mẹ — Lê Bảo",
+      "provider": "tiengdong",
+      "use_when": "Bắt gặp một pha lỡ lời hoặc khoe bị bắt bài",
+      "language": "vi",
+      "tags": [
+        "vietnamese-meme",
+        "le-bao",
+        "vietnam-expansion-2"
+      ],
+      "avoid_when": "Giữ trọn nhịp chốt. Với bản dài, chọn một câu hoặc một hiệu ứng đúng mốc, tránh phủ lời đọc."
+    },
+    {
+      "page": "https://tiengdong.com/ua-gi-do-tran-my",
+      "name": "Ủa gì dợ — Trần My",
+      "provider": "tiengdong",
+      "use_when": "Ngơ ngác trước bình luận bẻ lái. Bản dài có nhiều lượt nói, thử nghe câu quanh giây tám hoặc giây mười ba.",
+      "language": "vi",
+      "tags": [
+        "vietnamese-meme",
+        "tran-my",
+        "vietnam-expansion-2"
+      ],
+      "avoid_when": "Giữ trọn nhịp chốt. Với bản dài, chọn một câu hoặc một hiệu ứng đúng mốc, tránh phủ lời đọc."
+    },
+    {
+      "page": "https://tiengdong.com/co-len-co-len-sap-toi-roi-sap-toi-roi-ban-goc",
+      "name": "Cố lên, sắp tới rồi",
+      "provider": "tiengdong",
+      "use_when": "Cổ vũ đùa khi nhân vật đang cố gắng",
+      "language": "vi",
+      "tags": [
+        "vietnamese-meme",
+        "encourage",
+        "vietnam-expansion-2"
+      ],
+      "avoid_when": "Giữ trọn nhịp chốt. Với bản dài, chọn một câu hoặc một hiệu ứng đúng mốc, tránh phủ lời đọc."
+    },
+    {
+      "page": "https://tiengdong.com/chay-di-cac-chau-oi-no-roi-ba-tan-vlog-ban-goc",
+      "name": "Chạy đi các cháu ơi — Bà Tân Vlog",
+      "provider": "tiengdong",
+      "use_when": "Vỡ kế hoạch theo hướng hài. Bản dài có câu kêu chạy ngay đầu và quanh giây mười lăm đến mười bảy.",
+      "language": "vi",
+      "tags": [
+        "vietnamese-meme",
+        "ba-tan",
+        "vietnam-expansion-2"
+      ],
+      "avoid_when": "Giữ trọn nhịp chốt. Với bản dài, chọn một câu hoặc một hiệu ứng đúng mốc, tránh phủ lời đọc."
+    },
+    {
+      "page": "https://tiengdong.com/noi-the-thi-chiu-roi-rambo",
+      "name": "Nói thế thì chịu rồi — Rambo, bản ngắn",
+      "provider": "tiengdong",
+      "use_when": "Chốt một lời đáp khiến hết đường phản biện",
+      "language": "vi",
+      "tags": [
+        "vietnamese-meme",
+        "rambo",
+        "vietnam-expansion-2"
+      ],
+      "avoid_when": "Giữ trọn nhịp chốt. Với bản dài, chọn một câu hoặc một hiệu ứng đúng mốc, tránh phủ lời đọc."
     }
   ],
   "creator_requests": [
     {
       "requested": "tát chết",
-      "status": "NEEDS_EXACT_REFERENCE",
-      "note": "Đang chờ người tạo gửi link hoặc mô tả nhân vật để xác định đúng bản. Mục Tát vỡ mồm giờ được giữ bằng tên thật riêng."
+      "status": "EXACT_SOURCE_UNIDENTIFIED_CONTINUE_CURATING",
+      "note": "Người tạo dặn “cứ tiếp tục đi”. Đã mở rộng kho bằng các bản có nguồn rõ, giữ Tát Ahh và Tát vỡ mồm giờ theo đúng tên nguồn. Chưa xác định bản riêng có tên tát chết."
     }
   ],
   "rejected_sources": [

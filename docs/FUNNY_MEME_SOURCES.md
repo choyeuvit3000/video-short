@@ -59,5 +59,5 @@ TiếngĐộng dùng URL trong chính audio player của bài. Bộ nhập từ 
 hoặc URL ngoài nguồn được hỗ trợ. Kiểm tra ASR lưu transcript thô cùng hash của bản thu. Tiếng cười và
 các câu quá ngắn có thể bị nhận dạng sai, nên cờ cần nghe thử phải được giữ khi chưa đủ bằng chứng.
 
-Yêu cầu “tát chết” đang chờ link hoặc mô tả nhân vật để xác định đúng bản. Sound “Tát vỡ mồm giờ”
-được lưu riêng bằng tên trên nguồn, để người tạo nghe và đối chiếu.
+Đợt tiếp theo thêm ảnh/clip Thầy Giáo Ba bật cười và Double2T “À lôi”, cùng sáu sound có nguồn.
+“Tát Ahh” và “Tát vỡ mồm giờ” giữ tên riêng của nguồn. Tên “tát chết” vẫn chưa xác định được bản cụ thể.
