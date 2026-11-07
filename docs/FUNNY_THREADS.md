@@ -22,6 +22,12 @@ Script acceptance precedes TTS. New cast members are quarantined project auditio
 Edge/Mai Anh remain blocked. Preserve the three creator checkpoints. Only the creator can waive a checkpoint for
 a named pilot; keep the exact response. Never label agent/ASR inspection as a human listening approval.
 
+Selected pronunciation repairs live in `voice_repairs.json`, bound to the script words, profile, speed and waveform hash.
+Resume must reuse the checked take rather than restoring an earlier rejected take. A brief conditioning lead-in may be
+removed only inside measured silence; preserve the full source, exact PCM crop coordinates and ASR provenance. Context
+recognition may provide the target window only after proving that the selected PCM is the exact corresponding source
+slice. Keep alternative raw decodes and unresolved regional spelling visible; this does not certify human pronunciation.
+
 ## Prepare and review
 
 ```powershell
@@ -65,6 +71,9 @@ Make a cover from an actual in-video image/comment and a short relevant title. P
 source credit. Do not use an unrelated woman as bait. The creator requested a one-tenth-second insert: at thirty fps,
 replace exactly three mid-video frames without moving the audio/timeline. Decode the three frames and both neighbors
 to verify the window. Also deliver a standalone `.cover.png` for upload. A flash frame does not force platform selection.
+Encode scene and cover parts with consistent BT.709 matrix/range/transfer/primaries. Inconsistent H.264 VUI in a reaction
+clip can make FFmpeg reset frame-based filters during concatenation. Normalize legacy scene tags without re-encoding,
+replace explicit pre/three-frame-cover/post ranges, and verify both decoded cover neighbors and the full frame count.
 As checked on November seven, YouTube's official help describes custom Shorts thumbnail uploads in desktop Studio:
 [YouTube thumbnail help](https://support.google.com/youtube/answer/72431?hl=en). Account availability still determines the UI.
 

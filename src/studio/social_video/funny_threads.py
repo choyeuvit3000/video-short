@@ -41,6 +41,94 @@ def cover_window(total_frames: int, duration_frames: int = 3) -> tuple[int, int]
     return start, start + duration_frames  # half-open: never four frames
 
 
+def compose_cover(visual: Path, cover: Path, audio: Path, draft: Path, timeline: dict) -> None:
+    """Encode explicit frame ranges, then join without framesync or timestamp drift."""
+    start, end = timeline["cover_frames"]
+    if end - start != 3:
+        raise ValueError("The cover replacement must span exactly three frames")
+    work = draft.parent / "cover_parts"
+    work.mkdir(parents=True, exist_ok=True)
+    parts = []
+    ranges = [("pre", 0, start), ("cover", 0, 3), ("post", end, timeline["total_frames"])]
+    for name, first, last in ranges:
+        part = work / f"{name}.mp4"
+        source = cover if name == "cover" else visual
+        key = digest([sha(source), first, last, "explicit-cover-parts-2-bt709"])
+        old = read(part.with_suffix(".json"), {})
+        if not part.is_file() or old.get("key") != key or old.get("sha256") != sha(part):
+            inputs = ["-loop", "1", "-framerate", "30", "-i", str(source)] if name == "cover" else ["-i", str(source)]
+            vf = f"trim=start_frame={first}:end_frame={last},setpts=PTS-STARTPTS,setsar=1"
+            if name == "cover":
+                vf += ",scale=out_color_matrix=bt709:out_range=tv"
+            run_ffmpeg(
+                [
+                    *inputs,
+                    "-vf",
+                    vf,
+                    "-frames:v",
+                    str(last - first),
+                    "-r",
+                    "30",
+                    "-fps_mode",
+                    "cfr",
+                    "-an",
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "veryfast",
+                    "-threads",
+                    "4",
+                    "-crf",
+                    "19",
+                    "-pix_fmt",
+                    "yuv420p",
+                    "-colorspace",
+                    "bt709",
+                    "-color_trc",
+                    "bt709",
+                    "-color_primaries",
+                    "bt709",
+                    "-color_range",
+                    "tv",
+                    str(part),
+                ],
+                stage="funny_cover_part",
+            )
+            count = int(next(s["nb_frames"] for s in probe(part).raw["streams"] if s.get("codec_type") == "video"))
+            if count != last - first:
+                raise ValueError("An explicit cover range lost video frames")
+            write(part.with_suffix(".json"), {"key": key, "sha256": sha(part)})
+        parts.append(part)
+    listing = work / "concat.txt"
+    listing.write_text("\n".join(f"file '{p.resolve().as_posix()}'" for p in parts), encoding="utf-8")
+    run_ffmpeg(
+        [
+            "-f",
+            "concat",
+            "-safe",
+            "0",
+            "-i",
+            str(listing),
+            "-i",
+            str(audio),
+            "-map",
+            "0:v:0",
+            "-map",
+            "1:a:0",
+            "-c:v",
+            "copy",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
+            "-t",
+            str(timeline["duration"]),
+            str(draft),
+        ],
+        stage="funny_cover_join",
+    )
+
+
 def turn_frames(audio_seconds: float, pause_seconds: float, minimum: float = 0) -> int:
     if not all(math.isfinite(x) and x >= 0 for x in [audio_seconds, pause_seconds, minimum]):
         raise ValueError("Turn durations must be finite and non-negative")
@@ -121,6 +209,25 @@ def _rms(samples: np.ndarray) -> float:
     return float(np.sqrt(np.mean(active**2))) if len(active) else 0.01
 
 
+def repair_source(beat: dict, profile, repair: dict) -> Path:
+    """A checked take must survive resume, bound to the exact script and voice."""
+    if (
+        repair.get("text_sha256") != hashlib.sha256(beat["narration"].encode()).hexdigest()
+        or repair.get("voice_signature") != signature(profile)
+        or repair.get("speed") != beat["speed"]
+    ):
+        raise ValidationError("Speech repair no longer matches the script/voice", code="review_voice_stale")
+
+    def lexical(text):
+        return re.findall(r"\w+", text.casefold())
+
+    if lexical(repair.get("tts_input", "")) != lexical(beat["narration"]):
+        raise ValidationError("A technical take may change punctuation, not approved words", code="review_voice_stale")
+    source = Path(repair["path"])
+    validate_files([{"path": str(source), "sha256": repair["sha256"]}])
+    return source
+
+
 def prepare_voice(folder: Path) -> dict:
     """Quarantined project audition only, after the creator's script acceptance."""
     folder = folder.resolve()
@@ -132,6 +239,7 @@ def prepare_voice(folder: Path) -> dict:
     work = folder / "work/funny_voice"
     work.mkdir(parents=True, exist_ok=True)
     previous = read(folder / "voice_manifest.json", {})
+    repairs = read(folder / "voice_repairs.json", {}).get("selected", {})
     assets, files, slots = {}, [], []
     cursor = 0
     for i, beat in enumerate(plan["beats"]):
@@ -142,7 +250,13 @@ def prepare_voice(folder: Path) -> dict:
             key = digest([narration, signature(profile), profile.params, VERSION])
             native = work / f"{beat['id']}_{key[:12]}.wav"
             cached = read(native.with_suffix(".cache.json"), {})
-            if not native.is_file() or cached.get("sha256") != sha(native):
+            if beat["id"] in repairs:
+                native = repair_source(beat, registry.get(VOICE_IDS[beat["voice"]]), repairs[beat["id"]])
+                write(
+                    native.with_suffix(".cache.json"),
+                    {"sha256": sha(native), "key": key, "selected_repair": True, "human_listening": "PENDING"},
+                )
+            elif not native.is_file() or cached.get("sha256") != sha(native):
                 # An audition does not admit a voice globally or consume a production fallback.
                 get_provider(profile.provider, registry).audition(narration, profile, native)
                 write(
@@ -190,6 +304,8 @@ def prepare_voice(folder: Path) -> dict:
     write(folder / "funny_timeline.json", timeline)
     mixed = mix(folder, plan, timeline)
     files += [mixed, folder / "funny_timeline.json"]
+    if (folder / "voice_repairs.json").is_file():
+        files.append(folder / "voice_repairs.json")
     manifest = {
         "mode": "funny_threads",
         "version": VERSION,
@@ -355,6 +471,8 @@ def voice_review_payload(folder: Path) -> dict:
         check = manifest.get("speech_checks", {}).get(key, {})
         if check.get("audio_sha256") != asset["sha256"] or check.get("status") != "ASR_CHECKED":
             raise ValidationError("Raw speech checks are missing or need repair", code="review_voice_stale")
+        if check.get("context_source"):
+            validate_files([{"path": check["context_source"], "sha256": check["context_sha256"]}])
         if any(x.get("evidence") == "MISSING_MARKER" for x in check.get("number_audit", {}).get("checks", [])):
             raise ValidationError("A critical spoken number marker is missing", code="review_number_check")
     files = [Path(x) for x in manifest["files"]] + [folder / "voice_manifest.json", folder / "CREDITS.txt"]
@@ -366,32 +484,86 @@ def voice_review_payload(folder: Path) -> dict:
     }
 
 
-def check_speech(folder: Path) -> dict:
+def check_speech(folder: Path, *, model: str = "large-v3-turbo") -> dict:
     from ..core.speech_checks import audit_numbers
     from ..providers.align import faster_whisper_words
 
+    repositories = {
+        "large-v3-turbo": "models--mobiuslabsgmbh--faster-whisper-large-v3-turbo",
+        "large-v3": "models--Systran--faster-whisper-large-v3",
+    }
+    if model not in repositories:
+        raise ValueError("Use a supported Vietnamese ASR model")
+    # Reuse the installed worker cache, including model-only snapshots. The current
+    # HF client can reject an otherwise usable snapshot because its README is absent.
+    import os
+
+    hf_home = Path(os.environ.get("HF_HOME") or get_settings().get("tts.vieneu.hf_home") or "D:/studio-node/hf")
+    cached = sorted((hf_home / "hub" / repositories[model] / "snapshots").glob("*/model.bin"))
+    model_path = str(cached[-1].parent) if cached else model
     manifest = read(folder / "voice_manifest.json")
+    plan = read(folder / "merged_plan.json")
+    repairs = read(folder / "voice_repairs.json", {}).get("selected", {})
     checks = {}
 
     def norm(s):
         return re.sub(r"[^\w]", "", s.lower())
 
     for key, asset in manifest["beats"].items():
-        words = faster_whisper_words(
-            Path(asset["audio"]), "vi", model="large-v3-turbo", device="cpu", compute_type="int8"
-        )
+        repair = repairs.get(plan["beats"][int(key)]["id"], {})
+        recognition_audio = Path(asset["audio"])
+        scope = {}
+        if repair.get("full_context_audio"):
+            context = Path(repair["full_context_audio"])
+            validate_files([{"path": str(context), "sha256": repair["full_context_sha256"]}])
+            with wave.open(str(context), "rb") as wav:
+                params = wav.getparams()
+                raw_context = wav.readframes(params.nframes)
+            with wave.open(asset["source"], "rb") as wav:
+                if wav.getparams()[:3] != params[:3]:
+                    raise ValueError("Context crop changed PCM encoding")
+                raw_target = wav.readframes(wav.getnframes())
+            offset = repair["crop_start_sample"] * params.sampwidth * params.nchannels
+            if raw_target != raw_context[offset:]:
+                raise ValueError("Context speech evidence does not reconstruct the selected PCM")
+            recognition_audio = context
+            scope = {
+                "recognition_scope": "Exact target window of full-context source PCM",
+                "context_source": str(context),
+                "context_sha256": sha(context),
+                "crop_start_seconds": repair["crop_start_sample"] / params.framerate,
+                "lossless_crop_verified": True,
+            }
+        words = faster_whisper_words(recognition_audio, "vi", model=model_path, device="cpu", compute_type="int8")
+        if scope:
+            from ..core.subtitles import Word
+
+            scope["raw_context_transcript"] = " ".join(w.text for w in words)
+            cut_ms = round(scope["crop_start_seconds"] * 1000)
+            words = [
+                Word(w.text, max(0, w.start_ms - cut_ms), w.end_ms - cut_ms) for w in words if w.start_ms >= cut_ms
+            ]
+            previous = manifest.get("speech_checks", {}).get(key, {})
+            if previous.get("audio_sha256") == asset["sha256"]:
+                scope["alternate_raw_transcript"] = previous.get("raw_transcript", "")
+            scope["human_listening_note"] = (
+                "A very short Central utterance has inconsistent ASR spelling of its final address term. "
+                "Preserve raw hypotheses; the creator waived separate listening and reviews the actual final mix."
+            )
         raw = " ".join(w.text for w in words)
         similarity = difflib.SequenceMatcher(None, norm(asset["text"]), norm(raw)).ratio()
         check = {
             "audio_sha256": asset["sha256"],
             "expected": asset["text"],
             "raw_transcript": raw,
-            "model": "large-v3-turbo",
+            "model": model,
+            "model_snapshot": model_path,
             "similarity": similarity,
             "status": "ASR_CHECKED" if similarity >= 0.87 else "NEEDS_REPAIR_OR_LISTENING",
             "human_listening": "PENDING",
             "number_audit": audit_numbers(asset["text"], words),
             "words": [{"text": w.text, "start_ms": w.start_ms, "end_ms": w.end_ms} for w in words],
+            **scope,
         }
         write(folder / f"work/speech_checks/funny_{key}.json", check)
         checks[key] = check
@@ -471,58 +643,51 @@ def render(folder: Path, output: Path) -> Path:
                     "19",
                     "-pix_fmt",
                     "yuv420p",
+                    "-colorspace",
+                    "bt709",
+                    "-color_trc",
+                    "bt709",
+                    "-color_primaries",
+                    "bt709",
+                    "-color_range",
+                    "tv",
                     str(clip),
                 ],
                 stage="funny_scene",
             )
             write(clip.with_suffix(".json"), {"key": key, "sha256": sha(clip)})
         clips.append(clip)
+    # Overlaying an untagged reaction can erase its matrix tag. Concatenating
+    # these SPS variants makes FFmpeg reset frame-based filters at every change.
+    for clip in clips:
+        stream = next(s for s in probe(clip).raw["streams"] if s.get("codec_type") == "video")
+        if stream.get("color_space") != "bt709":
+            normalized = clip.with_name(clip.stem + ".color-normalized.mp4")
+            run_ffmpeg(
+                [
+                    "-i",
+                    str(clip),
+                    "-map",
+                    "0:v:0",
+                    "-c:v",
+                    "copy",
+                    "-bsf:v",
+                    "h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1:video_full_range_flag=0",
+                    str(normalized),
+                ],
+                stage="funny_color_metadata",
+            )
+            normalized.replace(clip)
+            cache = read(clip.with_suffix(".json"))
+            cache.update(sha256=sha(clip), color_metadata="bt709")
+            write(clip.with_suffix(".json"), cache)
     listing = work / "concat.txt"
     listing.write_text("\n".join(f"file '{x.as_posix()}'" for x in clips), encoding="utf-8")
     visual = work / "continuous.mp4"
     run_ffmpeg(["-f", "concat", "-safe", "0", "-i", str(listing), "-c", "copy", str(visual)], stage="funny_concat")
     a, b = timeline["cover_frames"]
     draft = work / "draft.mp4"
-    run_ffmpeg(
-        [
-            "-i",
-            str(visual),
-            "-loop",
-            "1",
-            "-framerate",
-            "30",
-            "-i",
-            str(folder / "cover_preview.png"),
-            "-i",
-            str(folder / "work/funny_voice/full_mix.wav"),
-            "-filter_complex",
-            f"[0:v][1:v]overlay=0:0:enable='between(n,{a},{b - 1})':shortest=1[v]",
-            "-map",
-            "[v]",
-            "-map",
-            "2:a",
-            "-frames:v",
-            str(timeline["total_frames"]),
-            "-t",
-            str(timeline["duration"]),
-            "-c:v",
-            "libx264",
-            "-preset",
-            "veryfast",
-            "-threads",
-            "4",
-            "-crf",
-            "19",
-            "-pix_fmt",
-            "yuv420p",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "192k",
-            str(draft),
-        ],
-        stage="funny_cover",
-    )
+    compose_cover(visual, folder / "cover_preview.png", folder / "work/funny_voice/full_mix.wav", draft, timeline)
     verify_cover(draft, folder / "cover_preview.png", timeline)
     result = publish(draft, output, {"video": {"width": 1080, "height": 1920}})
     verify_cover(result, folder / "cover_preview.png", timeline)
@@ -530,12 +695,13 @@ def render(folder: Path, output: Path) -> Path:
     shutil.copy2(folder / "CREDITS.txt", result.with_suffix(".credits.txt"))
     from ..core.creative_brief import finish_render
 
-    finish_render(folder, True)
+    finish_render(folder, True, [str(result)])
     write(folder / "native_render_cache.json", {"outputs": [{"path": str(result), "sha256": sha(result)}]})
     write(
         result.with_suffix(".metadata.json"),
         {
             "mode": "funny_threads",
+            "title": plan["title"],
             "version": VERSION,
             "render_signature": fingerprint,
             "sha256": sha(result),
