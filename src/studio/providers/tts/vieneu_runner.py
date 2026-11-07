@@ -13,10 +13,17 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import sys
 import time
+import unicodedata
 from importlib.metadata import version
 from pathlib import Path
+
+
+def _blocked(name):
+    normalized = re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", name).lower())
+    return not normalized or any(token in normalized for token in ("maianh", "quangson"))
 
 
 def main() -> int:
@@ -48,7 +55,13 @@ def main() -> int:
             (Path(vieneu.__file__).parent / "assets/voices_v3_turbo.json").read_text(encoding="utf-8")
         )["presets"]
         rate = int(getattr(tts, "sample_rate", 48000))
-        voices = [v for _, v in tts.list_preset_voices()]
+        banned_codes = [spec["codes"] for name, spec in presets.items() if _blocked(name) and spec.get("codes")]
+        voices = [
+            v for _, v in tts.list_preset_voices()
+            if not _blocked(v)
+            and not any(_blocked(alias) for alias in presets.get(v, {}).get("aliases", []))
+            and not any(presets.get(v, {}).get("codes") == codes for codes in banned_codes)
+        ]
     except Exception as e:  # noqa: BLE001 - reported to the caller, which falls back to another voice
         proto.write(json.dumps({"ok": False, "error": f"load failed: {type(e).__name__}: {e}"}) + "\n")
         proto.flush()
@@ -67,14 +80,8 @@ def main() -> int:
             continue
         try:
             req = json.loads(line)
-            if req.get("voice") and req["voice"] not in voices:
-                raise ValueError(f"unknown VieNeu voice {req['voice']!r}")
-            import re
-            import unicodedata
-
-            name = re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", req.get("voice") or "").lower())
-            if not name or "maianh" in name:
-                raise ValueError("Mai Anh/default voice is permanently blacklisted")
+            if req.get("voice") not in voices:
+                raise ValueError("Unknown, unspecified or blacklisted VieNeu voice")
             if req.get("preset_sha256"):
                 actual = hashlib.sha256(
                     json.dumps(presets[req["voice"]], sort_keys=True, ensure_ascii=False).encode()

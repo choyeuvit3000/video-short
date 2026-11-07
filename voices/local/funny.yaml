@@ -26,7 +26,7 @@ profiles:
   lang: vi
   tier: local
   provider: vieneu
-  status: experimental
+  status: disabled
   location: node:home-gpu
   params:
     voice: Quang Sơn
@@ -66,3 +66,49 @@ profiles:
   files: []
   license: Apache-2.0 (VieNeu-TTS v3 Turbo)
   description: Nam · Bắc · Phong cách tin tức
+
+- id: vieneu-gallery-ngoc-tran
+  lang: vi
+  tier: local
+  provider: vieneu
+  status: experimental
+  location: node:home-gpu
+  params:
+    voice: Ngọc Trân
+    model: pnnbao-ump/VieNeu-TTS-v3-Turbo
+    revision: 61b85e3d937fbbacb387714180e8182823512523
+    model_subfolder: update
+    package_version: 3.8.3
+    preset_sha256: bb210811de1d4a701051a3f730a8ea205b8c412ffed6243d5a4f4193a13688be
+    temperature: 0.55
+    seed: 42
+    speed: 1.0
+    scene_tail_pad_sec: 0.06
+  cost_per_1k_chars: 0
+  fallback: null
+  files: []
+  license: Apache-2.0 (VieNeu-TTS v3 Turbo)
+  description: Nữ · Trung · Phong cách tự nhiên
+
+- id: vieneu-gallery-hai-dang
+  lang: vi
+  tier: local
+  provider: vieneu
+  status: experimental
+  location: node:home-gpu
+  params:
+    voice: Hải Đăng
+    model: pnnbao-ump/VieNeu-TTS-v3-Turbo
+    revision: 61b85e3d937fbbacb387714180e8182823512523
+    model_subfolder: update
+    package_version: 3.8.3
+    preset_sha256: 6747c0cd1bb7c14526ae2657076190af83efbb5ef3f83b4b246b5632d96a86d8
+    temperature: 0.55
+    seed: 42
+    speed: 1.0
+    scene_tail_pad_sec: 0.06
+  cost_per_1k_chars: 0
+  fallback: null
+  files: []
+  license: Apache-2.0 (VieNeu-TTS v3 Turbo)
+  description: Nam · Bắc · Phong cách tự nhiên

@@ -23,13 +23,13 @@ def blocked(provider, voice_id="", params=None):
     if normalize(voice_id).startswith(("edge", "microsoftedge")):
         return True
     names = [voice_id, (params or {}).get("voice", ""), (params or {}).get("speaker", "")]
-    return any("maianh" in normalize(name) for name in names)
+    return any(token in normalize(name) for name in names for token in ("maianh", "quangson"))
 
 
 def assert_not_blocked(provider, voice_id="", params=None):
     if blocked(provider, voice_id, params):
         raise ValidationError(
-            "Edge and Mai Anh are permanently blacklisted, including aliases, random and fallback",
+            "Edge, Mai Anh and Quang Sơn are permanently blacklisted, including aliases, random and fallback",
             code="voice_blacklisted",
         )
 

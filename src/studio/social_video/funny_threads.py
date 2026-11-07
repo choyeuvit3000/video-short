@@ -32,6 +32,8 @@ VOICE_IDS = {
     "Mỹ Duyên": "vieneu-gallery-my-duyen",
     "Quang Sơn": "vieneu-gallery-quang-son",
     "Minh Đức": "vieneu-gallery-minh-duc",
+    "Ngọc Trân": "vieneu-gallery-ngoc-tran",
+    "Hải Đăng": "vieneu-gallery-hai-dang",
 }
 
 
@@ -40,6 +42,21 @@ def cover_window(total_frames: int, duration_frames: int = 3) -> tuple[int, int]
         raise ValueError("The requested one-tenth-second cover must occupy exactly three frames at 30 fps")
     start = total_frames // 2
     return start, start + duration_frames  # half-open: never four frames
+
+
+def cover_in_pause(slots, total):
+    candidates = []
+    for left, right in zip(slots[:-1], slots[1:], strict=True):
+        end = right["first_frame"]
+        if not 0.35 * total <= end <= 0.65 * total or not (left["audio"] and right["audio"]):
+            continue
+        speech_end = left["first_frame"] + math.ceil(probe(Path(left["audio"])).duration * FPS)
+        if speech_end <= end - 3:
+            candidates.append(end - 3)
+    if not candidates:
+        return cover_window(total)
+    start = min(candidates, key=lambda frame: abs(frame - total // 2))
+    return start, start + 3
 
 
 def compose_cover(visual: Path, cover: Path, audio: Path, draft: Path, timeline: dict) -> None:
@@ -168,6 +185,20 @@ def cast_signature(plan: dict, registry) -> dict:
     return {"version": VERSION, "cast": choices, "plan_sha256": digest(plan)}
 
 
+def revised_cast(plan, edit):
+    overrides = (edit or {}).get("voice_overrides", {})
+    if not overrides:
+        return plan, set()
+    names = {beat["voice"] for beat in plan["beats"] if beat.get("narration")}
+    if set(overrides) - names:
+        raise ValueError("Replace an existing speaking voice")
+    for replacement in overrides.values():
+        if set(replacement) != {"voice", "region", "gender"} or replacement["voice"] not in VOICE_IDS:
+            raise ValueError("A replacement must name a registered voice, region and gender")
+    replaced = {beat["id"] for beat in plan["beats"] if beat.get("voice") in overrides}
+    return {**plan, "beats": [{**beat, **overrides.get(beat.get("voice"), {})} for beat in plan["beats"]]}, replaced
+
+
 def validate_files(files: list[dict]) -> None:
     for entry in files:
         if sha(Path(entry["path"])) != entry["sha256"]:
@@ -238,9 +269,10 @@ def prepare_voice(folder: Path, *, reuse_checked: bool = False) -> dict:
     folder = folder.resolve()
     require(folder, "script")
     plan = read(folder / "merged_plan.json")
+    edit = load_edit(folder, plan)
+    plan, replaced = revised_cast(plan, edit)
     registry = load_registry(get_settings())
     choices = cast_signature(plan, registry)
-    edit = load_edit(folder, plan)
     if reuse_checked and not edit:
         raise ValueError("Prepare funny_edit.json before reusing the checked speech")
     if edit:
@@ -267,8 +299,9 @@ def prepare_voice(folder: Path, *, reuse_checked: bool = False) -> dict:
             key = digest([narration, signature(profile), profile.params, VERSION])
             native = work / f"{beat['id']}_{key[:12]}.wav"
             cached = read(native.with_suffix(".cache.json"), {})
-            if beat["id"] in repairs:
-                native = repair_source(beat, registry.get(VOICE_IDS[beat["voice"]]), repairs[beat["id"]])
+            repair = repairs.get(beat["id"], {})
+            if repair and (beat["id"] not in replaced or repair.get("voice_signature") == signature(profile)):
+                native = repair_source(beat, registry.get(VOICE_IDS[beat["voice"]]), repair)
                 write(
                     native.with_suffix(".cache.json"),
                     {"sha256": sha(native), "key": key, "selected_repair": True, "human_listening": "PENDING"},
@@ -310,12 +343,13 @@ def prepare_voice(folder: Path, *, reuse_checked: bool = False) -> dict:
             }
         )
         cursor += frames
+    cover_frames = cover_in_pause(slots, cursor) if edit and edit.get("transition_frames") else cover_window(cursor)
     timeline = {
         "fps": FPS,
         "total_frames": cursor,
         "duration": cursor / FPS,
         "slots": slots,
-        "cover_frames": cover_window(cursor),
+        "cover_frames": cover_frames,
         "cast_choices": choices,
     }
     if edit:
@@ -499,6 +533,7 @@ def _checked_speech(plan: dict, manifest: dict, expected: dict) -> None:
 
 def voice_review_payload(folder: Path) -> dict:
     plan = read(folder / "merged_plan.json")
+    plan, _ = revised_cast(plan, read(folder / "funny_edit.json", {}))
     manifest = read(folder / "voice_manifest.json")
     expected = cast_signature(plan, load_registry(get_settings()))
     validate_files(manifest["input_files"])
@@ -512,7 +547,7 @@ def voice_review_payload(folder: Path) -> dict:
     }
 
 
-def check_speech(folder: Path, *, model: str = "large-v3-turbo") -> dict:
+def check_speech(folder: Path, *, model: str = "large-v3-turbo", beats: set[str] | None = None) -> dict:
     from ..core.speech_checks import audit_numbers
     from ..providers.align import faster_whisper_words
 
@@ -531,14 +566,28 @@ def check_speech(folder: Path, *, model: str = "large-v3-turbo") -> dict:
     model_path = str(cached[-1].parent) if cached else model
     manifest = read(folder / "voice_manifest.json")
     plan = read(folder / "merged_plan.json")
+    plan, replaced = revised_cast(plan, read(folder / "funny_edit.json", {}))
     repairs = read(folder / "voice_repairs.json", {}).get("selected", {})
-    checks = {}
+    checks = dict(manifest.get("speech_checks", {})) if beats is not None else {}
 
     def norm(s):
         return re.sub(r"[^\w]", "", s.lower())
 
     for key, asset in manifest["beats"].items():
-        repair = repairs.get(plan["beats"][int(key)]["id"], {})
+        beat_id = plan["beats"][int(key)]["id"]
+        if beats is not None and beat_id not in beats:
+            continue
+        previous = manifest.get("speech_checks", {}).get(key, {})
+        if (
+            replaced and (beat_id not in replaced or previous.get("model") == model)
+            and previous.get("status") == "ASR_CHECKED"
+            and previous.get("audio_sha256") == sha(Path(asset["audio"])) == asset["sha256"]
+        ):
+            checks[key] = previous
+            continue
+        repair = repairs.get(beat_id, {})
+        if beat_id in replaced and repair.get("sha256") != asset.get("source_sha256"):
+            repair = {}
         recognition_audio = Path(asset["audio"])
         scope = {}
         if repair.get("full_context_audio"):
@@ -569,7 +618,7 @@ def check_speech(folder: Path, *, model: str = "large-v3-turbo") -> dict:
             scope["raw_context_transcript"] = " ".join(w.text for w in words)
             cut_ms = round(scope["crop_start_seconds"] * 1000)
             words = [
-                Word(w.text, max(0, w.start_ms - cut_ms), w.end_ms - cut_ms) for w in words if w.start_ms >= cut_ms
+                Word(w.text, max(0, w.start_ms - cut_ms), w.end_ms - cut_ms) for w in words if w.end_ms > cut_ms
             ]
             previous = manifest.get("speech_checks", {}).get(key, {})
             if previous.get("audio_sha256") == asset["sha256"]:
@@ -605,12 +654,14 @@ def render(folder: Path, output: Path) -> Path:
     require(folder, "voice")
     plan = read(folder / "merged_plan.json")
     edit = load_edit(folder, plan)
+    plan, _ = revised_cast(plan, edit)
     timeline = read(folder / "funny_timeline.json")
     validate_files(timeline["inputs"])
     from ..core.creative_brief import reserve_render
 
     overlays = [folder / f"work/previews/layout_{b['id']}.png" for b in plan["beats"]]
-    fingerprint = digest([timeline, sha(folder / "work/funny_voice/full_mix.wav"), [sha(p) for p in overlays], VERSION])
+    overlay_hashes = [sha(p) for p in overlays]
+    fingerprint = digest([timeline, sha(folder / "work/funny_voice/full_mix.wav"), overlay_hashes, VERSION])
     completed = read(output.with_suffix(".metadata.json"), {})
     if output.is_file() and completed.get("render_signature") == fingerprint and completed.get("sha256") == sha(output):
         return output
@@ -620,9 +671,15 @@ def render(folder: Path, output: Path) -> Path:
     work = folder / "work/funny_render"
     work.mkdir(parents=True, exist_ok=True)
     clips = []
-    for slot, beat, overlay in zip(timeline["slots"], plan["beats"], overlays, strict=True):
+    for index, (slot, beat, overlay) in enumerate(zip(timeline["slots"], plan["beats"], overlays, strict=True)):
         clip = work / f"{beat['id']}.mp4"
-        key = digest([slot, sha(overlay), timeline["inputs"], VERSION])
+        fade = min((edit or {}).get("transition_frames", 0), (slot["frames"] - 1) // 2)
+        fades = []
+        if fade and index and overlay_hashes[index - 1] != overlay_hashes[index]:
+            fades.append(f"fade=t=in:s=0:n={fade}:alpha=1")
+        if fade and index + 1 < len(overlays) and overlay_hashes[index + 1] != overlay_hashes[index]:
+            fades.append(f"fade=t=out:s={slot['frames'] - fade - 1}:n={fade}:alpha=1")
+        key = digest([slot, overlay_hashes[index], timeline["inputs"], fades, VERSION])
         cache = read(clip.with_suffix(".json"), {})
         if not clip.is_file() or cache.get("key") != key or cache.get("sha256") != sha(clip):
             start = plan["background"]["start_seconds"] + slot["first_frame"] / FPS
@@ -640,19 +697,25 @@ def render(folder: Path, output: Path) -> Path:
                 str(overlay),
             ]
             brightness = 1 - float(plan["background"].get("darken", 0.2))
+            card = "[1:v]format=rgba," + ",".join(fades) + "[card];" if fades else ""
+            card_input = "[card]" if fades else "[1:v]"
             vf = (
                 "[0:v]scale=1080:1920:flags=lanczos,setsar=1,fps=30,eq=saturation=0.85,"
                 f"colorchannelmixer=rr={brightness}:gg={brightness}:bb={brightness}[bg];"
-                "[bg][1:v]overlay=0:0:shortest=1[v]"
+                f"{card}[bg]{card_input}overlay=0:0:shortest=1[v]"
             )
-            if edit and beat["id"] in edit["reactions"]:
-                cue = edit["reactions"][beat["id"]]
+            cue = edit["reactions"].get(beat["id"], {}) if edit else {}
+            if cue.get("video_id"):
                 asset = edit["assets"][cue["video_id"]]
                 x, y, width, height = reaction_geometry(asset, plan, cue["source_crop"])
                 inputs += ["-ss", str(cue.get("start_seconds", 0)), "-i", asset["path"]]
+                ease = (
+                    ",format=rgba,fade=t=in:s=0:n=3:alpha=1,"
+                    f"fade=t=out:s={slot['frames'] - 4}:n=3:alpha=1" if fade and slot["frames"] >= 8 else ""
+                )
                 vf = (
                     vf.replace("[v]", "[base]")
-                    + f";[2:v]crop=iw:min(ih\\,iw):0:0,scale={width}:{height}:flags=lanczos,setsar=1[reaction];"
+                    + f";[2:v]crop=iw:min(ih\\,iw):0:0,scale={width}:{height}:flags=lanczos,setsar=1{ease}[reaction];"
                     + f"[base][reaction]overlay={x}:{y}[v]"
                 )
             run_ffmpeg(

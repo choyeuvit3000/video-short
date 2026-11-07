@@ -19,7 +19,7 @@ add a comment only to demonstrate another voice. A brief apparent contradiction 
 The creator's fourth reference is useful for a setup/reveal and reaction-cover composition, not for an accusation.
 
 Script acceptance precedes TTS. New cast members are quarantined project auditions, never a random/fallback pool.
-Edge/Mai Anh remain blocked. Preserve the three creator checkpoints. Only the creator can waive a checkpoint for
+Edge, Mai Anh and Quang Sơn remain blocked. Preserve the three creator checkpoints. Only the creator can waive a checkpoint for
 a named pilot; keep the exact response. Never label agent/ASR inspection as a human listening approval.
 
 Selected pronunciation repairs live in `voice_repairs.json`, bound to the script words, profile, speed and waveform hash.
@@ -75,6 +75,16 @@ then rebuilds the layout and mix. Reactions sit above the relevant source card. 
 cover. Keep usernames within the captured cards and source details in metadata and the credits file. The render receives
 a revision suffix so the previous result remains available for comparison. The normal creator checkpoints and render
 budget still apply.
+
+Use a short fade of the source card when it changes while gameplay continues. A reaction beat can hold the same
+card and play one sound cue. Place the three-frame cover in a speech-free pause near the middle where available.
+Apply cast replacements through `voice_overrides` in `funny_edit.json` and run `--action voice` plus speech checks.
+The approved narration stays in `merged_plan.json`. Preserve English spellings in the source image and use natural
+Vietnamese in speech, such as “có nét riêng” for “niche”.
+
+The worker on D uses a pinned VieNeu v3 Turbo checkpoint. VieNeu v4 is a separate hosted engine and requires
+cloud API credentials. A render revision number and the local worker's `sequential-v4` tag identify the edit and
+runtime respectively. The model identity is the pinned checkpoint in the voice profile.
 
 Make a cover from an actual in-video image/comment and a short relevant title. Preserve context, faces and readable
 source credit. Do not use an unrelated woman as bait. The creator requested a one-tenth-second insert: at thirty fps,

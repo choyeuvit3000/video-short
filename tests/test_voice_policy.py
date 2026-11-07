@@ -16,6 +16,8 @@ from studio.voices import VoiceProfile, VoiceRegistry
         ("", "edge-vi-HoaiMy"),
         ("vieneu", "Mai Anh"),
         ("vieneu", "MÁI-ANH"),
+        ("vieneu", "Quang Sơn"),
+        ("", "vieneu-gallery-quang-son"),
     ],
 )
 def test_blacklist_aliases(provider, name):
@@ -26,6 +28,12 @@ def test_audition_never_bypasses_blacklist(tmp_path):
     with pytest.raises(ValidationError):
         assert_voice_allowed(
             VoiceProfile("x", "vi", "local", "vieneu", params={"voice": "Mai Anh"}), tmp_path, audition=True
+        )
+    with pytest.raises(ValidationError, match="blacklisted"):
+        assert_voice_allowed(
+            VoiceProfile("alternate-id", "vi", "local", "vieneu", params={"voice": "QUANG SƠN"}),
+            tmp_path,
+            audition=True,
         )
 
 

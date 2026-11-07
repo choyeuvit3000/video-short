@@ -47,12 +47,12 @@ def main():
         try:
             req = json.loads(line)
             name = re.sub(r"[^a-z0-9]", "", unicodedata.normalize("NFKD", req.get("voice", "")).lower())
-            if not name or "maianh" in name or name.startswith(("edge", "microsoftedge")):
+            if not name or any(x in name for x in ("maianh", "quangson")) or name.startswith(("edge", "microsoftedge")):
                 raise ValueError("Blacklisted or missing voice identity")
             ref = Path(req["ref_audio"])
             ref_name = re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", str(ref)).lower())
-            if "maianh" in ref_name:
-                raise ValueError("Mai Anh cannot be used as a cloning reference")
+            if any(x in ref_name for x in ("maianh", "quangson")):
+                raise ValueError("Blacklisted voices cannot be used as cloning references")
             digest = hashlib.sha256(ref.read_bytes()).hexdigest()
             if digest != req["ref_sha256"]:
                 raise ValueError("Reference audio changed")

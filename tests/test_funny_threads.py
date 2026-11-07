@@ -174,7 +174,7 @@ def test_context_asr_requires_exact_selected_pcm_and_removes_only_prefix(tmp_pat
         "faster_whisper_words",
         lambda *a, **kw: [
             Word("Lời dẫn.", 0, 400),
-            Word("Như", 600, 750),
+            Word("Như", 450, 750),
             Word("này", 750, 900),
             Word("hả", 900, 1100),
             Word("bà?", 1100, 1200),
@@ -182,7 +182,7 @@ def test_context_asr_requires_exact_selected_pcm_and_removes_only_prefix(tmp_pat
     )
     result = check_speech(tmp_path)["0"]
     assert result["raw_transcript"] == "Như này hả bà?"
-    assert result["words"][0]["start_ms"] == 100
+    assert result["words"][0]["start_ms"] == 0
     assert result["lossless_crop_verified"] is True
     assert result["human_listening"] == "PENDING"
     assert read(tmp_path / "voice_manifest.json")["speech_checks"]["0"]["raw_context_transcript"].startswith("Lời dẫn.")

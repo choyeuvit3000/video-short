@@ -24,6 +24,9 @@ def load_edit(folder, plan):
         raise ValueError("The edit hook needs one or two short lines")
     if sum(len(x.split()) for x in hook) > 8:
         raise ValueError("The edit hook must fit eight words")
+    transition = edit.get("transition_frames", 0)
+    if type(transition) is not int or not 0 <= transition <= 9:
+        raise ValueError("Use zero to nine frames for the card transitions")
     crops = plan["source"]["crops"]
     known = {x["id"]: x for x in load_curated()}
     selected = {}
@@ -44,10 +47,13 @@ def load_edit(folder, plan):
     for ident, cue in edit["reactions"].items():
         if cue["source_crop"] not in crops:
             raise ValueError("A reaction must retain the source card it responds to")
-        video = asset(cue["video_id"], "video")
-        start = float(cue.get("start_seconds", 0))
-        if not math.isfinite(start) or start < 0 or start + float(reactions[ident]["duration"]) > video["duration"]:
-            raise ValueError(f"Reaction clip cannot cover the slot: {cue['video_id']}")
+        if not (cue.get("video_id") or cue.get("sound_id")):
+            raise ValueError("A reaction needs a clip, a sound, or both")
+        if cue.get("video_id"):
+            video = asset(cue["video_id"], "video")
+            start = float(cue.get("start_seconds", 0))
+            if not math.isfinite(start) or start < 0 or start + float(reactions[ident]["duration"]) > video["duration"]:
+                raise ValueError(f"Reaction clip cannot cover the slot: {cue['video_id']}")
         if cue.get("sound_id"):
             asset(cue["sound_id"], "sound")
     return {**edit, "assets": selected}
