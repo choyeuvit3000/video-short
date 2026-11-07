@@ -31,7 +31,7 @@ slice. Keep alternative raw decodes and unresolved regional spelling visible; th
 ## Prepare and review
 
 ```powershell
-.venv/Scripts/python.exe scripts/prepare_funny_threads_assets.py
+.venv/Scripts/python.exe -m studio social-assets refresh-funny
 .venv/Scripts/python.exe -m studio funny-threads PROJECT --action layouts
 .venv/Scripts/python.exe -m studio preflight PROJECT
 .venv/Scripts/python.exe -m studio review PROJECT --stage script
@@ -62,10 +62,11 @@ The new tracks were downloaded from the composer's official site. They require a
 render's `.credits.txt` into the publication description. Official terms:
 [Incompetech music FAQ](https://incompetech.com/music/royalty-free/faq.html).
 
-`assets/shared/overlays/funny_originals/library.json` indexes eight original procedural effects and two original vector
-mascot reactions, each as an image and a short animated clip. These are original project assets, not recordings of the
-trending named effects. Keep their hashes. The Kenney CC0 pack is documented but its download returned HTTP 403;
-do not count it as installed. Plants vs. Zombies is a mood reference, not verified free production music.
+The creator rejected the original mascots and editorial cards as meme substitutes. They remain archived in
+`assets/shared/overlays/funny_originals/library.json`, marked `is_meme: false`, and cannot enter the funny Threads pool.
+Use the real source-backed reaction catalog in `assets/shared/memes/funny_threads/library.json` and follow
+`docs/FUNNY_MEME_SOURCES.md`. Do not use the old procedural sound effects as replacements for named meme recordings.
+Plants vs. Zombies remains a mood reference rather than a verified free production track.
 
 Make a cover from an actual in-video image/comment and a short relevant title. Preserve context, faces and readable
 source credit. Do not use an unrelated woman as bait. The creator requested a one-tenth-second insert: at thirty fps,

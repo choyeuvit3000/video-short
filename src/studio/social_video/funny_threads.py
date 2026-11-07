@@ -176,6 +176,10 @@ def validate_files(files: list[dict]) -> None:
 def snapshot(folder: Path, plan: dict) -> list[dict]:
     root = ROOT / "assets"
     library = read(root / "shared/overlays/funny_originals/library.json")
+    if any(b.get("reaction") in {"xin-anh-minh-hoa", "binh-luan-thanh-album"} for b in plan["beats"]):
+        raise ValueError(
+            "Người tạo đã loại thẻ mèo tự vẽ khỏi meme. Chọn ảnh/clip thật trong kho funny_threads trước khi gen lại."
+        )
     music = next(x for x in read(root / "shared/music/library.json")["tracks"] if x["id"] == plan["music_id"])
     if not music.get("production_eligible"):
         raise ValueError("Music is a reference/preview, not an eligible production asset")

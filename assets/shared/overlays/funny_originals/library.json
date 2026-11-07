@@ -14,7 +14,10 @@
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "functional_effect"
     },
     {
       "id": "s:studio-original/comic-boing",
@@ -29,7 +32,10 @@
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "functional_effect"
     },
     {
       "id": "s:studio-original/reveal-dings",
@@ -44,7 +50,10 @@
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "functional_effect"
     },
     {
       "id": "s:studio-original/question-chirp",
@@ -59,7 +68,10 @@
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "functional_effect"
     },
     {
       "id": "s:studio-original/soft-bonk",
@@ -74,7 +86,10 @@
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "functional_effect"
     },
     {
       "id": "s:studio-original/short-whoosh",
@@ -89,7 +104,10 @@
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "functional_effect"
     },
     {
       "id": "s:studio-original/mini-ta-da",
@@ -104,7 +122,10 @@
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "functional_effect"
     },
     {
       "id": "s:studio-original/comic-down",
@@ -119,7 +140,10 @@
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "functional_effect"
     },
     {
       "id": "i:studio-original/xin-anh-minh-hoa",
@@ -128,14 +152,18 @@
       "sha256": "b16091c4bac34244476ea891bc6c831ee265c5dae18926bc0ae2b3a2f36c6a21",
       "source": "code_drawn_original",
       "rights": "Created locally for this project; no external license granted",
-      "production_eligible": true,
+      "production_eligible": false,
       "panels": 1,
       "duration": null,
       "tags": [
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "editorial_overlay",
+      "status": "CREATOR_REJECTED_NOT_MEME"
     },
     {
       "id": "v:studio-original/xin-anh-minh-hoa",
@@ -144,14 +172,18 @@
       "sha256": "ef18cb760933c8707c78c9acfac9f301716ce6bbd8abe5ee74a5247bc3cf047a",
       "source": "code_drawn_original",
       "rights": "Created locally for this project; no external license granted",
-      "production_eligible": true,
+      "production_eligible": false,
       "panels": 1,
       "duration": 1.6,
       "tags": [
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "editorial_overlay",
+      "status": "CREATOR_REJECTED_NOT_MEME"
     },
     {
       "id": "i:studio-original/binh-luan-thanh-album",
@@ -160,14 +192,18 @@
       "sha256": "be89d10176ab6a25aed7db0e9b86f51a2f1552dc50f386b44e5550713c11f91b",
       "source": "code_drawn_original",
       "rights": "Created locally for this project; no external license granted",
-      "production_eligible": true,
+      "production_eligible": false,
       "panels": 1,
       "duration": null,
       "tags": [
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "editorial_overlay",
+      "status": "CREATOR_REJECTED_NOT_MEME"
     },
     {
       "id": "v:studio-original/binh-luan-thanh-album",
@@ -176,14 +212,18 @@
       "sha256": "4af06c9fbd46fd1119c8e0a0dc6c491ecf2019b950d6a39fe4fc824cdb04fa47",
       "source": "code_drawn_original",
       "rights": "Created locally for this project; no external license granted",
-      "production_eligible": true,
+      "production_eligible": false,
       "panels": 1,
       "duration": 1.6,
       "tags": [
         "funny_threads",
         "vn_editorial"
       ],
-      "version": "funny-originals-1"
+      "version": "funny-originals-1",
+      "is_meme": false,
+      "funny_threads_allowed": false,
+      "role": "editorial_overlay",
+      "status": "CREATOR_REJECTED_NOT_MEME"
     }
   ],
   "selection_policy": "Source-related, restrained cues; no repetitions inside one pilot; no sensitive topics.",
@@ -200,5 +240,6 @@
     "status": "RIGHTS_NOT_VERIFIED_REFERENCE_ONLY",
     "production_eligible": false,
     "note": "Use a cheerful game-like mood, not an unlicensed OST copy."
-  }
+  },
+  "creator_feedback": "Rejected as funny Threads meme substitutes; preserve only as legacy editorial/effect assets."
 }

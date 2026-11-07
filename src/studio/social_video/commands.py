@@ -194,12 +194,17 @@ def register(app):
     def assets(action: Annotated[str, typer.Argument()] = 'scan', source: Path | None = None, seconds: float = 60):
         from . import memes
         if action=='scan': memes.scan()
+        elif action=='refresh-funny':
+            from .reaction_assets import refresh
+            print(refresh())
         elif action=='fetch': memes.fetch(load_config())
         elif action=='import-background' and source:
             from .prepare_assets import import_background
             result = import_background(source, seconds)
             print({k:v for k,v in result.items() if k!='clips'})
-        else: raise typer.BadParameter('Use scan, fetch, or import-background --source VIDEO [--seconds 60]')
+        else:
+            raise typer.BadParameter(
+                'Use scan, fetch, refresh-funny, or import-background --source VIDEO [--seconds 60]')
 
     @app.command('reddit-publish-plan')
     def publish_plan():

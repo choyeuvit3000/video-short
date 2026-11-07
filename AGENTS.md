@@ -55,6 +55,12 @@ Adapt comment count to source length and joke quality. Keep clear turn pauses, o
 licensed music and restrained SFX. Deliver the standalone cover plus exactly three inserted frames at thirty fps,
 verified after encoding. This new mode does not replace the existing merged default or waive the three creator checkpoints.
 
+Creator correction on 2026-11-07: the funny pilot's drawn cats, text reaction cards and extra editorial frames did not
+match the reference style. They are not meme assets. Follow `docs/FUNNY_MEME_SOURCES.md`; use recognizable source-backed
+reaction photos/clips and actual meme recordings at a relevant punchline. Never substitute an original mascot, generic
+caption frame or closing card for a missing meme. Keep source post/comment images distinct from reactions. The current
+request is asset-source refresh first, without new TTS or a replacement production video.
+
 Edge (all voices/providers), Mai Anh and aliases are permanently forbidden, including random selection, fallback and cached audio. Prefer a deep male Southern Vietnamese voice; reject voices that sound like Mai Anh. New voices/checkpoints stay quarantined until intelligibility, pronunciation, naturalness, artifacts and dissimilarity are reviewed against a SHA256-bound audition. Never claim training or listening occurred without evidence.
 
 Before expensive generation, clarify the concrete brief and run `studio preflight PROJECT`. Then follow the three user-owned checkpoints in `studio review`: script plus production choices, voice plus layout/timings, final video after QC. Only record an actual user acceptance with `--action approve --message` containing that response. Never invent it or use Codex/agent approval as a substitute. Edits before acceptance stay within that checkpoint; changed accepted content invalidates its hash. There are at most three accepted review events per video/bundle; do not silently reset or grant a fourth. Full render budget remains separate (default one per approved brief).

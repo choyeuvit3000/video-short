@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "purpose": "Real reaction memes for Vietnamese funny Threads; creator rejected the previous drawn mascots and editorial cards.",
+  "source_checked_date": "2026-11-07",
+  "rights_note": "Public downloads, not a blanket free-use license. Preserve source URLs and individual rights status.",
+  "reactions": [
+    {
+      "slug": "side-eye-cat",
+      "name": "Mèo nhìn đểu — Mr. Fresh",
+      "page": "https://tenor.com/view/mr-fresh-sideye-cat-cat-staring-side-eye-cat-side-eye-gif-14813005665353532624",
+      "media": "https://media1.tenor.com/m/zZJeK4M_BNAAAAAd/mr-fresh-sideye-cat.gif",
+      "use_when": "Nghi ngờ, nhìn lại bình luận, nghe có gì sai sai",
+      "avoid_when": "Thông tin nghiêm túc hoặc quy kết người trong bài nói dối",
+      "poster_at": 3.5,
+      "sound_names": [
+        "asian meme huh?",
+        "BRUH"
+      ],
+      "reference_match": "Reaction close-up similar to the creator's cat thumbnail reference"
+    },
+    {
+      "slug": "huh-cat",
+      "name": "Huh Cat — mèo ngơ ngác",
+      "page": "https://knowyourmeme.com/photos/2681863-huh-cat",
+      "media": "https://media.tenor.com/7t63GFnoIPUAAAAd/huh-cat-huh-m4rtin.gif",
+      "fallback_media": "https://i.kym-cdn.com/photos/images/original/002/681/863/ede.gif",
+      "use_when": "Bình luận khó hiểu hoặc cú đổi ý bất ngờ",
+      "avoid_when": "Chèn theo lịch cố định khi không có điểm gây ngơ ngác",
+      "poster_at": 1.0,
+      "sound_names": [
+        "asian meme huh?"
+      ],
+      "reference_match": "Recognizable photographed cat reaction, not an original mascot"
+    },
+    {
+      "slug": "banana-cat-crying",
+      "name": "Banana Cat — mèo chuối khóc",
+      "page": "https://tenor.com/view/banana-cat-banana-cat-crying-gif-15062598587219580285",
+      "media": "https://media1.tenor.com/m/0QkZnCmGFX0AAAAd/banana-cat-banana-cat-crying.gif",
+      "use_when": "Tự trào, hụt hẫng nhẹ, muốn đẹp nhưng gặp khó",
+      "avoid_when": "Tang sự, bệnh tật hoặc buồn đau có thật",
+      "poster_at": 1.0,
+      "sound_names": [
+        "Sad Violin (the meme one)"
+      ],
+      "reference_match": "Same recognizable meme family visible in supplied clothing reference KGt49X-PTSw"
+    },
+    {
+      "slug": "happy-cat",
+      "name": "Happy Cat — vui quá nhảy lên",
+      "page": "https://tenor.com/view/happy-happy-happy-happy-happy-cat-happy-dancing-cat-gif-716006509349864265",
+      "media": "https://media1.tenor.com/m/Ce_EIG6qg0kAAAAd/happy-happy-happy-happy.gif",
+      "use_when": "Được như ý, tìm được ảnh minh họa, một câu trả lời hợp gu",
+      "avoid_when": "Dùng niềm vui để cười vào bất hạnh của người khác",
+      "poster_at": 1.4,
+      "sound_names": [
+        "10 điểm"
+      ],
+      "reference_match": "Short viral cat reaction"
+    },
+    {
+      "slug": "white-cat-laugh",
+      "name": "Mèo trắng cười",
+      "page": "https://tenor.com/view/cat-cat-laughing-cat-laughing-meme-laugh-laughing-gif-2766400884915807467",
+      "media": "https://media1.tenor.com/m/JmQ68qO7pOsAAAAd/cat-cat-laughing.gif",
+      "use_when": "Câu bình luận chốt hạ hài hước",
+      "avoid_when": "Chế giễu ngoại hình hay hoàn cảnh của người thật",
+      "poster_at": 1.2,
+      "sound_names": [
+        "cat laugh meme 1"
+      ],
+      "reference_match": "Photographed laughing-cat reaction like the supplied examples"
+    },
+    {
+      "slug": "the-rock-eyebrow",
+      "name": "The Rock — nhướng mày nghi ngờ",
+      "page": "https://tenor.com/view/the-rock-eyebrow-the-rock-rock-eye-brow-gif-14245039",
+      "media": "https://media1.tenor.com/m/-gcq_HeyMBUAAAAd/the-rock.gif",
+      "use_when": "Một lời nói đáng ngờ hoặc câu bình luận bẻ lái",
+      "avoid_when": "Tự gán ý đồ xấu cho người trong bài",
+      "poster_at": 0.9,
+      "sound_names": [
+        "VINE BOOM SOUND"
+      ],
+      "reference_match": "Real recognizable reaction video"
+    },
+    {
+      "slug": "awkward-monkey",
+      "name": "Monkey Puppet — ngại rồi nhìn đi chỗ khác",
+      "page": "https://tenor.com/view/awkward-monkey-puppet-awkward-monkey-puppet-uncomfortable-gif-1065768810951191708",
+      "media": "https://media1.tenor.com/m/DspfFj1vrJwAAAAd/awkward-monkey-puppet-awkward.gif",
+      "use_when": "Bị bắt bài, ngại nhẹ hoặc giả vờ không biết",
+      "avoid_when": "Lấy biểu cảm làm bằng chứng về người thật",
+      "poster_at": 1.5,
+      "sound_names": [
+        "BRUH",
+        "asian meme huh?"
+      ],
+      "reference_match": "Established meme; moving source rather than an editorial title card"
+    },
+    {
+      "slug": "el-risitas-laugh",
+      "name": "El Risitas — cười không dừng được",
+      "page": "https://tenor.com/view/el-risitas-laughing-hysterically-laughing-laughing-so-hard-gif-17830893",
+      "media": "https://media1.tenor.com/m/xKrqN1JOV-4AAAAd/el-risitas-laughing-hysterically.gif",
+      "use_when": "Một câu chốt thực sự buồn cười",
+      "avoid_when": "Cười liên tục dưới mọi bình luận hoặc phủ mất lời đọc",
+      "poster_at": 1.0,
+      "sound_names": [
+        "HAha funny laugh"
+      ],
+      "reference_match": "Established photographed laughing reaction"
+    },
+    {
+      "slug": "pop-cat",
+      "name": "Pop Cat — há miệng bật cười",
+      "page": "https://tenor.com/view/pop-cat-gif-20459297",
+      "media": "https://media1.tenor.com/m/_1hMqyFC4LEAAAAd/pop-cat.gif",
+      "use_when": "Một nhịp bật ngắn hoặc phản ứng bất ngờ vui vẻ",
+      "avoid_when": "Lặp tiếng pop và hình quá nhiều lần gây mệt",
+      "poster_at": 0.5,
+      "sound_names": [
+        "Mac Quack"
+      ],
+      "reference_match": "Established photographed cat meme"
+    }
+  ],
+  "imgflip_ids": [
+    "61520",
+    "259237855",
+    "155067746",
+    "101288",
+    "27813981",
+    "148909805",
+    "67452763",
+    "181913649",
+    "180190441",
+    "80707627",
+    "119215120",
+    "178591752"
+  ],
+  "vietnam_sound_names": [
+    "VINE BOOM SOUND",
+    "Anime Wow",
+    "ối dồi ôi",
+    "Gòi gòi tới công chuyện",
+    "10 điểm",
+    "Mac Quack",
+    "asian meme huh?",
+    "trời ơi khoan, hahaha",
+    "Sad Violin (the meme one)",
+    "Ghê chưa ghê chưa",
+    "linda jz má",
+    "cat laugh meme 1",
+    "boy laugh (cậu bé cười)",
+    "BRUH",
+    "HAha funny laugh",
+    "Quick Ting",
+    "ding sound effect",
+    "Metal pipe clang",
+    "shocking!",
+    "Shocked sound"
+  ],
+  "additional_sound_pages": [
+    {
+      "page": "https://www.myinstants.com/en/instant/con-cai-nit-49149/",
+      "name": "Còn cái nịt",
+      "use_when": "Mất phần, tưởng được mà không được",
+      "language": "vi"
+    },
+    {
+      "page": "https://www.myinstants.com/en/instant/ai-hoi-31978/",
+      "name": "Ai hỏi",
+      "use_when": "Một câu chen ngang vô duyên có chủ ý trong bài hài",
+      "language": "vi"
+    },
+    {
+      "page": "https://www.myinstants.com/en/instant/kha-banh-ao-that-day-15605/",
+      "name": "Ảo thật đấy",
+      "use_when": "Ngạc nhiên trước một cú bẻ lái",
+      "language": "vi"
+    },
+    {
+      "page": "https://www.myinstants.com/en/instant/ban-noi-that-nuc-cuoi-595/",
+      "name": "Bạn nói thật nực cười",
+      "use_when": "Phản bác dí dỏm, không công kích người trong bài",
+      "language": "vi"
+    },
+    {
+      "page": "https://www.myinstants.com/en/instant/cai-quan-que-gi-vay-37925/",
+      "name": "Cái quần què gì vậy",
+      "use_when": "Khó hiểu theo lối nói đùa",
+      "language": "vi",
+      "mild_profanity": true
+    }
+  ]
+}
