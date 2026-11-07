@@ -451,12 +451,13 @@ def mix(folder: Path, plan: dict, timeline: dict, edit: dict | None = None) -> P
             result[start : start + len(samples)] += samples
     out = work / "full_mix.wav"
     _write_pcm(out, result)
+    source = plan["source"]
+    source_credit = f"Source screenshots: @{source['author']} and visible commenters"
+    reference = source.get("url") or source.get("reference_creator_credit")
+    if reference:
+        source_credit += f" — {reference}"
     (folder / "CREDITS.txt").write_text(
-        track["attribution"]
-        + (
-            "\nSource screenshots: @nhinguyen_207 and visible commenters, "
-            "from creator-supplied NẮNG AUDIO reference.\n"
-        ),
+        f"{track['attribution']}\n{source_credit}\n",
         encoding="utf-8",
     )
     if edit:

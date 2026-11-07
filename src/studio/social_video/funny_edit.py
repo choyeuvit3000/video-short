@@ -17,8 +17,8 @@ def load_edit(folder, plan):
     edit = read(folder / "funny_edit.json")
     if edit is None:
         return None
-    if type(edit.get("revision")) is not int or edit["revision"] < 2:
-        raise ValueError("A Funny Threads edit needs a revision number of at least two")
+    if type(edit.get("revision")) is not int or edit["revision"] < 1:
+        raise ValueError("A Funny Threads edit needs a positive revision number")
     hook = edit.get("hook", [])
     if not 1 <= len(hook) <= 2 or not all(isinstance(x, str) and x.strip() for x in hook):
         raise ValueError("The edit hook needs one or two short lines")
