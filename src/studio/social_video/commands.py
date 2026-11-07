@@ -114,7 +114,7 @@ def threads_post(source: str, narration_file: Path | None = None, plan_file: Pat
 def register(app):
     @app.command('funny-threads')
     def funny_threads(project: Path, action: str = 'layouts'):
-        """Prepare layouts / voice audition / ASR checks / reviewed funny Threads render."""
+        """Prepare layouts, checked edits, voice audition, or a Funny Threads render."""
         from ..cli import _guard
         from ..core.outputs import organized_output
         from . import funny_threads as funny
@@ -125,13 +125,17 @@ def register(app):
                 result = funny.layouts(folder)
             elif action == 'voice':
                 result = funny.prepare_voice(folder)
+            elif action == 'reedit':
+                result = funny.prepare_voice(folder, reuse_checked=True)
             elif action == 'check-speech':
                 result = funny.check_speech(folder)
             elif action == 'render':
                 output = organized_output(FINAL_OUTPUT, 'funny_threads', folder/'output_location.json')
-                result = funny.render(folder, output/f'funny_threads__{folder.name}.mp4')
+                edit = funny.read(folder/'funny_edit.json')
+                suffix = f"__v{int(edit['revision'])}" if edit else ''
+                result = funny.render(folder, output/f'funny_threads__{folder.name}{suffix}.mp4')
             else:
-                raise typer.BadParameter('Use --action layouts / voice / check-speech / render')
+                raise typer.BadParameter('Use --action layouts / voice / reedit / check-speech / render')
             print(result)
             return 0
         _guard(body)

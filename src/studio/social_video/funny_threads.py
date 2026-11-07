@@ -21,6 +21,7 @@ from ..core.user_review import digest, payload, read, require, sha, write
 from ..core.voice_policy import assert_not_blocked, signature
 from ..providers.tts import get_provider
 from ..voices import load_registry, with_speed
+from .funny_edit import load_edit, make_cover, make_layouts, reaction_geometry
 from .quality import publish
 
 FPS = 30
@@ -173,12 +174,11 @@ def validate_files(files: list[dict]) -> None:
             raise ValidationError(f"Changed funny Threads input: {entry['path']}", code="review_voice_stale")
 
 
-def snapshot(folder: Path, plan: dict) -> list[dict]:
+def snapshot(folder: Path, plan: dict, edit: dict | None = None) -> list[dict]:
     root = ROOT / "assets"
-    library = read(root / "shared/overlays/funny_originals/library.json")
-    if any(b.get("reaction") in {"xin-anh-minh-hoa", "binh-luan-thanh-album"} for b in plan["beats"]):
+    if not edit and any(b["kind"] == "reaction" for b in plan["beats"]):
         raise ValueError(
-            "Người tạo đã loại thẻ mèo tự vẽ khỏi meme. Chọn ảnh/clip thật trong kho funny_threads trước khi gen lại."
+            "Chọn ảnh/clip thật trong kho funny_threads bằng funny_edit.json trước khi dựng."
         )
     music = next(x for x in read(root / "shared/music/library.json")["tracks"] if x["id"] == plan["music_id"])
     if not music.get("production_eligible"):
@@ -186,11 +186,12 @@ def snapshot(folder: Path, plan: dict) -> list[dict]:
     paths = [Path(plan["background"]["path"]), folder / "cover_preview.png"]
     validate_files(list(plan["source"]["crops"].values()))
     paths += [Path(x["path"]) for x in plan["source"]["crops"].values()]
-    for asset in [music, *library["items"]]:
-        path = root / asset["path"]
-        if not asset.get("production_eligible") or sha(path) != asset["sha256"]:
-            raise ValueError("Missing, changed or ineligible comedy asset")
-        paths.append(path)
+    music_path = root / music["path"]
+    if sha(music_path) != music["sha256"]:
+        raise ValueError("Changed comedy music asset")
+    paths.append(music_path)
+    if edit:
+        paths += [folder / "funny_edit.json", *(Path(x["path"]) for x in edit["assets"].values())]
     return [{"path": str(p.resolve()), "sha256": sha(p)} for p in dict.fromkeys(paths)]
 
 
@@ -232,24 +233,36 @@ def repair_source(beat: dict, profile, repair: dict) -> Path:
     return source
 
 
-def prepare_voice(folder: Path) -> dict:
+def prepare_voice(folder: Path, *, reuse_checked: bool = False) -> dict:
     """Quarantined project audition only, after the creator's script acceptance."""
     folder = folder.resolve()
     require(folder, "script")
     plan = read(folder / "merged_plan.json")
     registry = load_registry(get_settings())
     choices = cast_signature(plan, registry)
-    inputs = snapshot(folder, plan)
+    edit = load_edit(folder, plan)
+    if reuse_checked and not edit:
+        raise ValueError("Prepare funny_edit.json before reusing the checked speech")
+    if edit:
+        validate_files(list(plan["source"]["crops"].values()))
+    else:
+        inputs = snapshot(folder, plan)
     work = folder / "work/funny_voice"
     work.mkdir(parents=True, exist_ok=True)
     previous = read(folder / "voice_manifest.json", {})
+    if reuse_checked:
+        _checked_speech(plan, previous, choices)
     repairs = read(folder / "voice_repairs.json", {}).get("selected", {})
     assets, files, slots = {}, [], []
     cursor = 0
     for i, beat in enumerate(plan["beats"]):
         narration = beat.get("narration", "").strip()
         audio = None
-        if narration:
+        if narration and reuse_checked:
+            take = previous["beats"][str(i)]
+            audio, native = Path(take["audio"]), Path(take["source"])
+            profile = registry.get(VOICE_IDS[beat["voice"]])
+        elif narration:
             profile = with_speed(registry.get(VOICE_IDS[beat["voice"]]), beat["speed"])
             key = digest([narration, signature(profile), profile.params, VERSION])
             native = work / f"{beat['id']}_{key[:12]}.wav"
@@ -270,6 +283,7 @@ def prepare_voice(folder: Path) -> dict:
             run_ffmpeg(
                 ["-i", str(native), "-ar", "48000", "-ac", "2", "-c:a", "pcm_s16le", str(audio)], stage="funny_pcm"
             )
+        if narration:
             frames = turn_frames(
                 probe(audio).duration, beat.get("post_pause_seconds", 0.6), beat.get("min_duration", 0)
             )
@@ -303,10 +317,13 @@ def prepare_voice(folder: Path) -> dict:
         "slots": slots,
         "cover_frames": cover_window(cursor),
         "cast_choices": choices,
-        "inputs": inputs,
     }
+    if edit:
+        make_cover(folder, plan, edit, timeline)
+        inputs = snapshot(folder, plan, edit)
+    timeline["inputs"] = inputs
     write(folder / "funny_timeline.json", timeline)
-    mixed = mix(folder, plan, timeline)
+    mixed = mix(folder, plan, timeline, edit)
     files += [mixed, folder / "funny_timeline.json"]
     if (folder / "voice_repairs.json").is_file():
         files.append(folder / "voice_repairs.json")
@@ -327,7 +344,7 @@ def prepare_voice(folder: Path) -> dict:
     return manifest
 
 
-def mix(folder: Path, plan: dict, timeline: dict) -> Path:
+def mix(folder: Path, plan: dict, timeline: dict, edit: dict | None = None) -> Path:
     work = folder / "work/funny_voice"
     count = timeline["total_frames"] * 1600  # 48 kHz / 30 fps
     voice = np.zeros((count, 2), dtype=np.float64)
@@ -381,35 +398,37 @@ def mix(folder: Path, plan: dict, timeline: dict) -> Path:
         bed[end:after] *= np.linspace(0.18, 1, after - end)[:, None]
     fades = np.minimum(1, np.minimum(np.arange(count) / 14400, (count - np.arange(count)) / 24000))
     result = voice + bed * np.maximum(fades, 0)[:, None]
-    effects = read(ROOT / "assets/shared/overlays/funny_originals/library.json")["items"]
-    effect_ids = [
-        "soft-pop",
-        "reveal-dings",
-        "comic-boing",
-        "short-whoosh",
-        "question-chirp",
-        "mini-ta-da",
-        "soft-bonk",
-    ]
-    for slot, slug in zip(timeline["slots"], effect_ids, strict=False):
-        asset = next(x for x in effects if x["id"] == f"s:studio-original/{slug}")
-        pcm = work / f"sfx_{slug}.wav"
-        run_ffmpeg(
-            ["-i", str(ROOT / "assets" / asset["path"]), "-ar", "48000", "-ac", "2", str(pcm)], stage="funny_sfx"
-        )
-        samples = _pcm(pcm) * 0.16
-        start = slot["first_frame"] * 1600
-        result[start : start + len(samples)] += samples[: count - start]
+    if edit:
+        for slot in timeline["slots"]:
+            cue = edit["reactions"].get(slot["beat"], {})
+            if not cue.get("sound_id"):
+                continue
+            asset = edit["assets"][cue["sound_id"]]
+            pcm = work / f"sfx_{slot['beat']}.wav"
+            run_ffmpeg(
+                ["-i", asset["path"], "-t", str(slot["frames"] / FPS), "-ar", "48000", "-ac", "2", str(pcm)],
+                stage="funny_sfx",
+            )
+            samples = _pcm(pcm)[: slot["frames"] * 1600]
+            samples *= min(0.038 / _rms(samples), 0.25 / max(np.max(np.abs(samples)), 1e-6))
+            tail = min(len(samples), 3840)
+            samples[-tail:] *= np.linspace(1, 0, tail)[:, None]
+            start = slot["first_frame"] * 1600
+            result[start : start + len(samples)] += samples
     out = work / "full_mix.wav"
     _write_pcm(out, result)
     (folder / "CREDITS.txt").write_text(
         track["attribution"]
         + (
             "\nSource screenshots: @nhinguyen_207 and visible commenters, "
-            "from creator-supplied NẮNG AUDIO reference. New gameplay, mix and local original reactions.\n"
+            "from creator-supplied NẮNG AUDIO reference.\n"
         ),
         encoding="utf-8",
     )
+    if edit:
+        with (folder / "CREDITS.txt").open("a", encoding="utf-8") as credits:
+            for item in edit["assets"].values():
+                credits.write(f"{item['name']} — {item['source_url']}\n")
     return out
 
 
@@ -417,6 +436,11 @@ def layouts(folder: Path) -> list[Path]:
     plan = read(folder / "merged_plan.json")
     out = folder / "work/previews"
     out.mkdir(parents=True, exist_ok=True)
+    edit = load_edit(folder, plan)
+    if edit:
+        return make_layouts(plan, edit, out)
+    if any(b["kind"] == "reaction" for b in plan["beats"]):
+        raise ValueError("Chọn phản ứng thật trong funny_edit.json để xem bố cục.")
     ink, paper, yellow = "#152b24", "#fff8e8", "#ffdc5d"
 
     def font(n):
@@ -442,10 +466,6 @@ def layouts(folder: Path) -> list[Path]:
                 picture = Image.open(plan["source"]["crops"][beat["media_crop"]]["path"]).convert("RGBA")
                 picture = ImageOps.contain(picture, (850, 750), Image.Resampling.LANCZOS)
                 im.alpha_composite(picture, ((1080 - picture.width) // 2, y + card.height + 24))
-        elif beat["kind"] == "reaction":
-            asset = ROOT / f"assets/shared/overlays/funny_originals/{beat['reaction']}/{beat['reaction']}.png"
-            card = Image.open(asset).convert("RGBA").resize((840, 840), Image.Resampling.LANCZOS)
-            im.alpha_composite(card, (120, 635))
         else:
             d.rounded_rectangle((60, 725, 960, 1310), radius=28, fill=paper)
             for n, line in enumerate(["Hỏi gu mặc áo.", "Bình luận thành album.", "Ai hiểu đề nhất?"]):
@@ -459,13 +479,9 @@ def layouts(folder: Path) -> list[Path]:
     return results
 
 
-def voice_review_payload(folder: Path) -> dict:
-    plan = read(folder / "merged_plan.json")
-    manifest = read(folder / "voice_manifest.json")
-    expected = cast_signature(plan, load_registry(get_settings()))
-    if manifest["cast_choices"] != expected:
+def _checked_speech(plan: dict, manifest: dict, expected: dict) -> None:
+    if manifest.get("cast_choices") != expected:
         raise ValidationError("Cast/script changed: rebuild the funny Threads audition", code="review_voice_stale")
-    validate_files(manifest["input_files"])
     expected_beats = {str(i) for i, b in enumerate(plan["beats"]) if b.get("narration", "").strip()}
     if set(manifest["beats"]) != expected_beats:
         raise ValidationError("Missing comment speech", code="review_missing_voice")
@@ -479,6 +495,14 @@ def voice_review_payload(folder: Path) -> dict:
             validate_files([{"path": check["context_source"], "sha256": check["context_sha256"]}])
         if any(x.get("evidence") == "MISSING_MARKER" for x in check.get("number_audit", {}).get("checks", [])):
             raise ValidationError("A critical spoken number marker is missing", code="review_number_check")
+
+
+def voice_review_payload(folder: Path) -> dict:
+    plan = read(folder / "merged_plan.json")
+    manifest = read(folder / "voice_manifest.json")
+    expected = cast_signature(plan, load_registry(get_settings()))
+    validate_files(manifest["input_files"])
+    _checked_speech(plan, manifest, expected)
     files = [Path(x) for x in manifest["files"]] + [folder / "voice_manifest.json", folder / "CREDITS.txt"]
     files += sorted((folder / "work/previews").glob("*"))
     return {
@@ -580,11 +604,13 @@ def render(folder: Path, output: Path) -> Path:
     folder = folder.resolve()
     require(folder, "voice")
     plan = read(folder / "merged_plan.json")
+    edit = load_edit(folder, plan)
     timeline = read(folder / "funny_timeline.json")
     validate_files(timeline["inputs"])
     from ..core.creative_brief import reserve_render
 
-    fingerprint = digest([timeline, sha(folder / "work/funny_voice/full_mix.wav"), VERSION])
+    overlays = [folder / f"work/previews/layout_{b['id']}.png" for b in plan["beats"]]
+    fingerprint = digest([timeline, sha(folder / "work/funny_voice/full_mix.wav"), [sha(p) for p in overlays], VERSION])
     completed = read(output.with_suffix(".metadata.json"), {})
     if output.is_file() and completed.get("render_signature") == fingerprint and completed.get("sha256") == sha(output):
         return output
@@ -594,8 +620,7 @@ def render(folder: Path, output: Path) -> Path:
     work = folder / "work/funny_render"
     work.mkdir(parents=True, exist_ok=True)
     clips = []
-    for slot, beat in zip(timeline["slots"], plan["beats"], strict=True):
-        overlay = folder / f"work/previews/layout_{beat['id']}.png"
+    for slot, beat, overlay in zip(timeline["slots"], plan["beats"], overlays, strict=True):
         clip = work / f"{beat['id']}.mp4"
         key = digest([slot, sha(overlay), timeline["inputs"], VERSION])
         cache = read(clip.with_suffix(".json"), {})
@@ -620,11 +645,16 @@ def render(folder: Path, output: Path) -> Path:
                 f"colorchannelmixer=rr={brightness}:gg={brightness}:bb={brightness}[bg];"
                 "[bg][1:v]overlay=0:0:shortest=1[v]"
             )
-            # Animated reactions replace their still area; source screenshots never shake/zoom.
-            if beat["kind"] == "reaction":
-                asset = ROOT / f"assets/shared/overlays/funny_originals/{beat['reaction']}/{beat['reaction']}.mp4"
-                inputs += ["-i", str(asset)]
-                vf = vf.replace("[v]", "[base]") + ";[2:v]scale=840:840[cat];[base][cat]overlay=120:635:shortest=1[v]"
+            if edit and beat["id"] in edit["reactions"]:
+                cue = edit["reactions"][beat["id"]]
+                asset = edit["assets"][cue["video_id"]]
+                x, y, width, height = reaction_geometry(asset, plan, cue["source_crop"])
+                inputs += ["-ss", str(cue.get("start_seconds", 0)), "-i", asset["path"]]
+                vf = (
+                    vf.replace("[v]", "[base]")
+                    + f";[2:v]crop=iw:min(ih\\,iw):0:0,scale={width}:{height}:flags=lanczos,setsar=1[reaction];"
+                    + f"[base][reaction]overlay={x}:{y}[v]"
+                )
             run_ffmpeg(
                 [
                     *inputs,
@@ -714,6 +744,8 @@ def render(folder: Path, output: Path) -> Path:
             "cover_seconds": 0.1,
             "narration_speeds_applied_once": {b["id"]: b["speed"] for b in plan["beats"] if b.get("narration")},
             "source_provenance": plan["source"],
+            "edit_revision": edit["revision"] if edit else None,
+            "reaction_assets": list(edit["assets"].values()) if edit else [],
             "editorial": "PENDING_USER_REVIEW",
         },
     )

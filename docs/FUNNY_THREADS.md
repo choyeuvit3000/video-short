@@ -68,6 +68,12 @@ Use the real source-backed reaction catalog in `assets/shared/memes/funny_thread
 `docs/FUNNY_MEME_SOURCES.md`. Do not use the old procedural sound effects as replacements for named meme recordings.
 Plants vs. Zombies remains a mood reference rather than a verified free production track.
 
+For a visual revision of an approved pilot, keep `merged_plan.json` and the accepted script fingerprint intact.
+Put the revision number, short hook, captured cover/ending crops and the curated video/sound IDs for each reaction
+in `funny_edit.json`. `studio funny-threads PROJECT --action reedit` verifies and reuses the checked PCM takes,
+then rebuilds the layout and mix. Reactions sit above the relevant source card. The render receives a revision suffix
+so the previous result remains available for comparison. The normal creator checkpoints and render budget still apply.
+
 Make a cover from an actual in-video image/comment and a short relevant title. Preserve context, faces and readable
 source credit. Do not use an unrelated woman as bait. The creator requested a one-tenth-second insert: at thirty fps,
 replace exactly three mid-video frames without moving the audio/timeline. Decode the three frames and both neighbors
