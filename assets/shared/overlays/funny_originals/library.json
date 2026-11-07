@@ -1,0 +1,204 @@
+{
+  "version": "funny-originals-1",
+  "items": [
+    {
+      "id": "s:studio-original/soft-pop",
+      "kind": "sound",
+      "path": "shared/sfx/funny_originals/soft-pop.wav",
+      "duration": 0.22,
+      "sha256": "a1cee9c17a5cda683dad0d250a6ab44ff447de6c8e1cab7b6f6085c31366066f",
+      "source": "procedural_original",
+      "rights": "Created locally for this project; no sampled recording; no external license granted",
+      "production_eligible": true,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "s:studio-original/comic-boing",
+      "kind": "sound",
+      "path": "shared/sfx/funny_originals/comic-boing.wav",
+      "duration": 0.7,
+      "sha256": "e46da7259e7a2418affa23219bde70d752f7e7917fb7423d0709d34d223fa634",
+      "source": "procedural_original",
+      "rights": "Created locally for this project; no sampled recording; no external license granted",
+      "production_eligible": true,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "s:studio-original/reveal-dings",
+      "kind": "sound",
+      "path": "shared/sfx/funny_originals/reveal-dings.wav",
+      "duration": 0.8,
+      "sha256": "9218b6d671bcd924f8f7f1251e29e43344bd4ce92355515fdf844f1112da37de",
+      "source": "procedural_original",
+      "rights": "Created locally for this project; no sampled recording; no external license granted",
+      "production_eligible": true,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "s:studio-original/question-chirp",
+      "kind": "sound",
+      "path": "shared/sfx/funny_originals/question-chirp.wav",
+      "duration": 0.5,
+      "sha256": "55cc9566c30be39b666a18ff56c182e6f6e2f4cfa28e83acc6bcf0515b26128b",
+      "source": "procedural_original",
+      "rights": "Created locally for this project; no sampled recording; no external license granted",
+      "production_eligible": true,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "s:studio-original/soft-bonk",
+      "kind": "sound",
+      "path": "shared/sfx/funny_originals/soft-bonk.wav",
+      "duration": 0.2,
+      "sha256": "dae66882ab77b56c9a25641add0b84f7c126b505279d48e3c05608ba08f0a3e7",
+      "source": "procedural_original",
+      "rights": "Created locally for this project; no sampled recording; no external license granted",
+      "production_eligible": true,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "s:studio-original/short-whoosh",
+      "kind": "sound",
+      "path": "shared/sfx/funny_originals/short-whoosh.wav",
+      "duration": 0.4,
+      "sha256": "e4eb602cb7e5ae8ce767f0b3bfaceda18fa19d759ac12058e3d71d16e70dfb56",
+      "source": "procedural_original",
+      "rights": "Created locally for this project; no sampled recording; no external license granted",
+      "production_eligible": true,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "s:studio-original/mini-ta-da",
+      "kind": "sound",
+      "path": "shared/sfx/funny_originals/mini-ta-da.wav",
+      "duration": 1.0,
+      "sha256": "150b681cb49d5a86a7df2be4d429a94266c91abc93dd1f154baf8e4b99d5c445",
+      "source": "procedural_original",
+      "rights": "Created locally for this project; no sampled recording; no external license granted",
+      "production_eligible": true,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "s:studio-original/comic-down",
+      "kind": "sound",
+      "path": "shared/sfx/funny_originals/comic-down.wav",
+      "duration": 0.65,
+      "sha256": "9daf126080a450e308ca32608a0b68429e716972c339992b1156c10a8cf11ca9",
+      "source": "procedural_original",
+      "rights": "Created locally for this project; no sampled recording; no external license granted",
+      "production_eligible": true,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "i:studio-original/xin-anh-minh-hoa",
+      "kind": "image",
+      "path": "shared/overlays/funny_originals/xin-anh-minh-hoa/xin-anh-minh-hoa.png",
+      "sha256": "b16091c4bac34244476ea891bc6c831ee265c5dae18926bc0ae2b3a2f36c6a21",
+      "source": "code_drawn_original",
+      "rights": "Created locally for this project; no external license granted",
+      "production_eligible": true,
+      "panels": 1,
+      "duration": null,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "v:studio-original/xin-anh-minh-hoa",
+      "kind": "video",
+      "path": "shared/overlays/funny_originals/xin-anh-minh-hoa/xin-anh-minh-hoa.mp4",
+      "sha256": "ef18cb760933c8707c78c9acfac9f301716ce6bbd8abe5ee74a5247bc3cf047a",
+      "source": "code_drawn_original",
+      "rights": "Created locally for this project; no external license granted",
+      "production_eligible": true,
+      "panels": 1,
+      "duration": 1.6,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "i:studio-original/binh-luan-thanh-album",
+      "kind": "image",
+      "path": "shared/overlays/funny_originals/binh-luan-thanh-album/binh-luan-thanh-album.png",
+      "sha256": "be89d10176ab6a25aed7db0e9b86f51a2f1552dc50f386b44e5550713c11f91b",
+      "source": "code_drawn_original",
+      "rights": "Created locally for this project; no external license granted",
+      "production_eligible": true,
+      "panels": 1,
+      "duration": null,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    },
+    {
+      "id": "v:studio-original/binh-luan-thanh-album",
+      "kind": "video",
+      "path": "shared/overlays/funny_originals/binh-luan-thanh-album/binh-luan-thanh-album.mp4",
+      "sha256": "4af06c9fbd46fd1119c8e0a0dc6c491ecf2019b950d6a39fe4fc824cdb04fa47",
+      "source": "code_drawn_original",
+      "rights": "Created locally for this project; no external license granted",
+      "production_eligible": true,
+      "panels": 1,
+      "duration": 1.6,
+      "tags": [
+        "funny_threads",
+        "vn_editorial"
+      ],
+      "version": "funny-originals-1"
+    }
+  ],
+  "selection_policy": "Source-related, restrained cues; no repetitions inside one pilot; no sensitive topics.",
+  "unavailable_packs": [
+    {
+      "title": "Kenney Interface Sounds",
+      "source": "https://kenney.nl/assets/interface-sounds",
+      "license": "CC0",
+      "status": "DOWNLOAD_HTTP_403_NOT_INSTALLED"
+    }
+  ],
+  "music_reference": {
+    "title": "Plants vs. Zombies OST",
+    "status": "RIGHTS_NOT_VERIFIED_REFERENCE_ONLY",
+    "production_eligible": false,
+    "note": "Use a cheerful game-like mood, not an unlicensed OST copy."
+  }
+}

@@ -1,0 +1,68 @@
+# Explicit funny Threads cast candidates; no global/random admission.
+profiles:
+- id: vieneu-gallery-my-duyen
+  lang: vi
+  tier: local
+  provider: vieneu
+  status: experimental
+  location: node:home-gpu
+  params:
+    voice: Mỹ Duyên
+    model: pnnbao-ump/VieNeu-TTS-v3-Turbo
+    revision: 61b85e3d937fbbacb387714180e8182823512523
+    model_subfolder: update
+    package_version: 3.8.3
+    preset_sha256: 524e1a577e411a1efb878b2ab69fd8831a2a8c20795b0efc1dca73f7f9a9a05c
+    temperature: 0.55
+    seed: 42
+    speed: 1.0
+    scene_tail_pad_sec: 0.06
+  cost_per_1k_chars: 0
+  fallback: null
+  files: []
+  license: Apache-2.0 (VieNeu-TTS v3 Turbo)
+  description: Nữ · Nam · Phong cách đọc truyện
+- id: vieneu-gallery-quang-son
+  lang: vi
+  tier: local
+  provider: vieneu
+  status: experimental
+  location: node:home-gpu
+  params:
+    voice: Quang Sơn
+    model: pnnbao-ump/VieNeu-TTS-v3-Turbo
+    revision: 61b85e3d937fbbacb387714180e8182823512523
+    model_subfolder: update
+    package_version: 3.8.3
+    preset_sha256: bca765683ea1b194dea7ea7aeb43e9d6539584c6de7d80c72ef36c0dea72f73b
+    temperature: 0.55
+    seed: 42
+    speed: 1.0
+    scene_tail_pad_sec: 0.06
+  cost_per_1k_chars: 0
+  fallback: null
+  files: []
+  license: Apache-2.0 (VieNeu-TTS v3 Turbo)
+  description: Nam · Trung · Phong cách tự nhiên
+- id: vieneu-gallery-minh-duc
+  lang: vi
+  tier: local
+  provider: vieneu
+  status: experimental
+  location: node:home-gpu
+  params:
+    voice: Minh Đức
+    model: pnnbao-ump/VieNeu-TTS-v3-Turbo
+    revision: 61b85e3d937fbbacb387714180e8182823512523
+    model_subfolder: update
+    package_version: 3.8.3
+    preset_sha256: 724c599f8a0a9d88cc707931a9bca95064093636a55a75c3167f1df5d8f4ac9b
+    temperature: 0.55
+    seed: 42
+    speed: 1.0
+    scene_tail_pad_sec: 0.06
+  cost_per_1k_chars: 0
+  fallback: null
+  files: []
+  license: Apache-2.0 (VieNeu-TTS v3 Turbo)
+  description: Nam · Bắc · Phong cách tin tức

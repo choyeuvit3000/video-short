@@ -58,6 +58,56 @@
       "production_eligible": false,
       "automatic_selection": false,
       "attribution": "Horror-#2 — takaya. Audiostock item 100596; license not yet supplied."
+    },
+    {
+      "id": "music:kevin-macleod/fluffing-a-duck",
+      "title": "Fluffing a Duck",
+      "creator": "Kevin MacLeod",
+      "path": "shared/music/comedy/fluffing-a-duck/fluffing-a-duck.mp3",
+      "kind": "music",
+      "tags": [
+        "comedy",
+        "playful",
+        "instrumental",
+        "hai_huoc",
+        "funny_threads"
+      ],
+      "mood": "comedy",
+      "duration": 67.368,
+      "sha256": "cb23b1833c35e391de10d998d6a40cfc760565ce31d23014c86025523ca8239b",
+      "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Fluffing%20a%20Duck.mp3",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://incompetech.com/music/royalty-free/faq.html",
+      "status": "READY_WITH_ATTRIBUTION",
+      "production_eligible": true,
+      "automatic_selection": false,
+      "attribution": "Fluffing a Duck — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/; excerpt with fades and effects."
+    },
+    {
+      "id": "music:kevin-macleod/sneaky-snitch",
+      "title": "Sneaky Snitch",
+      "creator": "Kevin MacLeod",
+      "path": "shared/music/comedy/sneaky-snitch/sneaky-snitch.mp3",
+      "kind": "music",
+      "tags": [
+        "comedy",
+        "playful",
+        "instrumental",
+        "hai_huoc",
+        "funny_threads"
+      ],
+      "mood": "comedy",
+      "duration": 136.620425,
+      "sha256": "db1710333d68a215277f77e4e17e1a64bf4ed38f87c70f8d0f56b16b6aa4f884",
+      "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Sneaky%20Snitch.mp3",
+      "license": "CC-BY-4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "license_evidence_url": "https://incompetech.com/music/royalty-free/faq.html",
+      "status": "READY_WITH_ATTRIBUTION",
+      "production_eligible": true,
+      "automatic_selection": false,
+      "attribution": "Sneaky Snitch — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/; excerpt with fades and effects."
     }
   ]
 }

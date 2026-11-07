@@ -299,10 +299,13 @@ def preflight(folder: Path):
     project = _read(folder / "project.json", {})
     texts = [s.get("narration", "") for s in project.get("scenes", [])]
     if not texts:
-        posts = _read(folder / "posts.json", [])
-        texts = [t for p in posts for t in p.get("part_texts", [])] or _read(folder / "vi.json", {}).get(
-            "paragraphs", []
-        )
+        beats = _read(folder / "merged_plan.json", {}).get("beats", [])
+        texts = [b["narration"] for b in beats if b.get("narration", "").strip()]
+        if not texts:
+            posts = _read(folder / "posts.json", [])
+            texts = [t for p in posts for t in p.get("part_texts", [])] or _read(folder / "vi.json", {}).get(
+                "paragraphs", []
+            )
     texts = texts or ["Chưa có kịch bản/cảnh. Chốt brief trước, rồi chỉ chạy các bước chuẩn bị nội dung."]
     import textwrap
 

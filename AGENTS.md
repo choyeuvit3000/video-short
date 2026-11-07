@@ -48,6 +48,13 @@ retiming needs an explicit plan and a six-percent ceiling; never stretch narrati
 
 ## Voice admission and generation planning
 
+For explicitly requested funny Threads, follow `docs/FUNNY_THREADS.md` and `studio funny-threads`.
+Use real source screenshots, own gameplay, a stable reading voice per author and distinct voices for successive comments.
+Plan male/female Northern/Central/Southern diversity across the reviewed cast; never infer the actual author's accent/gender.
+Adapt comment count to source length and joke quality. Keep clear turn pauses, original PCM, source/context fidelity,
+licensed music and restrained SFX. Deliver the standalone cover plus exactly three inserted frames at thirty fps,
+verified after encoding. This new mode does not replace the existing merged default or waive the three creator checkpoints.
+
 Edge (all voices/providers), Mai Anh and aliases are permanently forbidden, including random selection, fallback and cached audio. Prefer a deep male Southern Vietnamese voice; reject voices that sound like Mai Anh. New voices/checkpoints stay quarantined until intelligibility, pronunciation, naturalness, artifacts and dissimilarity are reviewed against a SHA256-bound audition. Never claim training or listening occurred without evidence.
 
 Before expensive generation, clarify the concrete brief and run `studio preflight PROJECT`. Then follow the three user-owned checkpoints in `studio review`: script plus production choices, voice plus layout/timings, final video after QC. Only record an actual user acceptance with `--action approve --message` containing that response. Never invent it or use Codex/agent approval as a substitute. Edits before acceptance stay within that checkpoint; changed accepted content invalidates its hash. There are at most three accepted review events per video/bundle; do not silently reset or grant a fourth. Full render budget remains separate (default one per approved brief).

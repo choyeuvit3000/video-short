@@ -114,6 +114,10 @@ def payload(folder, stage):
             files += [folder / "work/timeline.json"] + sorted((folder / "subtitles").glob("*.words.json"))
         else:
             manifest = read(folder / "voice_manifest.json", {})
+            if manifest.get("mode") == "funny_threads":
+                from ..social_video.funny_threads import voice_review_payload
+
+                return voice_review_payload(folder)
             has_spoken = bool(read(folder / "vi.json", {}).get("paragraphs")) or any(
                 b.get("narration", "").strip() for b in read(folder / "merged_plan.json", {}).get("beats", [])
             )

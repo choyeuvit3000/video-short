@@ -1,0 +1,25 @@
+{
+  "id": "music:kevin-macleod/fluffing-a-duck",
+  "title": "Fluffing a Duck",
+  "creator": "Kevin MacLeod",
+  "path": "shared/music/comedy/fluffing-a-duck/fluffing-a-duck.mp3",
+  "kind": "music",
+  "tags": [
+    "comedy",
+    "playful",
+    "instrumental",
+    "hai_huoc",
+    "funny_threads"
+  ],
+  "mood": "comedy",
+  "duration": 67.368,
+  "sha256": "cb23b1833c35e391de10d998d6a40cfc760565ce31d23014c86025523ca8239b",
+  "source_url": "https://incompetech.com/music/royalty-free/mp3-royaltyfree/Fluffing%20a%20Duck.mp3",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "license_evidence_url": "https://incompetech.com/music/royalty-free/faq.html",
+  "status": "READY_WITH_ATTRIBUTION",
+  "production_eligible": true,
+  "automatic_selection": false,
+  "attribution": "Fluffing a Duck — Kevin MacLeod (incompetech.com). Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/; excerpt with fades and effects."
+}

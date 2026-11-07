@@ -112,6 +112,30 @@ def threads_post(source: str, narration_file: Path | None = None, plan_file: Pat
     return out
 
 def register(app):
+    @app.command('funny-threads')
+    def funny_threads(project: Path, action: str = 'layouts'):
+        """Prepare layouts / voice audition / ASR checks / reviewed funny Threads render."""
+        from ..cli import _guard
+        from ..core.outputs import organized_output
+        from . import funny_threads as funny
+
+        def body():
+            folder = project.resolve()
+            if action == 'layouts':
+                result = funny.layouts(folder)
+            elif action == 'voice':
+                result = funny.prepare_voice(folder)
+            elif action == 'check-speech':
+                result = funny.check_speech(folder)
+            elif action == 'render':
+                output = organized_output(FINAL_OUTPUT, 'funny_threads', folder/'output_location.json')
+                result = funny.render(folder, output/f'funny_threads__{folder.name}.mp4')
+            else:
+                raise typer.BadParameter('Use --action layouts / voice / check-speech / render')
+            print(result)
+            return 0
+        _guard(body)
+
     @app.command('story-draft-review')
     def story_draft_review(draft: Path, output: Annotated[Path | None, typer.Option('--output')] = None):
         """Rà độ dài/câu mở/giác quan/nhịp cao trào, không tạo giọng hoặc tự duyệt."""
