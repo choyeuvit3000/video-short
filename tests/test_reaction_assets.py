@@ -42,6 +42,24 @@ def test_curated_pool_rejects_editorial_standins_and_unreviewed_images():
     assert not reaction_assets.allowed(
         {**item, "kind": "sound", "audio_review": "SHORT_CLIP_ASR_UNRELIABLE_PREVIEW_BEFORE_USE"}
     )
+    assert not reaction_assets.allowed({**item, "kind": "sound", "audio_review": "ASR_MISMATCH_PREVIEW_BEFORE_USE"})
+
+
+def test_tiengdong_sound_resolver_uses_the_audio_player_only():
+    page = (
+        '<a href="https://tiengdong.com/wp-content/uploads/related.mp3">Related</a>'
+        '<video><source src="https://tiengdong.com/other.mp4"></video>'
+        '<audio><source src="https://tiengdong.com/wp-content/uploads/mixi.mp3?_=1"></audio>'
+    )
+    assert reaction_assets.resolve_sound(page, provider="tiengdong").endswith("/mixi.mp3")
+    for invalid in [
+        '<a href="https://tiengdong.com/related.mp3">Related</a>',
+        '<audio src="https://example.com/other.mp3"></audio>',
+        '<audio src="https://tiengdong.com/one.mp3"></audio>'
+        '<audio src="https://tiengdong.com/two.mp3"></audio>',
+    ]:
+        with pytest.raises(ValueError):
+            reaction_assets.resolve_sound(invalid, provider="tiengdong")
 
 
 def test_changed_media_cannot_keep_a_verified_catalog_entry(tmp_path, monkeypatch):

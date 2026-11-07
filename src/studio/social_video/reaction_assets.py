@@ -58,18 +58,41 @@ class Page(HTMLParser):
     def __init__(self, body: str):
         super().__init__()
         self.meta = {}
+        self.audio_sources = []
+        self.in_audio = False
         self.feed(body)
 
     def handle_starttag(self, tag, attrs):
         values = dict(attrs)
         if tag == "meta":
             self.meta[values.get("property") or values.get("name")] = values.get("content", "")
+        if tag == "audio":
+            self.in_audio = True
+            if values.get("src"):
+                self.audio_sources.append(values["src"])
+        if tag == "source" and self.in_audio and values.get("src"):
+            self.audio_sources.append(values["src"])
+
+    def handle_endtag(self, tag):
+        if tag == "audio":
+            self.in_audio = False
 
 
-def resolve_sound(body: str) -> str:
+def resolve_sound(body: str, *, provider: str = "myinstants") -> str:
     """Never mistake a related sound at the bottom of the page for the selected sound."""
-    url = Page(body).meta.get("og:audio", "")
-    if urlparse(url).hostname not in {"www.myinstants.com", "myinstants.com"}:
+    page = Page(body)
+    if provider == "tiengdong":
+        sources = list(dict.fromkeys(url.split("?", 1)[0] for url in page.audio_sources))
+        if len(sources) != 1:
+            raise ValueError("The sound page must contain one unambiguous audio recording")
+        url = sources[0]
+        hosts = {"tiengdong.com", "www.tiengdong.com"}
+    elif provider == "myinstants":
+        url = page.meta.get("og:audio", "")
+        hosts = {"www.myinstants.com", "myinstants.com"}
+    else:
+        raise ValueError(f"Unsupported sound source: {provider}")
+    if urlparse(url).scheme != "https" or urlparse(url).hostname not in hosts:
         raise ValueError("The sound page has no verified own audio URL")
     return url
 
@@ -113,7 +136,8 @@ def allowed(item: dict) -> bool:
         and item.get("role") in {"reaction", "meme_template", "meme_sound", "sound_effect"}
         and bool(item.get("source_url"))
         and bool(item.get("sha256"))
-        and item.get("audio_review") != "SHORT_CLIP_ASR_UNRELIABLE_PREVIEW_BEFORE_USE"
+        and item.get("audio_review")
+        not in {"SHORT_CLIP_ASR_UNRELIABLE_PREVIEW_BEFORE_USE", "ASR_MISMATCH_PREVIEW_BEFORE_USE"}
         and (item.get("kind") == "sound" or item.get("visual_review") == "AGENT_INSPECTED")
     )
 
@@ -146,7 +170,10 @@ def reaction(spec: dict, stamp: str) -> list[dict]:
     slug = spec["slug"]
     if not re.fullmatch(r"[a-z0-9-]+", slug):
         raise ValueError("Invalid reaction filename")
-    original = MEMES / "sources/tenor" / f"{slug}.gif"
+    provider = spec.get("provider", "tenor")
+    if provider not in {"tenor", "makeagif"}:
+        raise ValueError(f"Unsupported reaction source: {provider}")
+    original = MEMES / "sources" / provider / f"{slug}.gif"
     selected_url = spec["media"]
     try:
         download(selected_url, original, limit=24_000_000, kind="image")
@@ -203,6 +230,7 @@ def reaction(spec: dict, stamp: str) -> list[dict]:
         spec["page"],
         stamp,
         "reaction",
+        source=provider,
         download_url=selected_url,
         source_sha256=identity,
         source_width=width,
@@ -210,7 +238,8 @@ def reaction(spec: dict, stamp: str) -> list[dict]:
         source_frame_count=frames,
         use_when_vn=spec["use_when"],
         avoid_when_vn=spec["avoid_when"],
-        tags=["vn-reaction-real", slug],
+        tags=["vn-reaction-real", slug, *spec.get("tags", [])],
+        mild_profanity=spec.get("mild_profanity", False),
         sound_names=spec["sound_names"],
         reference_match=spec["reference_match"],
         visual_review="PENDING_AGENT_CONTACT_SHEET",
@@ -239,16 +268,18 @@ def reaction(spec: dict, stamp: str) -> list[dict]:
 def sound(spec: dict, stamp: str) -> dict:
     response = requests.get(spec["page"], timeout=(8, 20))
     response.raise_for_status()
-    url = resolve_sound(response.text)
+    provider = spec.get("provider", "myinstants")
+    url = resolve_sound(response.text, provider=provider)
     slug = re.sub(r"[^a-z0-9]+", "-", Path(urlparse(url).path).stem.lower()).strip("-")
-    path = MEMES / "sounds/myinstants" / f"{slug}.mp3"
+    path = MEMES / "sounds" / provider / f"{slug}.mp3"
     digest, new = download(url, path, limit=6_000_000, kind="audio")
     return _base(
         spec["name"],
         spec["page"],
         stamp,
         "meme_sound",
-        id=f"s:myinstants/{slug}",
+        source=provider,
+        id=f"s:{provider}/{slug}",
         kind="sound",
         file=path.relative_to(MEMES).as_posix(),
         sha256=digest,
@@ -256,9 +287,11 @@ def sound(spec: dict, stamp: str) -> dict:
         duration=probe(path).duration,
         has_audio=True,
         changed_or_new=new,
-        tags=["vn-source-refreshed"],
+        tags=["vn-source-refreshed", *spec.get("tags", [])],
         use_when_vn=spec.get("use_when", "Phản ứng ngắn đúng nội dung"),
-        avoid_when_vn="Không chồng lời đọc, không cắt giữa câu, không dùng ở nội dung nhạy cảm",
+        avoid_when_vn=spec.get(
+            "avoid_when", "Không chồng lời đọc, không cắt giữa câu, không dùng ở nội dung nhạy cảm"
+        ),
         mild_profanity=spec.get("mild_profanity", False),
         audio_review="SOURCE_AND_DECODE_CHECKED",
     )
@@ -372,7 +405,9 @@ def refresh() -> dict:
         ):
             item["visual_review"] = "AGENT_INSPECTED"
             item["visual_evidence"] = previous.get("visual_evidence")
-        source = "myinstants" if item["kind"] == "sound" else "imgflip" if item["role"] == "meme_template" else "tenor"
+        source = item.get("source") or (
+            "myinstants" if item["kind"] == "sound" else "imgflip" if item["role"] == "meme_template" else "tenor"
+        )
         meta.setdefault(item["file"], {}).update(item, source=source)
         if item.get("derived_from"):
             meta.setdefault(item["derived_from"], {}).update(
@@ -394,6 +429,7 @@ def refresh() -> dict:
         "items": items,
         "failures": failures,
         "excluded_standins": rejected,
+        "creator_requests": spec.get("creator_requests", []),
         "rights_note": spec["rights_note"],
         "selection_policy": (
             "Use a real meme only when it fits the punchline; ordinary photos, screenshots, "
@@ -417,7 +453,8 @@ def refresh() -> dict:
 
 
 def make_preview(catalog: dict) -> None:
-    images = [x for x in catalog["items"] if x["kind"] == "image"]
+    items = sorted(catalog["items"], key=lambda item: "vietnamese-meme" not in item.get("tags", []))
+    images = [x for x in items if x["kind"] == "image"]
     font = ImageFont.truetype("C:/Windows/Fonts/arial.ttf", 19)
     rows = (len(images) + 4) // 5
     sheet = Image.new("RGB", (1200, rows * 255), "#1b1b1b")
@@ -443,7 +480,7 @@ def make_preview(catalog: dict) -> None:
     def local(file):
         return html.escape(os.path.relpath(MEMES / file, WORK).replace("\\", "/"), quote=True)
 
-    for item in catalog["items"]:
+    for item in items:
         name = html.escape(item["name"])
         if item["kind"] == "video":
             media = f'<video controls muted loop preload="none" src="{local(item["file"])}"></video>'
@@ -455,9 +492,11 @@ def make_preview(catalog: dict) -> None:
             f"<article><small>{html.escape(item['kind'])}</small><h2>{name}</h2>{media}"
             f"<p>{html.escape(item.get('use_when_vn', ''))}</p><code>{html.escape(item['id'])}</code>"
             f'<p><a href="{html.escape(item["source_url"], quote=True)}">Nguồn</a></p>'
+            + ("<p>Có lời hoặc chữ tục. Xem/nghe trước khi chọn.</p>" if item.get("mild_profanity") else "")
             + (
-                "<p>Cần nghe thử: ASR không đáng tin với clip nói rất ngắn này.</p>"
-                if item.get("audio_review") == "SHORT_CLIP_ASR_UNRELIABLE_PREVIEW_BEFORE_USE"
+                f"<p>Cần nghe thử. {html.escape(item.get('asr_note', 'ASR chưa xác nhận rõ lời trong bản thu.'))}</p>"
+                if item.get("audio_review")
+                in {"SHORT_CLIP_ASR_UNRELIABLE_PREVIEW_BEFORE_USE", "ASR_MISMATCH_PREVIEW_BEFORE_USE"}
                 else ""
             )
             + "</article>"

@@ -43,3 +43,21 @@ Quy tắc chọn:
 - Không dùng meme để chọc vào tang sự, tai nạn, bệnh tật hoặc tranh chấp; không cười nhạo ngoại hình người thật.
 
 Những sửa đổi này không đánh dấu video cũ được duyệt và không bỏ các mốc duyệt cho video sau.
+
+## Bổ sung meme Việt theo yêu cầu người tạo
+
+Kho đã thêm bốn bộ ảnh/clip phản ứng của Độ Mixi và PewPew, cùng mười tám sound từ TiếngĐộng.
+Các câu của Độ Mixi gồm “Ui sợ quá”, “Ui kinh thế”, “Đúng này”, “Bạn thì kinh rồi”, “Tao lạy mày”
+và “Đẹp này, mười điểm”. Có thêm PewPew, Rambo, Linda và “Khoái khoái, chảy nước miếng”.
+Từng mục có tình huống dùng, nguồn tải và nhãn lời/chữ tục. Trang xem ưu tiên nhóm meme Việt này.
+
+Video được kiểm tra qua các khung chuyển động thật. Một GIF gắn nhãn Độ Mixi nhưng chứa cảnh hồ bơi
+đã bị loại sau kiểm tra hình. Clip có chữ tục được ghi đúng sắc thái gắt đùa. GIF chuyển định dạng
+giữ watermark nguồn và lưu tiếng phản ứng riêng trong kho sound.
+
+TiếngĐộng dùng URL trong chính audio player của bài. Bộ nhập từ chối trang có nhiều file audio khác nhau
+hoặc URL ngoài nguồn được hỗ trợ. Kiểm tra ASR lưu transcript thô cùng hash của bản thu. Tiếng cười và
+các câu quá ngắn có thể bị nhận dạng sai, nên cờ cần nghe thử phải được giữ khi chưa đủ bằng chứng.
+
+Yêu cầu “tát chết” đang chờ link hoặc mô tả nhân vật để xác định đúng bản. Sound “Tát vỡ mồm giờ”
+được lưu riêng bằng tên trên nguồn, để người tạo nghe và đối chiếu.

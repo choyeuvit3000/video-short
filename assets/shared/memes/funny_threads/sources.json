@@ -123,6 +123,76 @@
         "Mac Quack"
       ],
       "reference_match": "Established photographed cat meme"
+    },
+    {
+      "slug": "do-mixi-so-qua",
+      "name": "Độ Mixi — sợ quá, phải ban nó thôi",
+      "provider": "makeagif",
+      "page": "https://makeagif.com/gif/meme-ui-so-qua-so-qua-phai-band-no-thoi-cua-anh-do-mixi-lQFoIB",
+      "media": "https://i.makeagif.com/media/7-22-2021/lQFoIB.gif",
+      "poster_at": 2.5,
+      "use_when": "Dọa vui, làm quá một chuyện nhỏ",
+      "avoid_when": "Chỉ dùng làm phản ứng hài phù hợp câu chốt, giữ đúng sắc thái biểu cảm",
+      "sound_names": [
+        "Ui sợ quá, phải ban nó thôi — Độ Mixi"
+      ],
+      "reference_match": "Creator requested recognizable Vietnamese reaction memes",
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ]
+    },
+    {
+      "slug": "do-mixi-tha-tim",
+      "name": "Độ Mixi — thả tim",
+      "provider": "tenor",
+      "page": "https://tenor.com/view/mixi-heart-love-gif-15077147",
+      "media": "https://media1.tenor.com/m/xiZ_r63unm8AAAAd/mixi-heart.gif",
+      "poster_at": 1.5,
+      "use_when": "Bình luận dễ thương, đồng tình hoặc cảm ơn",
+      "avoid_when": "Chỉ dùng làm phản ứng hài phù hợp câu chốt, giữ đúng sắc thái biểu cảm",
+      "sound_names": [],
+      "reference_match": "Creator requested recognizable Vietnamese reaction memes",
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ]
+    },
+    {
+      "slug": "do-mixi-bat-ngo",
+      "name": "Độ Mixi — gắt đùa, có chữ tục",
+      "provider": "tenor",
+      "page": "https://tenor.com/view/mixi-gaming-gif-14792018",
+      "media": "https://media.tenor.com/nHiskqzfoP4AAAAd/mixi-gaming.gif",
+      "poster_at": 0.5,
+      "use_when": "Gắt đùa trước một câu chốt trêu chọc",
+      "avoid_when": "Có chữ tục ngay trên hình. Cần xem trước khi chọn, tránh gán lời chửi cho người trong bài.",
+      "sound_names": [],
+      "reference_match": "Creator requested recognizable Vietnamese reaction memes",
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi",
+        "contains-profanity"
+      ],
+      "mild_profanity": true
+    },
+    {
+      "slug": "pewpew-hi-chao-cau",
+      "name": "PewPew — hi chào cậu",
+      "provider": "makeagif",
+      "page": "https://makeagif.com/gif/pewpew-hi-chao-cau-bjReLa",
+      "media": "https://i.makeagif.com/media/8-26-2022/bjReLa.gif",
+      "poster_at": 1.0,
+      "use_when": "Một người bất ngờ xuất hiện trong bình luận",
+      "avoid_when": "Chỉ dùng làm phản ứng hài phù hợp câu chốt, giữ đúng sắc thái biểu cảm",
+      "sound_names": [
+        "Hi chào cậu — PewPew"
+      ],
+      "reference_match": "Creator requested recognizable Vietnamese reaction memes",
+      "tags": [
+        "vietnamese-meme",
+        "pewpew"
+      ]
     }
   ],
   "imgflip_ids": [
@@ -192,6 +262,254 @@
       "use_when": "Khó hiểu theo lối nói đùa",
       "language": "vi",
       "mild_profanity": true
+    },
+    {
+      "page": "https://tiengdong.com/ui-kinh-the-hieu-biet-the-do-mixi",
+      "name": "Ui kinh thế, hiểu biết thế — Độ Mixi",
+      "provider": "tiengdong",
+      "use_when": "Ngạc nhiên pha mỉa vui trước bình luận tự tin",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/ui-so-qua-so-qua-phai-band-no-thoi-do-mixi",
+      "name": "Ui sợ quá, phải ban nó thôi — Độ Mixi",
+      "provider": "tiengdong",
+      "use_when": "Dọa vui hoặc phản ứng làm quá một chuyện nhỏ",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/am-thanh-dung-nay-tat-ca-deu-dung-hop-ly",
+      "name": "Đúng này, tất cả đều đúng, hợp lý — Độ Mixi",
+      "provider": "tiengdong",
+      "use_when": "Đồng tình hoặc khen một lời giải thích hợp lý",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/tieng-cuoi-do-mixi",
+      "name": "Tiếng cười — Độ Mixi",
+      "provider": "tiengdong",
+      "use_when": "Câu chốt gây cười",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/hoang-duong-ao-tuong-hu-cau-vo-ly-do-mixi",
+      "name": "Hoang đường, ảo tưởng, hư cấu, vô lý — Độ Mixi",
+      "provider": "tiengdong",
+      "use_when": "Bình luận thổi phồng rõ ràng theo hướng hài",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/cay-e-leu-leu-cay-do-mixi",
+      "name": "Cay ê, lêu lêu, cay — Độ Mixi",
+      "provider": "tiengdong",
+      "use_when": "Thua kèo hoặc hụt hẫng trong tình huống vui",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/tao-lay-may-do-mixi",
+      "name": "Tao lạy mày — Độ Mixi",
+      "provider": "tiengdong",
+      "use_when": "Bất lực hài hước trước một câu chốt",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/ban-thi-kinh-roi-do-mixi",
+      "name": "Bạn thì kinh rồi — Độ Mixi",
+      "provider": "tiengdong",
+      "use_when": "Khen đùa bình luận quá tự tin",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/wow-amazing-dep-nay-10-diem-chot-luon-nay-do-mixi",
+      "name": "Đẹp này, mười điểm, chốt luôn — Độ Mixi",
+      "provider": "tiengdong",
+      "use_when": "Khen một hình ảnh hoặc gợi ý hợp gu",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/que-vl-do-mixi",
+      "name": "Quê quá — Độ Mixi, bản có lời tục",
+      "provider": "tiengdong",
+      "use_when": "Bị bắt bài hoặc nhận nhầm trong câu chuyện vui",
+      "language": "vi",
+      "mild_profanity": true,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/dm-cay-the-nho-do-mixi",
+      "name": "Cay thế nhờ — Độ Mixi, bản có lời tục",
+      "provider": "tiengdong",
+      "use_when": "Thua kèo hoặc hụt phần trong tình huống vui",
+      "language": "vi",
+      "mild_profanity": true,
+      "tags": [
+        "vietnamese-meme",
+        "do-mixi"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/vo-tay-pewpew",
+      "name": "Vỗ tay — PewPew",
+      "provider": "tiengdong",
+      "use_when": "Tán thưởng câu bình luận thông minh",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "pewpew"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/am-thanh-meme-hi-chao-cau-pewpew",
+      "name": "Hi chào cậu — PewPew",
+      "provider": "tiengdong",
+      "use_when": "Có nhân vật mới xuất hiện trong bình luận",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "pewpew"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/am-thanh-meme-tao-la-ai-dau-la-day-pewpew",
+      "name": "Tao là ai, đâu là đây — PewPew",
+      "provider": "tiengdong",
+      "use_when": "Ngơ ngác vì cú bẻ lái",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "pewpew"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/noi-the-thi-chiu-roi-chu-biet-sao-gio",
+      "name": "Nói thế thì chịu rồi, chứ biết sao giờ — Rambo",
+      "provider": "tiengdong",
+      "use_when": "Một lời đáp khiến hết đường phản biện",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "rambo"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/cai-gi-vay-ba-noi-linda",
+      "name": "Cái gì vậy bà nội — Linda",
+      "provider": "tiengdong",
+      "use_when": "Bất ngờ vui trước một bình luận khó hiểu",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "linda"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/khoai-khoai-chay-nuoc-mieng-tiktok",
+      "name": "Khoái khoái, chảy nước miếng",
+      "provider": "tiengdong",
+      "use_when": "Hào hứng trước đồ ăn hoặc thứ hợp gu",
+      "language": "vi",
+      "mild_profanity": false,
+      "tags": [
+        "vietnamese-meme",
+        "vietnamese-reaction"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    },
+    {
+      "page": "https://tiengdong.com/tat-vo-mom-gio-sound-effect",
+      "name": "Tát vỡ mồm giờ — câu phản ứng",
+      "provider": "tiengdong",
+      "use_when": "Gắt đùa khi bị trêu trong một tình huống hài",
+      "language": "vi",
+      "mild_profanity": true,
+      "tags": [
+        "vietnamese-meme",
+        "mock-angry"
+      ],
+      "avoid_when": "Không phủ lên lời đọc hoặc dùng để công kích người trong bài. Chọn trọn một câu, nghe bản có lời tục trước khi dùng."
+    }
+  ],
+  "creator_requests": [
+    {
+      "requested": "tát chết",
+      "status": "NEEDS_EXACT_REFERENCE",
+      "note": "Đang chờ người tạo gửi link hoặc mô tả nhân vật để xác định đúng bản. Mục Tát vỡ mồm giờ được giữ bằng tên thật riêng."
+    }
+  ],
+  "rejected_sources": [
+    {
+      "page": "https://tenor.com/view/mixi-mixigaming-refund-refund-gaming-%C4%91%E1%BB%99-gif-18053084",
+      "media": "https://media1.tenor.com/m/9_Y1SAtuQCkAAAAd/mixi-mixigaming.gif",
+      "reason": "Decoded motion frames show a swimming-pool montage, not the described livestream reaction. Excluded after visual inspection."
     }
   ]
 }
