@@ -101,20 +101,10 @@ def make_layouts(plan, edit, out):
             im.alpha_composite(card, (500 - card.width // 2, top))
         if beat is plan["beats"][0]:
             _title(im, edit["hook"], 435, 860)
-        _credit(im, plan)
         path = out / f"layout_{beat['id']}.png"
         im.save(path)
         results.append(path)
     return results
-
-
-def _credit(im, plan):
-    draw = ImageDraw.Draw(im)
-    draw.text(
-        (64, 1636), f"Threads  ·  @{plan['source']['author']}",
-        font=ImageFont.truetype("C:/Windows/Fonts/arialbd.ttf", 29),
-        fill="#ffffff", stroke_width=2, stroke_fill="#201723",
-    )
 
 
 def make_cover(folder, plan, edit, timeline):
@@ -133,5 +123,4 @@ def make_cover(folder, plan, edit, timeline):
         photo = ImageOps.contain(reaction.convert("RGBA"), (275, 280), Image.Resampling.LANCZOS)
     im.alpha_composite(photo, (932 - photo.width, 505))
     _title(im, edit["hook"], 258, 890)
-    _credit(im, plan)
     im.convert("RGB").save(cover)
